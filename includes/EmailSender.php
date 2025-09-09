@@ -53,6 +53,10 @@ class EmailSender {
                 return false;
             }
             
+            // Generar y guardar token de aceptación
+            $acceptToken = $this->generateAcceptToken($cotizacion['id']);
+            $this->saveAcceptToken($cotizacion['id'], $acceptToken);
+            
             // Agregar destinatario principal (cliente)
             $this->mailer->addAddress($cliente['email'], $cliente['nombre']);
             
@@ -64,8 +68,8 @@ class EmailSender {
             // Configurar asunto
             $this->mailer->Subject = 'Cotización ' . $cotizacion['numero_cotizacion'] . ' - DT Studio';
             
-            // Generar contenido HTML del correo
-            $htmlContent = $this->generateQuoteEmailHTML($cotizacion, $cliente);
+            // Generar contenido HTML del correo con el token guardado
+            $htmlContent = $this->generateQuoteEmailHTML($cotizacion, $cliente, $acceptToken);
             $this->mailer->isHTML(true);
             $this->mailer->Body = $htmlContent;
             
@@ -91,9 +95,9 @@ class EmailSender {
         }
     }
     
-    private function generateQuoteEmailHTML($cotizacion, $cliente) {
+    private function generateQuoteEmailHTML($cotizacion, $cliente, $acceptToken = null) {
         $baseUrl = defined('BASE_URL') ? BASE_URL : 'https://dtstudio.com.mx';
-        $acceptUrl = $baseUrl . '/aceptar-cotizacion.php?token=' . $this->generateAcceptToken($cotizacion['id']);
+        $acceptUrl = $baseUrl . '/aceptar-cotizacion.php?token=' . $acceptToken;
         
         $html = '
         <!DOCTYPE html>
@@ -226,6 +230,23 @@ class EmailSender {
         // Generar token único para aceptar la cotización
         $data = $cotizacionId . '_' . time() . '_' . rand(1000, 9999);
         return base64_encode($data);
+    }
+    
+    private function saveAcceptToken($cotizacionId, $token) {
+        // Guardar token en la base de datos
+        global $conn;
+        $stmt = $conn->prepare("UPDATE cotizaciones SET token_aceptacion = ? WHERE id = ?");
+        $stmt->bind_param("si", $token, $cotizacionId);
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        if ($result) {
+            error_log("EmailSender - Token guardado exitosamente para cotización $cotizacionId");
+        } else {
+            error_log("EmailSender - Error guardando token para cotización $cotizacionId");
+        }
+        
+        return $result;
     }
     
     public function validateAcceptToken($token) {
