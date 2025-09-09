@@ -121,10 +121,155 @@ function generateCotizacionPDF($data) {
             echo $html;
         }
     } else {
-        error_log("PDF Generation - mPDF no disponible, generando HTML");
-        // Fallback: generar HTML que se puede convertir a PDF
+        error_log("PDF Generation - mPDF no disponible, generando HTML con estilos de impresión");
+        
+        // Generar HTML con estilos optimizados para impresión/PDF
+        $htmlWithStyles = '
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Cotización ' . htmlspecialchars($data['numero']) . '</title>
+            <style>
+                @media print {
+                    body { margin: 0; padding: 0; }
+                    .no-print { display: none !important; }
+                    .page-break { page-break-before: always; }
+                }
+                
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                    background: white;
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 2px solid #7B3F9F;
+                    padding-bottom: 20px;
+                }
+                
+                .logo {
+                    max-width: 200px;
+                    height: auto;
+                    margin-bottom: 10px;
+                }
+                
+                .company-info {
+                    color: #7B3F9F;
+                    font-weight: bold;
+                    font-size: 14px;
+                }
+                
+                .quote-title {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #7B3F9F;
+                    margin: 20px 0;
+                }
+                
+                .quote-info {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 30px;
+                }
+                
+                .quote-details, .client-details {
+                    flex: 1;
+                    margin: 0 10px;
+                }
+                
+                .quote-details h3, .client-details h3 {
+                    color: #7B3F9F;
+                    border-bottom: 1px solid #ddd;
+                    padding-bottom: 5px;
+                    margin-bottom: 10px;
+                }
+                
+                .products-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                
+                .products-table th,
+                .products-table td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                
+                .products-table th {
+                    background-color: #7B3F9F;
+                    color: white;
+                    font-weight: bold;
+                }
+                
+                .products-table tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                
+                .totals {
+                    margin-top: 20px;
+                    text-align: right;
+                }
+                
+                .total-line {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 5px 0;
+                    padding: 5px 0;
+                }
+                
+                .total-final {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #7B3F9F;
+                    border-top: 2px solid #7B3F9F;
+                    padding-top: 10px;
+                }
+                
+                .observations {
+                    margin-top: 30px;
+                    padding: 15px;
+                    background-color: #f8f9fa;
+                    border-left: 4px solid #7B3F9F;
+                }
+                
+                .footer {
+                    margin-top: 40px;
+                    text-align: center;
+                    font-size: 10px;
+                    color: #666;
+                    border-top: 1px solid #ddd;
+                    padding-top: 20px;
+                }
+                
+                @media print {
+                    body { margin: 0; padding: 10px; }
+                    .no-print { display: none !important; }
+                }
+            </style>
+        </head>
+        <body>
+            ' . $html . '
+        </body>
+        </html>';
+        
+        // Configurar headers para descarga
         header('Content-Type: text/html; charset=UTF-8');
-        echo $html;
+        header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.html"');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+        
+        echo $htmlWithStyles;
+        error_log("PDF Generation - HTML con estilos generado exitosamente");
     }
 }
 
