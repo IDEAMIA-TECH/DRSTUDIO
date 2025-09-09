@@ -901,11 +901,14 @@ function cargarModuloPagos() {
     })
     .then(response => response.json())
     .then(data => {
+        console.log('DEBUG: Respuesta de pagos:', data);
         if (data.success) {
+            console.log('DEBUG: Pagos recibidos:', data.pagos);
             mostrarModuloPagos(data.pagos);
         } else {
+            console.log('DEBUG: Error en respuesta:', data.message);
             document.getElementById('modulo-pagos').innerHTML = 
-                '<div class="text-center text-muted">No se pudo cargar la información de pagos</div>';
+                '<div class="text-center text-muted">No se pudo cargar la información de pagos: ' + data.message + '</div>';
         }
     })
     .catch(error => {
@@ -917,12 +920,16 @@ function cargarModuloPagos() {
 
 // Función para mostrar módulo de pagos
 function mostrarModuloPagos(pagos) {
+    console.log('DEBUG: Mostrando módulo de pagos con datos:', pagos);
     const container = document.getElementById('modulo-pagos');
     const totalCotizacion = <?php echo $total_calculado; ?>;
     
     let totalPagado = 0;
     if (pagos && pagos.length > 0) {
         totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.monto), 0);
+        console.log('DEBUG: Total pagado calculado:', totalPagado);
+    } else {
+        console.log('DEBUG: No hay pagos o array vacío');
     }
     
     const pendiente = totalCotizacion - totalPagado;
@@ -981,21 +988,21 @@ function mostrarModuloPagos(pagos) {
     html += `${porcentajePagado.toFixed(1)}%`;
     html += '</div></div></div>';
     
-    // Lista de pagos
+    // Lista de pagos - siempre mostrar la tabla
+    html += '<h6 class="mb-3"><i class="fas fa-list me-2"></i>Pagos Registrados</h6>';
+    html += '<div class="table-responsive">';
+    html += '<table class="table table-sm table-striped">';
+    html += '<thead class="table-dark">';
+    html += '<tr>';
+    html += '<th>Fecha</th>';
+    html += '<th>Monto</th>';
+    html += '<th>Método</th>';
+    html += '<th>Referencia</th>';
+    html += '<th>Usuario</th>';
+    html += '</tr>';
+    html += '</thead><tbody>';
+    
     if (pagos && pagos.length > 0) {
-        html += '<h6 class="mb-3"><i class="fas fa-list me-2"></i>Pagos Registrados</h6>';
-        html += '<div class="table-responsive">';
-        html += '<table class="table table-sm table-striped">';
-        html += '<thead class="table-dark">';
-        html += '<tr>';
-        html += '<th>Fecha</th>';
-        html += '<th>Monto</th>';
-        html += '<th>Método</th>';
-        html += '<th>Referencia</th>';
-        html += '<th>Usuario</th>';
-        html += '</tr>';
-        html += '</thead><tbody>';
-        
         pagos.forEach(pago => {
             html += '<tr>';
             html += `<td>${new Date(pago.fecha_pago).toLocaleDateString('es-ES')}</td>`;
@@ -1005,14 +1012,16 @@ function mostrarModuloPagos(pagos) {
             html += `<td>${pago.usuario_nombre || 'Sistema'}</td>`;
             html += '</tr>';
         });
-        
-        html += '</tbody></table></div>';
     } else {
-        html += '<div class="text-center text-muted py-3">';
-        html += '<i class="fas fa-credit-card fa-3x mb-3"></i>';
-        html += '<p>No hay pagos registrados</p>';
-        html += '</div>';
+        html += '<tr>';
+        html += '<td colspan="5" class="text-center text-muted py-3">';
+        html += '<i class="fas fa-credit-card fa-2x mb-2 d-block"></i>';
+        html += 'No hay pagos registrados';
+        html += '</td>';
+        html += '</tr>';
     }
+    
+    html += '</tbody></table></div>';
     
     // Botón para registrar pago si está en espera de depósito
     <?php if ($cotizacion['estado'] == 'en_espera_deposito'): ?>
