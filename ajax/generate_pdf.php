@@ -399,10 +399,11 @@ function createCotizacionHTML($data) {
                 font-weight: bold;
                 font-size: 14px;
                 background-color: #7B3F9F;
-                color: white;
+                color: white !important;
             }
             .totals .total-row td {
                 color: white !important;
+                background-color: #7B3F9F !important;
             }
             .observations {
                 margin-top: 30px;
