@@ -1,7 +1,4 @@
 <?php
-$pageTitle = 'Ver Cotización';
-require_once 'includes/header.php';
-
 // Obtener ID de la cotización
 $id = $_GET['id'] ?? 0;
 if (!$id) {
@@ -22,6 +19,9 @@ if (!$cotizacion) {
     header('Location: cotizaciones.php');
     exit;
 }
+
+$pageTitle = 'Ver Cotización';
+require_once 'includes/header.php';
 
 // Obtener items de la cotización
 $items = readRecords('cotizacion_items', ["cotizacion_id = $id"], null, 'id ASC');

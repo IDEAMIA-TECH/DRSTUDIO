@@ -231,8 +231,8 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <h2 class="display-6 fw-bold mb-3" style="color: var(--primary-color);">¿Listo para Impresionar a tus Clientes?</h2>
-                    <p class="lead mb-0">Solicita una cotización personalizada y descubre cómo podemos ayudarte a destacar tu marca.</p>
+                    <h2 class="display-6 fw-bold mb-3" style="color: white;">¿Listo para Impresionar a tus Clientes?</h2>
+                    <p class="lead mb-0" style="color: rgba(255,255,255,0.9);">Solicita una cotización personalizada y descubre cómo podemos ayudarte a destacar tu marca.</p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
                     <div class="d-flex flex-column gap-2">
