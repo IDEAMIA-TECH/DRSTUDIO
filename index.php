@@ -80,14 +80,10 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                 </ul>
                 <div class="d-flex gap-2">
                     <a href="cotizacion.php" class="btn btn-primary">
-                        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=20&h=20&fit=crop&crop=center" 
-                             alt="Calculadora" class="me-2 btn-icon">
-                        Solicitar Cotización
+                        <i class="fas fa-calculator me-2"></i>Solicitar Cotización
                     </a>
                     <a href="admin/" class="btn btn-outline-secondary">
-                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                             alt="Configuración" class="me-2 btn-icon">
-                        Admin
+                        <i class="fas fa-cog me-2"></i>Admin
                     </a>
                 </div>
             </div>
@@ -132,14 +128,10 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         </div>
                         <div class="d-flex flex-wrap gap-3">
                             <a href="productos.php" class="btn btn-light btn-lg px-4 py-3">
-                                <img src="https://images.unsplash.com/photo-1555529907-2a2a4b0b0b0b?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Bolsa de compras" class="me-2 btn-icon">
-                                Explorar Productos
+                                <i class="fas fa-shopping-bag me-2"></i>Explorar Productos
                             </a>
                             <a href="cotizacion.php" class="btn btn-outline-light btn-lg px-4 py-3">
-                                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Calculadora" class="me-2 btn-icon">
-                                Solicitar Cotización
+                                <i class="fas fa-calculator me-2"></i>Solicitar Cotización
                             </a>
                         </div>
                     </div>
@@ -148,25 +140,20 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     <div class="hero-visual text-center position-relative">
                         <div class="floating-elements">
                             <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 0s;">
-                                <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=60&h=60&fit=crop&crop=center" 
-                                     alt="Gema" class="floating-img">
+                                <i class="fas fa-gem fa-2x text-white opacity-75"></i>
                             </div>
                             <div class="floating-icon" style="top: 20%; right: 15%; animation-delay: 1s;">
-                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=60&h=60&fit=crop&crop=center" 
-                                     alt="Estrella" class="floating-img">
+                                <i class="fas fa-star fa-2x text-white opacity-75"></i>
                             </div>
                             <div class="floating-icon" style="bottom: 30%; left: 5%; animation-delay: 2s;">
-                                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=60&h=60&fit=crop&crop=center" 
-                                     alt="Corazón" class="floating-img">
+                                <i class="fas fa-heart fa-2x text-white opacity-75"></i>
                             </div>
                             <div class="floating-icon" style="bottom: 10%; right: 10%; animation-delay: 3s;">
-                                <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=60&h=60&fit=crop&crop=center" 
-                                     alt="Trofeo" class="floating-img">
+                                <i class="fas fa-trophy fa-2x text-white opacity-75"></i>
                             </div>
                         </div>
                         <div class="main-icon">
-                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200&h=200&fit=crop&crop=center" 
-                                 alt="Gema principal" class="main-hero-img">
+                            <i class="fas fa-gem fa-10x text-white opacity-90"></i>
                         </div>
                     </div>
                 </div>
@@ -290,13 +277,11 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         </p>
                         <div class="step-features">
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Cotización gratuita</span>
                             </div>
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Diseño personalizado</span>
                             </div>
                         </div>
@@ -317,13 +302,11 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         </p>
                         <div class="step-features">
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Pago seguro</span>
                             </div>
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Confirmación inmediata</span>
                             </div>
                         </div>
@@ -344,13 +327,11 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         </p>
                         <div class="step-features">
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Entrega puntual</span>
                             </div>
                             <div class="feature-item">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2 check-icon">
+                                <i class="fas fa-check-circle text-success me-2"></i>
                                 <span>Calidad garantizada</span>
                             </div>
                         </div>
@@ -417,9 +398,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                 <div class="col-lg-8">
                     <div class="cta-content">
                         <span class="cta-badge mb-3 d-inline-block">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                 alt="Cohete" class="me-2 badge-icon">
-                            ¡Comienza Ahora!
+                            <i class="fas fa-rocket me-2"></i>¡Comienza Ahora!
                         </span>
                         <h2 class="display-5 fw-bold mb-4" style="color: white; font-family: var(--font-display);">
                             ¿Listo para <span class="text-gradient">Impresionar</span> a tus Clientes?
@@ -432,22 +411,19 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2 check-icon">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
                                         <span class="text-white-75">Cotización Gratuita</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2 check-icon">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
                                         <span class="text-white-75">Diseño Personalizado</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2 check-icon">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
                                         <span class="text-white-75">Entrega Rápida</span>
                                     </div>
                                 </div>
@@ -459,14 +435,10 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     <div class="cta-actions">
                         <div class="d-flex flex-column gap-3">
                             <a href="cotizacion.php" class="btn btn-light btn-lg px-4 py-3">
-                                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Calculadora" class="me-2 btn-icon">
-                                Solicitar Cotización
+                                <i class="fas fa-calculator me-2"></i>Solicitar Cotización
                             </a>
                             <a href="admin/" class="btn btn-outline-light btn-lg px-4 py-3">
-                                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Configuración" class="me-2 btn-icon">
-                                Panel de Administración
+                                <i class="fas fa-cog me-2"></i>Panel de Administración
                             </a>
                         </div>
                         <div class="cta-stats mt-4">
