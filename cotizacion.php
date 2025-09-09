@@ -64,8 +64,9 @@ function validateEmail($email) {
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color) !important;">
-                <i class="fas fa-gem me-2"></i>DR Studio
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+                <img src="assets/images/logo-dt-studio.svg" alt="DR Studio" height="40" class="me-2">
+                <span style="color: var(--primary-color) !important;">DR Studio</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -413,9 +414,10 @@ function validateEmail($email) {
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4">
-                    <h5 class="fw-bold mb-3">
-                        <i class="fas fa-gem me-2"></i>DR Studio
-                    </h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="assets/images/logo-dt-studio.svg" alt="DR Studio" height="30" class="me-2">
+                        <h5 class="fw-bold mb-0">DR Studio</h5>
+                    </div>
                     <p class="text-muted">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
                     <div class="social-links">
                         <a href="#" class="text-muted me-3"><i class="fab fa-facebook fa-lg"></i></a>

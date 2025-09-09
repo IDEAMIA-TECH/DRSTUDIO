@@ -32,6 +32,19 @@ body {
     font-size: 1.5rem;
     color: var(--primary-color) !important;
     font-weight: 700;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+.navbar-brand img {
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: rotate(5deg);
 }
 
 .navbar-nav .nav-link {
@@ -486,4 +499,20 @@ a:hover {
 .badge-secondary {
     background-color: var(--secondary-color);
     color: white;
+}
+
+/* Logo Styles */
+.navbar-brand img {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+footer img {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+footer img:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    transition: all 0.3s ease;
 }
