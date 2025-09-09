@@ -47,11 +47,19 @@ class EmailSender {
             $this->mailer->clearAddresses();
             $this->mailer->clearAttachments();
             
+            // Verificar que el cliente tenga email
+            if (empty($cliente['email'])) {
+                error_log("EmailSender - Error: Cliente no tiene email");
+                return false;
+            }
+            
             // Agregar destinatario principal (cliente)
             $this->mailer->addAddress($cliente['email'], $cliente['nombre']);
             
-            // Agregar copia al administrador
-            $this->mailer->addCC(ADMIN_EMAIL, 'Administrador DT Studio');
+            // Agregar copia al administrador solo si está configurado
+            if (!empty(ADMIN_EMAIL)) {
+                $this->mailer->addCC(ADMIN_EMAIL, 'Administrador DT Studio');
+            }
             
             // Configurar asunto
             $this->mailer->Subject = 'Cotización ' . $cotizacion['numero_cotizacion'] . ' - DT Studio';
@@ -84,7 +92,8 @@ class EmailSender {
     }
     
     private function generateQuoteEmailHTML($cotizacion, $cliente) {
-        $acceptUrl = ACCEPT_QUOTE_URL . '?token=' . $this->generateAcceptToken($cotizacion['id']);
+        $baseUrl = defined('BASE_URL') ? BASE_URL : 'https://dtstudio.com.mx';
+        $acceptUrl = $baseUrl . '/aceptar-cotizacion.php?token=' . $this->generateAcceptToken($cotizacion['id']);
         
         $html = '
         <!DOCTYPE html>
@@ -249,11 +258,19 @@ class EmailSender {
             $this->mailer->clearAddresses();
             $this->mailer->clearAttachments();
             
+            // Verificar que el cliente tenga email
+            if (empty($cliente['email'])) {
+                error_log("EmailSender - Error: Cliente no tiene email");
+                return false;
+            }
+            
             // Agregar destinatario principal (cliente)
             $this->mailer->addAddress($cliente['email'], $cliente['nombre']);
             
-            // Agregar copia al administrador
-            $this->mailer->addCC(ADMIN_EMAIL, 'Administrador DT Studio');
+            // Agregar copia al administrador solo si está configurado
+            if (!empty(ADMIN_EMAIL)) {
+                $this->mailer->addCC(ADMIN_EMAIL, 'Administrador DT Studio');
+            }
             
             // Configurar asunto
             $this->mailer->Subject = 'Cotización Aceptada - ' . $cotizacion['numero_cotizacion'] . ' - DT Studio';

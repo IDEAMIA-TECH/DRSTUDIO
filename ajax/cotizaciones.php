@@ -243,22 +243,48 @@ switch ($action) {
         break;
         
     case 'change_status':
+        error_log("AJAX Cotizaciones - ===== INICIANDO CHANGE_STATUS =====");
+        error_log("AJAX Cotizaciones - POST data: " . print_r($_POST, true));
+        
         $id = (int)$_POST['id'];
         $estado = $_POST['estado'];
         
-        error_log("AJAX Cotizaciones - Cambiando estado: ID=$id, Estado=$estado");
+        error_log("AJAX Cotizaciones - ID extraído: $id");
+        error_log("AJAX Cotizaciones - Estado extraído: $estado");
         
         $estadosValidos = ['pendiente', 'enviada', 'aceptada', 'rechazada', 'cancelada', 'en_espera_deposito'];
         if (!in_array($estado, $estadosValidos)) {
-            error_log("AJAX Cotizaciones - Estado no válido: $estado");
+            error_log("AJAX Cotizaciones - ERROR: Estado no válido: $estado");
+            error_log("AJAX Cotizaciones - Estados válidos: " . implode(', ', $estadosValidos));
             echo json_encode(['success' => false, 'message' => 'Estado no válido']);
+            exit;
+        }
+        
+        // Verificar el estado actual de la cotización
+        $cotizacionActual = getRecord('cotizaciones', $id);
+        if (!$cotizacionActual) {
+            error_log("AJAX Cotizaciones - ERROR: Cotización no encontrada");
+            echo json_encode(['success' => false, 'message' => 'Cotización no encontrada']);
+            exit;
+        }
+        
+        error_log("AJAX Cotizaciones - Estado actual: " . $cotizacionActual['estado']);
+        
+        // Si ya tiene el mismo estado, no hacer nada
+        if ($cotizacionActual['estado'] === $estado) {
+            error_log("AJAX Cotizaciones - La cotización ya tiene el estado '$estado'");
+            echo json_encode(['success' => true, 'message' => "La cotización ya tiene el estado '$estado'"]);
             exit;
         }
         
         $data = ['estado' => $estado];
         error_log("AJAX Cotizaciones - Datos para actualizar: " . print_r($data, true));
+        error_log("AJAX Cotizaciones - Llamando a updateRecord...");
         
-        if (updateRecord('cotizaciones', $data, $id)) {
+        $updateResult = updateRecord('cotizaciones', $data, $id);
+        error_log("AJAX Cotizaciones - Resultado de updateRecord: " . ($updateResult ? 'TRUE' : 'FALSE'));
+        
+        if ($updateResult) {
             error_log("AJAX Cotizaciones - Estado actualizado exitosamente");
             $estadoTexto = ucfirst($estado);
             
@@ -322,8 +348,19 @@ switch ($action) {
             error_log("AJAX Cotizaciones - Respuesta exitosa: $estadoTexto");
             echo json_encode(['success' => true, 'message' => "Cotización marcada como $estadoTexto exitosamente"]);
         } else {
-            error_log("AJAX Cotizaciones - Error actualizando estado en base de datos");
-            echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado']);
+            error_log("AJAX Cotizaciones - ERROR: updateRecord falló");
+            error_log("AJAX Cotizaciones - ID de cotización: $id");
+            error_log("AJAX Cotizaciones - Datos enviados: " . print_r($data, true));
+            error_log("AJAX Cotizaciones - Verificando si la cotización existe...");
+            
+            $cotizacionCheck = getRecord('cotizaciones', $id);
+            if ($cotizacionCheck) {
+                error_log("AJAX Cotizaciones - La cotización existe: " . print_r($cotizacionCheck, true));
+            } else {
+                error_log("AJAX Cotizaciones - ERROR: La cotización no existe en la base de datos");
+            }
+            
+            echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado de la cotización']);
         }
         break;
         

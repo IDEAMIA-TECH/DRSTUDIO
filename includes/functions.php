@@ -72,7 +72,13 @@ function getRecord($table, $id) {
 function updateRecord($table, $data, $id) {
     global $conn;
     
+    error_log("updateRecord - Iniciando actualización");
+    error_log("updateRecord - Tabla: $table");
+    error_log("updateRecord - ID: $id");
+    error_log("updateRecord - Datos: " . print_r($data, true));
+    
     if (empty($data) || !is_array($data)) {
+        error_log("updateRecord - ERROR: Datos vacíos o no es array");
         return false;
     }
     
@@ -83,11 +89,13 @@ function updateRecord($table, $data, $id) {
     $setClause = implode(', ', $setClause);
     
     $sql = "UPDATE $table SET $setClause WHERE id = ?";
+    error_log("updateRecord - SQL: $sql");
+    
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
-        error_log("Error preparando consulta UPDATE: " . $conn->error);
-        error_log("SQL: " . $sql);
+        error_log("updateRecord - ERROR preparando consulta: " . $conn->error);
+        error_log("updateRecord - SQL: " . $sql);
         return false;
     }
     
@@ -109,15 +117,22 @@ function updateRecord($table, $data, $id) {
     $types .= 'i';
     $values[] = $id;
     
+    error_log("updateRecord - Tipos: $types");
+    error_log("updateRecord - Valores: " . print_r($values, true));
+    
     $stmt->bind_param($types, ...$values);
     $result = $stmt->execute();
+    
+    error_log("updateRecord - Resultado execute: " . ($result ? 'TRUE' : 'FALSE'));
     
     if (!$result) {
         $errorMsg = "Error ejecutando UPDATE: " . $stmt->error;
         $errorMsg .= "\nSQL: " . $sql;
         $errorMsg .= "\nTipos: " . $types;
         $errorMsg .= "\nValores: " . print_r($values, true);
-        error_log($errorMsg);
+        error_log("updateRecord - ERROR: " . $errorMsg);
+    } else {
+        error_log("updateRecord - Filas afectadas: " . $stmt->affected_rows);
     }
     
     $stmt->close();
