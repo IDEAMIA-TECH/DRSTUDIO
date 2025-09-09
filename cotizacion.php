@@ -13,6 +13,15 @@ $categorias = readRecords('categorias', ['activo' => 1], null, 'nombre ASC');
 
 // Obtener producto preseleccionado si viene por GET
 $producto_preseleccionado = $_GET['producto'] ?? '';
+$producto_info = null;
+
+if ($producto_preseleccionado) {
+    $producto_info = getRecord('productos', $producto_preseleccionado);
+    if (!$producto_info || !$producto_info['activo']) {
+        $producto_info = null;
+        $producto_preseleccionado = '';
+    }
+}
 
 $error = '';
 $success = '';
@@ -162,6 +171,31 @@ function validateEmail($email) {
                                 </div>
                             <?php endif; ?>
                             
+                            <?php if ($producto_info): ?>
+                            <!-- Producto Preseleccionado -->
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <h5 class="mb-0">Producto de Interés</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-2"><?php echo htmlspecialchars($producto_info['nombre']); ?></h6>
+                                        <p class="text-muted mb-2"><?php echo htmlspecialchars(substr($producto_info['descripcion'], 0, 150)); ?>...</p>
+                                        <div class="d-flex align-items-center">
+                                            <span class="h6 text-primary mb-0 me-3">$<?php echo number_format($producto_info['precio_venta'], 2); ?></span>
+                                            <small class="text-muted">SKU: <?php echo htmlspecialchars($producto_info['sku']); ?></small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <a href="producto.php?id=<?php echo $producto_info['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Ver Detalles
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            
                             <form method="POST" id="quoteForm" class="needs-validation" novalidate>
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
@@ -235,7 +269,15 @@ function validateEmail($email) {
                                               id="productos_interes" 
                                               name="productos_interes" 
                                               rows="3" 
-                                              placeholder="Describe los productos que te interesan..."><?php echo $_POST['productos_interes'] ?? ''; ?></textarea>
+                                              placeholder="Describe los productos que te interesan..."><?php 
+                                              if ($_POST['productos_interes'] ?? '') {
+                                                  echo $_POST['productos_interes'];
+                                              } elseif ($producto_info) {
+                                                  echo "Interesado en: " . htmlspecialchars($producto_info['nombre']) . " (SKU: " . htmlspecialchars($producto_info['sku']) . ")\n";
+                                                  echo "Precio: $" . number_format($producto_info['precio_venta'], 2) . "\n";
+                                                  echo "Descripción: " . htmlspecialchars(substr($producto_info['descripcion'], 0, 200));
+                                              }
+                                              ?></textarea>
                                 </div>
                                 
                                 <div class="row">
