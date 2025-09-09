@@ -161,26 +161,6 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         </div>
     </section>
 
-    <!-- Banners Section -->
-    <?php if (!empty($banners)): ?>
-    <section class="banners-section py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <?php foreach ($banners as $banner): ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="<?php echo htmlspecialchars($banner['icono']); ?> fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title"><?php echo htmlspecialchars($banner['titulo']); ?></h5>
-                            <p class="card-text"><?php echo htmlspecialchars($banner['descripcion']); ?></p>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
-    <?php endif; ?>
 
     <!-- Productos Destacados -->
     <section class="productos-section py-5 position-relative">
@@ -188,7 +168,6 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
             <div class="row mb-5">
                 <div class="col-12 text-center">
                     <div class="section-header">
-                        <span class="section-badge">✨ Productos Premium</span>
                         <h2 class="section-title display-4 fw-bold mb-3" style="font-family: var(--font-display);">
                             Nuestros <span class="text-gradient">Favoritos</span>
                         </h2>
@@ -252,7 +231,6 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
             <div class="row mb-5">
                 <div class="col-12 text-center">
                     <div class="section-header">
-                        <span class="section-badge">🚀 Proceso Simple</span>
                         <h2 class="section-title display-4 fw-bold mb-3" style="font-family: var(--font-display);">
                             ¿Cómo <span class="text-gradient">Funciona</span>?
                         </h2>
@@ -397,9 +375,6 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
             <div class="row align-items-center">
                 <div class="col-lg-8">
                     <div class="cta-content">
-                        <span class="cta-badge mb-3 d-inline-block">
-                            <i class="fas fa-rocket me-2"></i>¡Comienza Ahora!
-                        </span>
                         <h2 class="display-5 fw-bold mb-4" style="color: white; font-family: var(--font-display);">
                             ¿Listo para <span class="text-gradient">Impresionar</span> a tus Clientes?
                         </h2>
