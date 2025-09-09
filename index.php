@@ -29,6 +29,11 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     <title><?php echo $pageTitle; ?></title>
     <meta name="description" content="<?php echo $pageDescription; ?>">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -86,24 +91,70 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     </header>
 
     <!-- Hero Section -->
-    <section class="hero-section bg-primary text-white py-5">
+    <section class="hero-section text-white py-5">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center min-vh-75">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4" style="color: white;">Productos Promocionales de Calidad</h1>
-                    <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">Transformamos tus ideas en productos promocionales únicos. Cotizaciones personalizadas, entrega rápida y calidad garantizada.</p>
-                    <div class="d-flex gap-3">
-                        <a href="productos.php" class="btn btn-light btn-lg" style="color: var(--primary-color); font-weight: 600;">
-                            <i class="fas fa-shopping-bag me-2"></i>Ver Productos
-                        </a>
-                        <a href="cotizacion.php" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-calculator me-2"></i>Solicitar Cotización
-                        </a>
+                    <div class="hero-content">
+                        <h1 class="display-3 fw-bold mb-4" style="color: white; font-family: var(--font-display);">
+                            ¡Impulsa tu Marca con 
+                            <span class="text-gradient">Productos Únicos</span>
+                        </h1>
+                        <p class="lead mb-4" style="color: rgba(255,255,255,0.9); font-size: 1.25rem;">
+                            Transformamos tus ideas en productos promocionales extraordinarios. 
+                            <strong>Diseño personalizado</strong>, entrega rápida y calidad premium garantizada.
+                        </p>
+                        <div class="hero-stats mb-4">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="fw-bold text-white mb-0">500+</h3>
+                                        <small class="text-white-50">Clientes Satisfechos</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="fw-bold text-white mb-0">1000+</h3>
+                                        <small class="text-white-50">Productos Entregados</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="fw-bold text-white mb-0">24h</h3>
+                                        <small class="text-white-50">Tiempo de Respuesta</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="productos.php" class="btn btn-light btn-lg px-4 py-3">
+                                <i class="fas fa-shopping-bag me-2"></i>Explorar Productos
+                            </a>
+                            <a href="cotizacion.php" class="btn btn-outline-light btn-lg px-4 py-3">
+                                <i class="fas fa-calculator me-2"></i>Solicitar Cotización
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="hero-image text-center">
-                        <i class="fas fa-gem fa-10x opacity-75"></i>
+                    <div class="hero-visual text-center position-relative">
+                        <div class="floating-elements">
+                            <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 0s;">
+                                <i class="fas fa-gem fa-2x text-white opacity-75"></i>
+                            </div>
+                            <div class="floating-icon" style="top: 20%; right: 15%; animation-delay: 1s;">
+                                <i class="fas fa-star fa-2x text-white opacity-75"></i>
+                            </div>
+                            <div class="floating-icon" style="bottom: 30%; left: 5%; animation-delay: 2s;">
+                                <i class="fas fa-heart fa-2x text-white opacity-75"></i>
+                            </div>
+                            <div class="floating-icon" style="bottom: 10%; right: 10%; animation-delay: 3s;">
+                                <i class="fas fa-trophy fa-2x text-white opacity-75"></i>
+                            </div>
+                        </div>
+                        <div class="main-icon">
+                            <i class="fas fa-gem fa-10x text-white opacity-90"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -132,12 +183,18 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     <?php endif; ?>
 
     <!-- Productos Destacados -->
-    <section class="productos-section py-5">
+    <section class="productos-section py-5 position-relative">
         <div class="container">
             <div class="row mb-5">
                 <div class="col-12 text-center">
-                    <h2 class="section-title">Productos Destacados</h2>
-                    <p class="lead text-muted">Nuestros productos más populares y de mayor calidad</p>
+                    <div class="section-header">
+                        <span class="section-badge">✨ Productos Premium</span>
+                        <h2 class="section-title display-4 fw-bold mb-3" style="font-family: var(--font-display);">
+                            Nuestros <span class="text-gradient">Favoritos</span>
+                        </h2>
+                        <p class="lead text-muted fs-5">Descubre nuestra selección de productos más populares y de mayor calidad</p>
+                        <div class="section-divider mx-auto"></div>
+                    </div>
                 </div>
             </div>
             
@@ -227,24 +284,76 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     <?php endif; ?>
 
     <!-- CTA Section -->
-    <section class="cta-section py-5 bg-primary text-white">
+    <section class="cta-section py-5 position-relative overflow-hidden">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <h2 class="display-6 fw-bold mb-3" style="color: white;">¿Listo para Impresionar a tus Clientes?</h2>
-                    <p class="lead mb-0" style="color: rgba(255,255,255,0.9);">Solicita una cotización personalizada y descubre cómo podemos ayudarte a destacar tu marca.</p>
+                    <div class="cta-content">
+                        <span class="cta-badge mb-3 d-inline-block">
+                            <i class="fas fa-rocket me-2"></i>¡Comienza Ahora!
+                        </span>
+                        <h2 class="display-5 fw-bold mb-4" style="color: white; font-family: var(--font-display);">
+                            ¿Listo para <span class="text-gradient">Impresionar</span> a tus Clientes?
+                        </h2>
+                        <p class="lead mb-4" style="color: rgba(255,255,255,0.9); font-size: 1.2rem;">
+                            Solicita una cotización personalizada y descubre cómo podemos ayudarte a 
+                            <strong>destacar tu marca</strong> con productos únicos y de calidad premium.
+                        </p>
+                        <div class="cta-features mb-4">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="feature-item d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span class="text-white-75">Cotización Gratuita</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="feature-item d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span class="text-white-75">Diseño Personalizado</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="feature-item d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span class="text-white-75">Entrega Rápida</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex flex-column gap-2">
-                        <a href="cotizacion.php" class="btn btn-light btn-lg">
-                            <i class="fas fa-calculator me-2"></i>Solicitar Cotización
-                        </a>
-                        <a href="admin/" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-cog me-2"></i>Panel de Administración
-                        </a>
+                    <div class="cta-actions">
+                        <div class="d-flex flex-column gap-3">
+                            <a href="cotizacion.php" class="btn btn-light btn-lg px-4 py-3">
+                                <i class="fas fa-calculator me-2"></i>Solicitar Cotización
+                            </a>
+                            <a href="admin/" class="btn btn-outline-light btn-lg px-4 py-3">
+                                <i class="fas fa-cog me-2"></i>Panel de Administración
+                            </a>
+                        </div>
+                        <div class="cta-stats mt-4">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="stat-number text-white fw-bold">24h</div>
+                                    <div class="stat-label text-white-50 small">Respuesta</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stat-number text-white fw-bold">100%</div>
+                                    <div class="stat-label text-white-50 small">Satisfacción</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Background Elements -->
+        <div class="cta-bg-elements">
+            <div class="cta-circle cta-circle-1"></div>
+            <div class="cta-circle cta-circle-2"></div>
+            <div class="cta-circle cta-circle-3"></div>
         </div>
     </section>
 
