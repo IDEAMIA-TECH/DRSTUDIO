@@ -110,8 +110,8 @@ function generateCotizacionPDF($data) {
             
             // Configurar metadatos del PDF
             $mpdf->SetTitle('Cotización ' . $data['numero']);
-            $mpdf->SetAuthor('DR Studio');
-            $mpdf->SetCreator('DR Studio - Sistema de Cotizaciones');
+            $mpdf->SetAuthor('DT Studio');
+            $mpdf->SetCreator('DT Studio - Sistema de Cotizaciones');
             $mpdf->SetSubject('Cotización de productos promocionales');
             
             // Escribir el HTML al PDF
@@ -429,11 +429,11 @@ function createCotizacionHTML($data) {
     <body>
         <div class="header">
             <div>
-                ' . ($logoExists ? '<img src="' . $logoPath . '" alt="DR Studio" class="logo">' : '') . '
+                ' . ($logoExists ? '<img src="' . $logoPath . '" alt="DT Studio" class="logo">' : '') . '
             </div>
             <div class="company-info">
-                <h1 class="company-name">DR Studio</h1>
-                <p class="company-subtitle">Promocionales y Merchandising</p>
+                <h1 class="company-name">DT Studio</h1>
+                <p class="company-subtitle">DT Studio</p>
                 <p>Tel: (55) 1234-5678</p>
                 <p>Email: info@dtstudio.com.mx</p>
                 <p>Web: www.dtstudio.com.mx</p>

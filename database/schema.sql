@@ -1,5 +1,5 @@
 -- Script SQL para crear las tablas de la base de datos
--- DR Studio - Sistema de Promocionales
+-- DT Studio - Sistema de Promocionales
 
 -- Crear base de datos si no existe
 CREATE DATABASE IF NOT EXISTS dtstudio_main CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

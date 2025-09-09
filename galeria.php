@@ -5,7 +5,7 @@ header('Content-Type: text/html; charset=UTF-8');
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
-$pageTitle = 'Galería - DR Studio';
+$pageTitle = 'Galería - DT Studio';
 $pageDescription = 'Galería de productos promocionales. Ve ejemplos de nuestro trabajo y la calidad de nuestros productos.';
 
 // Obtener categorías para el menú
@@ -51,8 +51,8 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
-                <img src="assets/images/logo/LOGO.png" alt="DR Studio" height="40" class="me-2">
-                <span style="color: var(--primary-color) !important;">DR Studio</span>
+                <img src="assets/images/logo/LOGO.png" alt="DT Studio" height="40" class="me-2">
+                <span style="color: var(--primary-color) !important;">DT Studio</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -285,8 +285,8 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="assets/images/logo/LOGO.png" alt="DR Studio" height="30" class="me-2">
-                        <h5 class="fw-bold mb-0">DR Studio</h5>
+                        <img src="assets/images/logo/LOGO.png" alt="DT Studio" height="30" class="me-2">
+                        <h5 class="fw-bold mb-0">DT Studio</h5>
                     </div>
                     <p class="text-muted">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
                     <div class="social-links">
@@ -327,7 +327,7 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
             <hr class="my-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="text-muted mb-0">&copy; 2024 DR Studio. Todos los derechos reservados.</p>
+                    <p class="text-muted mb-0">&copy; 2024 DT Studio. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="admin/" class="text-muted text-decoration-none">Panel de Administración</a>
@@ -357,7 +357,7 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
         if (navigator.share) {
             navigator.share({
                 title: title,
-                text: 'Mira este producto de DR Studio',
+                text: 'Mira este producto de DT Studio',
                 url: window.location.href
             });
         } else {

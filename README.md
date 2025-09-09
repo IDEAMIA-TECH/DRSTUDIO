@@ -1,4 +1,4 @@
-# DR Studio - Sistema de Promocionales
+# DT Studio - Sistema de Promocionales
 
 Sistema web completo para empresa de productos promocionales con panel de administración y sitio público.
 
@@ -35,7 +35,7 @@ El sistema utiliza los colores oficiales del logo DT Studio:
 
 ### 🎉 Sistema Instalado Exitosamente
 
-El sistema DR Studio ha sido instalado y configurado correctamente. Todas las tablas de la base de datos han sido creadas.
+El sistema DT Studio ha sido instalado y configurado correctamente. Todas las tablas de la base de datos han sido creadas.
 
 **Credenciales de Acceso:**
 - **Usuario:** `admin`
@@ -277,4 +277,4 @@ Para soporte técnico o consultas sobre el sistema, contactar al equipo de desar
 
 ## Licencia
 
-Sistema desarrollado para DR Studio - Todos los derechos reservados.
+Sistema desarrollado para DT Studio - Todos los derechos reservados.

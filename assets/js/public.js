@@ -1,4 +1,4 @@
-// DR Studio - Public Site JavaScript
+// DT Studio - Public Site JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips
