@@ -128,7 +128,9 @@ if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
             $estadoTexto = [
                 'enviada' => 'Enviada',
                 'aceptada' => 'Aceptada',
-                'rechazada' => 'Rechazada'
+                'rechazada' => 'Rechazada',
+                'pagada' => 'Pagada',
+                'entregada' => 'Entregada'
             ];
             
             $mensaje = $estadoTexto[$estado] ?? ucfirst($estado);

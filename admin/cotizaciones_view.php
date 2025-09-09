@@ -57,7 +57,10 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                         'enviada' => 'info',
                         'aceptada' => 'success',
                         'rechazada' => 'danger',
-                        'cancelada' => 'secondary'
+                        'cancelada' => 'secondary',
+                        'en_espera_deposito' => 'primary',
+                        'pagada' => 'success',
+                        'entregada' => 'dark'
                     ];
                     $class = $estadoClass[$cotizacion['estado']] ?? 'secondary';
                     ?>
@@ -199,6 +202,18 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                         </button>
                     <?php endif; ?>
                     
+                    <?php if ($cotizacion['estado'] == 'en_espera_deposito'): ?>
+                        <button type="button" class="btn btn-success" onclick="cambiarEstado('pagada')">
+                            <i class="fas fa-credit-card me-2"></i>Marcar como Pagada
+                        </button>
+                    <?php endif; ?>
+                    
+                    <?php if ($cotizacion['estado'] == 'pagada'): ?>
+                        <button type="button" class="btn btn-primary" onclick="cambiarEstado('entregada')">
+                            <i class="fas fa-truck me-2"></i>Marcar como Entregada
+                        </button>
+                    <?php endif; ?>
+                    
                     <button type="button" class="btn btn-primary" onclick="imprimirCotizacion()">
                         <i class="fas fa-print me-2"></i>Imprimir
                     </button>
@@ -337,7 +352,9 @@ function cambiarEstado(estado) {
     const estados = {
         'enviada': 'enviada',
         'aceptada': 'aceptada',
-        'rechazada': 'rechazada'
+        'rechazada': 'rechazada',
+        'pagada': 'pagada',
+        'entregada': 'entregada'
     };
     
     const estadoTexto = estados[estado] || estado;
