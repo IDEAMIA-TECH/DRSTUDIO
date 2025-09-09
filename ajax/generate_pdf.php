@@ -401,6 +401,9 @@ function createCotizacionHTML($data) {
                 background-color: #7B3F9F;
                 color: white;
             }
+            .totals .total-row td {
+                color: white !important;
+            }
             .observations {
                 margin-top: 30px;
                 padding: 15px;
