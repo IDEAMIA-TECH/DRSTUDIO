@@ -11,8 +11,15 @@ $cotizacion = null;
 if (!isset($_GET['token']) || empty($_GET['token'])) {
     $error = 'Token de acceso no válido.';
 } else {
-    $emailSender = new EmailSender();
-    $cotizacionId = $emailSender->validateAcceptToken($_GET['token']);
+    $token = $_GET['token'];
+    
+    // Buscar cotización por token
+    $stmt = $conn->prepare("SELECT id FROM cotizaciones WHERE token_aceptacion = ?");
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cotizacionId = $result->fetch_assoc()['id'] ?? null;
+    $stmt->close();
     
     if (!$cotizacionId) {
         $error = 'Token de acceso inválido o expirado.';

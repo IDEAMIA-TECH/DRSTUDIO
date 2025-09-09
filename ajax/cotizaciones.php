@@ -898,7 +898,7 @@ function createCotizacionHTMLForEmail($data) {
     // Calcular totales
     $subtotal = 0;
     foreach ($items as $item) {
-        $precio = ($item['precio'] ?? 0) + ($item['precio_extra'] ?? 0);
+        $precio = ($item['precio_unitario'] ?? 0) + ($item['precio_extra'] ?? 0);
         $subtotal += $precio * $item['cantidad'];
     }
     
@@ -1089,7 +1089,7 @@ function createCotizacionHTMLForEmail($data) {
             <tbody>';
     
     foreach ($items as $item) {
-        $precio = ($item['precio'] ?? 0) + ($item['precio_extra'] ?? 0);
+        $precio = ($item['precio_unitario'] ?? 0) + ($item['precio_extra'] ?? 0);
         $totalItem = $precio * $item['cantidad'];
         
         $html .= '<tr>

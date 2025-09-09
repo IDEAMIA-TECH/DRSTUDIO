@@ -326,6 +326,10 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
 <script>
 // Función para cambiar estado
 function cambiarEstado(estado) {
+    console.log('DEBUG: Iniciando cambiarEstado desde cotizaciones_view');
+    console.log('DEBUG: Estado:', estado);
+    console.log('DEBUG: ID de cotización:', <?php echo $id; ?>);
+    
     const estados = {
         'enviada': 'enviada',
         'aceptada': 'aceptada',
@@ -333,28 +337,61 @@ function cambiarEstado(estado) {
     };
     
     const estadoTexto = estados[estado] || estado;
+    console.log('DEBUG: Estado texto:', estadoTexto);
     
     if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
-        fetch('ajax/cotizaciones.php', {
+        console.log('DEBUG: Usuario confirmó el cambio');
+        
+        const url = 'ajax/cotizaciones.php';
+        const body = `action=change_status&id=<?php echo $id; ?>&estado=${estado}`;
+        
+        console.log('DEBUG: URL:', url);
+        console.log('DEBUG: Body:', body);
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `action=change_status&id=<?php echo $id; ?>&estado=${estado}`
+            body: body
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert(data.message, 'success');
-                location.reload();
-            } else {
-                showAlert(data.message, 'danger');
+        .then(response => {
+            console.log('DEBUG: Response status:', response.status);
+            console.log('DEBUG: Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.text();
+        })
+        .then(text => {
+            console.log('DEBUG: Response text:', text);
+            
+            try {
+                const data = JSON.parse(text);
+                console.log('DEBUG: Parsed data:', data);
+                
+                if (data.success) {
+                    console.log('DEBUG: Éxito - mostrando alerta y recargando');
+                    showAlert(data.message, 'success');
+                    location.reload();
+                } else {
+                    console.log('DEBUG: Error - mostrando alerta de error');
+                    showAlert(data.message, 'danger');
+                }
+            } catch (e) {
+                console.error('DEBUG: Error parsing JSON:', e);
+                console.error('DEBUG: Raw response:', text);
+                showAlert('Error al procesar la respuesta del servidor', 'danger');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error al cambiar el estado de la cotización', 'danger');
+            console.error('DEBUG: Error en fetch:', error);
+            showAlert('Error al cambiar el estado de la cotización: ' + error.message, 'danger');
         });
+    } else {
+        console.log('DEBUG: Usuario canceló el cambio');
     }
 }
 
