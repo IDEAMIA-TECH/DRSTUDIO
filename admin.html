@@ -431,37 +431,96 @@
             <span class="close" onclick="closeModal('productModal')">&times;</span>
             <h2>Nuevo Producto</h2>
             <form id="productForm">
-                <div class="form-group">
-                    <label for="product-name">Nombre del Producto:</label>
-                    <input type="text" id="product-name" name="name" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label for="product-sku">SKU:</label>
-                    <input type="text" id="product-sku" name="sku" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label for="product-category">Categoría:</label>
-                    <select id="product-category" name="category_id" class="form-input" required>
-                        <option value="">Seleccionar categoría</option>
-                        <option value="1">Playeras</option>
-                        <option value="2">Vasos</option>
-                        <option value="3">Gorras</option>
-                        <option value="4">Lonas</option>
-                        <option value="5">Accesorios</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="product-description">Descripción:</label>
-                    <textarea id="product-description" name="description" class="form-textarea" rows="3" required></textarea>
-                </div>
-                <div class="form-row">
+                <!-- Información Básica del Producto -->
+                <div class="form-section">
+                    <h3>Información Básica</h3>
                     <div class="form-group">
-                        <label for="product-price">Precio:</label>
-                        <input type="number" id="product-price" name="price" class="form-input" step="0.01" required>
+                        <label for="product-name">Nombre del Producto:</label>
+                        <input type="text" id="product-name" name="name" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label for="product-cost">Costo:</label>
-                        <input type="number" id="product-cost" name="cost" class="form-input" step="0.01" required>
+                        <label for="product-sku">SKU del Producto:</label>
+                        <input type="text" id="product-sku" name="sku" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-category">Categoría:</label>
+                        <select id="product-category" name="category_id" class="form-input" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="1">Playeras</option>
+                            <option value="2">Vasos</option>
+                            <option value="3">Gorras</option>
+                            <option value="4">Lonas</option>
+                            <option value="5">Accesorios</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Descripción:</label>
+                        <textarea id="product-description" name="description" class="form-textarea" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-status">Estado:</label>
+                        <select id="product-status" name="status" class="form-input" required>
+                            <option value="draft">Borrador</option>
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SEO -->
+                <div class="form-section">
+                    <h3>SEO</h3>
+                    <div class="form-group">
+                        <label for="product-meta-title">Meta Título:</label>
+                        <input type="text" id="product-meta-title" name="meta_title" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-meta-description">Meta Descripción:</label>
+                        <textarea id="product-meta-description" name="meta_description" class="form-textarea" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- Variante Principal -->
+                <div class="form-section">
+                    <h3>Variante Principal</h3>
+                    <div class="form-group">
+                        <label for="variant-name">Nombre de la Variante:</label>
+                        <input type="text" id="variant-name" name="variant_name" class="form-input" value="Principal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="variant-sku">SKU de la Variante:</label>
+                        <input type="text" id="variant-sku" name="variant_sku" class="form-input" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="variant-price">Precio:</label>
+                            <input type="number" id="variant-price" name="variant_price" class="form-input" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="variant-cost">Costo:</label>
+                            <input type="number" id="variant-cost" name="variant_cost" class="form-input" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="variant-stock">Stock:</label>
+                        <input type="number" id="variant-stock" name="variant_stock" class="form-input" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="variant-attributes">Atributos (JSON):</label>
+                        <textarea id="variant-attributes" name="variant_attributes" class="form-textarea" rows="2" placeholder='{"color": "rojo", "talla": "M"}'></textarea>
+                    </div>
+                </div>
+
+                <!-- Imágenes -->
+                <div class="form-section">
+                    <h3>Imágenes del Producto</h3>
+                    <div class="form-group">
+                        <label for="product-images">URLs de Imágenes (una por línea):</label>
+                        <textarea id="product-images" name="product_images" class="form-textarea" rows="3" placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="primary-image">Imagen Principal (URL):</label>
+                        <input type="url" id="primary-image" name="primary_image" class="form-input" placeholder="https://ejemplo.com/imagen-principal.jpg">
                     </div>
                 </div>
                 <div class="form-actions">

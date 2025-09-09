@@ -175,10 +175,20 @@ class ProductAPI {
     private function createProduct() {
         $data = json_decode(file_get_contents('php://input'), true);
         
-        $required = ['name', 'description', 'category_id', 'sku'];
+        // Validar campos requeridos del producto
+        $required = ['name', 'description', 'category_id', 'sku', 'status'];
         foreach ($required as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
-                $this->sendResponse(false, "Campo requerido: $field", null, 400);
+                $this->sendResponse(false, "Campo requerido del producto: $field", null, 400);
+                return;
+            }
+        }
+        
+        // Validar campos requeridos de la variante
+        $variantRequired = ['variant_name', 'variant_sku', 'variant_price', 'variant_cost', 'variant_stock'];
+        foreach ($variantRequired as $field) {
+            if (!isset($data[$field]) || $data[$field] === '') {
+                $this->sendResponse(false, "Campo requerido de la variante: $field", null, 400);
                 return;
             }
         }
@@ -189,7 +199,7 @@ class ProductAPI {
             // Insertar producto
             $query = "INSERT INTO products (name, description, category_id, sku, status, 
                                           meta_title, meta_description, created_by, created_at, updated_at) 
-                      VALUES (?, ?, ?, ?, 'active', ?, ?, 1, NOW(), NOW())";
+                      VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())";
             
             $stmt = $this->db->prepare($query);
             $stmt->execute([
@@ -197,38 +207,81 @@ class ProductAPI {
                 $data['description'],
                 $data['category_id'],
                 $data['sku'],
-                $data['meta_title'] ?? '',
-                $data['meta_description'] ?? ''
+                $data['status'],
+                $data['meta_title'] ?? null,
+                $data['meta_description'] ?? null
             ]);
             
             $productId = $this->db->lastInsertId();
             
-            // Insertar variante por defecto si se proporciona precio
-            if (isset($data['price']) && $data['price'] > 0) {
-                $variantQuery = "INSERT INTO product_variants (product_id, name, sku, price, cost, stock, is_active) 
-                                VALUES (?, 'Default', ?, ?, ?, 0, 1)";
-                $variantStmt = $this->db->prepare($variantQuery);
-                $variantStmt->execute([
-                    $productId,
-                    $data['sku'] . '-001',
-                    $data['price'],
-                    $data['cost'] ?? $data['price']
-                ]);
+            // Insertar variante principal
+            $variantQuery = "INSERT INTO product_variants (product_id, name, sku, price, cost, stock, attributes, is_active, created_at, updated_at) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())";
+            
+            // Procesar atributos JSON
+            $attributes = null;
+            if (!empty($data['variant_attributes'])) {
+                $attributes = json_encode(json_decode($data['variant_attributes'], true));
             }
             
-            // Insertar imágenes si existen
-            if (!empty($data['images'])) {
-                $imageQuery = "INSERT INTO product_images (product_id, url, is_primary) VALUES (?, ?, ?)";
-                $imageStmt = $this->db->prepare($imageQuery);
+            $variantStmt = $this->db->prepare($variantQuery);
+            $variantStmt->execute([
+                $productId,
+                $data['variant_name'],
+                $data['variant_sku'],
+                $data['variant_price'],
+                $data['variant_cost'],
+                $data['variant_stock'],
+                $attributes
+            ]);
+            
+            $variantId = $this->db->lastInsertId();
+            
+            // Insertar imágenes del producto
+            if (!empty($data['product_images'])) {
+                $imageUrls = array_filter(array_map('trim', explode("\n", $data['product_images'])));
                 
-                foreach ($data['images'] as $index => $imageUrl) {
-                    $imageStmt->execute([$productId, $imageUrl, $index === 0 ? 1 : 0]);
+                if (!empty($imageUrls)) {
+                    $imageQuery = "INSERT INTO product_images (product_id, variant_id, url, alt_text, sort_order, is_primary, created_at) 
+                                  VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                    $imageStmt = $this->db->prepare($imageQuery);
+                    
+                    foreach ($imageUrls as $index => $imageUrl) {
+                        if (!empty($imageUrl)) {
+                            $isPrimary = ($index === 0) ? 1 : 0;
+                            $altText = $data['name'] . ' - Imagen ' . ($index + 1);
+                            
+                            $imageStmt->execute([
+                                $productId,
+                                $variantId,
+                                $imageUrl,
+                                $altText,
+                                $index,
+                                $isPrimary
+                            ]);
+                        }
+                    }
                 }
             }
             
-            $this->db->commit();
+            // Insertar imagen principal si se especifica
+            if (!empty($data['primary_image'])) {
+                $primaryImageQuery = "INSERT INTO product_images (product_id, variant_id, url, alt_text, sort_order, is_primary, created_at) 
+                                     VALUES (?, ?, ?, ?, 0, 1, NOW())";
+                $primaryImageStmt = $this->db->prepare($primaryImageQuery);
+                $primaryImageStmt->execute([
+                    $productId,
+                    $variantId,
+                    $data['primary_image'],
+                    $data['name'] . ' - Imagen Principal'
+                ]);
+            }
             
-            $this->sendResponse(true, 'Producto creado exitosamente', ['id' => $productId]);
+            $this->db->commit();
+            $this->sendResponse(true, 'Producto creado exitosamente', [
+                'product_id' => $productId,
+                'variant_id' => $variantId
+            ]);
             
         } catch (Exception $e) {
             $this->db->rollBack();

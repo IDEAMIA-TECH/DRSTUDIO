@@ -90,23 +90,35 @@ function saveSession(username, remember) {
 
 // Verificar si el usuario está logueado
 function isLoggedIn() {
+    console.log('Verificando estado de login...');
+    
     const sessionData = localStorage.getItem('adminSession') || sessionStorage.getItem('adminSession');
-    if (!sessionData) return false;
+    if (!sessionData) {
+        console.log('No hay datos de sesión');
+        return false;
+    }
     
     try {
         const session = JSON.parse(sessionData);
+        console.log('Datos de sesión:', session);
+        
         const loginTime = new Date(session.loginTime);
         const now = new Date();
         const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
         
+        console.log('Horas desde login:', hoursDiff);
+        
         // La sesión expira después de 8 horas
         if (hoursDiff > 8) {
+            console.log('Sesión expirada, limpiando...');
             clearSession();
             return false;
         }
         
+        console.log('Sesión válida');
         return true;
     } catch (error) {
+        console.error('Error parseando sesión:', error);
         clearSession();
         return false;
     }
@@ -178,9 +190,15 @@ function logout() {
 
 // Verificar sesión en cada carga de página del admin
 function checkAdminSession() {
+    console.log('Verificando sesión de administrador...');
+    
     if (!isLoggedIn()) {
+        console.log('Sesión no válida, redirigiendo a login...');
         window.location.href = 'login.html';
+        return;
     }
+    
+    console.log('Sesión válida, continuando...');
 }
 
 // Función para obtener información de la sesión actual

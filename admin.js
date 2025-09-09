@@ -11,11 +11,23 @@ let currentData = {
     orders: []
 };
 
+// Variable para evitar múltiples inicializaciones
+let isInitialized = false;
+
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
+    if (isInitialized) return;
+    isInitialized = true;
+    
+    console.log('Inicializando panel de administración...');
+    
     // Verificar sesión de administrador primero
     if (typeof checkAdminSession === 'function') {
-        checkAdminSession();
+        try {
+            checkAdminSession();
+        } catch (error) {
+            console.error('Error verificando sesión:', error);
+        }
     }
     
     initializeAdmin();
@@ -114,8 +126,16 @@ function loadInitialData() {
 // Cargar datos del dashboard
 async function loadDashboardData() {
     try {
+        console.log('Cargando datos del dashboard...');
+        
         const response = await fetch('api/dashboard.php?action=get_stats');
+        if (!response.ok) {
+            console.error('Error HTTP:', response.status, response.statusText);
+            return;
+        }
+        
         const data = await response.json();
+        console.log('Datos del dashboard recibidos:', data);
         
         if (data.success) {
             updateDashboardStats(data.data);
@@ -124,18 +144,20 @@ async function loadDashboardData() {
         }
         
         // Cargar actividad reciente
+        console.log('Cargando actividad reciente...');
         const activityResponse = await fetch('api/dashboard.php?action=get_recent_activity');
-        const activityData = await activityResponse.json();
-        
-        if (activityData.success) {
-            updateRecentActivity(activityData.data);
+        if (activityResponse.ok) {
+            const activityData = await activityResponse.json();
+            if (activityData.success) {
+                updateRecentActivity(activityData.data);
+            }
         }
         
         // Cargar gráfico de ventas
         loadSalesChart();
         
     } catch (error) {
-        console.error('Error de conexión:', error);
+        console.error('Error de conexión en dashboard:', error);
     }
 }
 
