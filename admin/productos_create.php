@@ -8,6 +8,38 @@ $success = '';
 // Obtener categorías para el select
 $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
 
+// Función para generar SKU automático
+function generateSKU($categoria_id = null) {
+    global $conn;
+    
+    // Obtener prefijo de categoría
+    $prefijo = 'PRD';
+    if ($categoria_id) {
+        $cat = getRecord('categorias', $categoria_id);
+        if ($cat) {
+            $prefijo = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $cat['nombre']), 0, 3));
+            if (strlen($prefijo) < 3) {
+                $prefijo = 'PRD';
+            }
+        }
+    }
+    
+    // Obtener el siguiente número
+    $sql = "SELECT COUNT(*) as total FROM productos WHERE sku LIKE ?";
+    $stmt = $conn->prepare($sql);
+    $likePattern = $prefijo . '%';
+    $stmt->bind_param("s", $likePattern);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $count = $result->fetch_assoc()['total'];
+    
+    // Generar SKU con formato: PREFIJO-YYYY-NNNN
+    $year = date('Y');
+    $numero = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+    
+    return $prefijo . '-' . $year . '-' . $numero;
+}
+
 if ($_POST) {
     $categoria_id = (int)$_POST['categoria_id'];
     $sku = sanitizeInput($_POST['sku']);
@@ -19,8 +51,13 @@ if ($_POST) {
     $destacado = isset($_POST['destacado']) ? 1 : 0;
     $activo = isset($_POST['activo']) ? 1 : 0;
     
+    // Generar SKU automáticamente si está vacío
+    if (empty($sku)) {
+        $sku = generateSKU($categoria_id);
+    }
+    
     // Validar datos
-    if (empty($sku) || empty($nombre) || $precio_venta <= 0 || $costo_fabricacion <= 0) {
+    if (empty($nombre) || $precio_venta <= 0 || $costo_fabricacion <= 0) {
         $error = 'Todos los campos requeridos deben ser completados correctamente';
     } else {
         // Verificar si ya existe un producto con el mismo SKU
@@ -111,14 +148,21 @@ if ($_POST) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="sku" class="form-label">SKU *</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="sku" 
-                                       name="sku" 
-                                       value="<?php echo $_POST['sku'] ?? ''; ?>" 
-                                       required>
-                                <div class="form-text">Código único del producto</div>
+                                <label for="sku" class="form-label">SKU</label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="sku" 
+                                           name="sku" 
+                                           value="<?php echo $_POST['sku'] ?? ''; ?>" 
+                                           placeholder="Se generará automáticamente">
+                                    <button type="button" class="btn btn-outline-secondary" id="generateSKUBtn">
+                                        <i class="fas fa-magic"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    <span id="skuPreview" class="text-muted">Se generará automáticamente basado en la categoría</span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -323,11 +367,31 @@ if ($_POST) {
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
-                    <li><i class="fas fa-info-circle text-info me-2"></i>El SKU debe ser único</li>
+                    <li><i class="fas fa-magic text-primary me-2"></i>El SKU se genera automáticamente</li>
+                    <li><i class="fas fa-tags text-info me-2"></i>Formato: PREFIJO-YYYY-NNNN</li>
                     <li><i class="fas fa-image text-warning me-2"></i>La imagen es opcional</li>
                     <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar múltiples variantes</li>
                     <li><i class="fas fa-toggle-on text-primary me-2"></i>Puedes activar/desactivar después</li>
                 </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Sistema de SKU</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Generación Automática</h6>
+                    <p class="mb-2">El SKU se genera automáticamente basado en:</p>
+                    <ul class="mb-0 small">
+                        <li><strong>Prefijo:</strong> 3 letras de la categoría</li>
+                        <li><strong>Año:</strong> Año actual (2025)</li>
+                        <li><strong>Número:</strong> Secuencial por categoría</li>
+                    </ul>
+                    <hr>
+                    <p class="mb-0"><strong>Ejemplo:</strong> PLA-2025-0001 (Plásticos)</p>
+                </div>
             </div>
         </div>
     </div>
@@ -335,6 +399,54 @@ if ($_POST) {
 
 <script>
 let varianteCount = 1;
+
+// Generar SKU automáticamente
+function generateSKU(categoriaId = null) {
+    fetch('ajax/generate_sku.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'categoria_id=' + (categoriaId || '')
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('sku').value = data.sku;
+            document.getElementById('skuPreview').textContent = 'SKU generado: ' + data.sku;
+            document.getElementById('skuPreview').className = 'text-success';
+        } else {
+            console.error('Error generando SKU:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Generar SKU cuando cambie la categoría
+document.getElementById('categoria_id').addEventListener('change', function() {
+    const categoriaId = this.value;
+    if (categoriaId) {
+        generateSKU(categoriaId);
+    } else {
+        generateSKU();
+    }
+});
+
+// Botón para generar SKU manualmente
+document.getElementById('generateSKUBtn').addEventListener('click', function() {
+    const categoriaId = document.getElementById('categoria_id').value;
+    generateSKU(categoriaId);
+});
+
+// Generar SKU inicial si no hay valor
+document.addEventListener('DOMContentLoaded', function() {
+    const skuField = document.getElementById('sku');
+    if (!skuField.value) {
+        generateSKU();
+    }
+});
 
 // Preview de imagen
 document.getElementById('imagen_principal').addEventListener('change', function() {

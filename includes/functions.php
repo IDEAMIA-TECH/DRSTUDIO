@@ -6,15 +6,27 @@ function createRecord($table, $data) {
     global $conn;
     
     $fields = implode(',', array_keys($data));
-    $placeholders = ':' . implode(', :', array_keys($data));
+    $placeholders = str_repeat('?,', count($data) - 1) . '?';
     
     $sql = "INSERT INTO $table ($fields) VALUES ($placeholders)";
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
-        foreach ($data as $key => $value) {
-            $stmt->bindValue(":$key", $value);
+        // Detectar tipos de datos automáticamente
+        $types = '';
+        $values = array_values($data);
+        
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_float($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
         }
+        
+        $stmt->bind_param($types, ...$values);
         return $stmt->execute();
     }
     return false;
@@ -62,18 +74,33 @@ function updateRecord($table, $id, $data) {
     
     $setClause = [];
     foreach ($data as $key => $value) {
-        $setClause[] = "$key = :$key";
+        $setClause[] = "$key = ?";
     }
     $setClause = implode(', ', $setClause);
     
-    $sql = "UPDATE $table SET $setClause WHERE id = :id";
+    $sql = "UPDATE $table SET $setClause WHERE id = ?";
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
-        foreach ($data as $key => $value) {
-            $stmt->bindValue(":$key", $value);
+        // Detectar tipos de datos automáticamente
+        $types = '';
+        $values = array_values($data);
+        
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_float($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
         }
-        $stmt->bindValue(":id", $id);
+        
+        // Agregar el ID al final (siempre integer)
+        $types .= 'i';
+        $values[] = $id;
+        
+        $stmt->bind_param($types, ...$values);
         return $stmt->execute();
     }
     return false;
