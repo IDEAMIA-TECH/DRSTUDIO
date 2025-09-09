@@ -1,39 +1,13 @@
 <?php
-// Detectar la ruta correcta del proyecto
-$projectRoot = dirname(__DIR__);
-$configPath = $projectRoot . '/includes/config.php';
-$authPath = $projectRoot . '/includes/auth.php';
-$functionsPath = $projectRoot . '/includes/functions.php';
+// Archivo de generación de PDF mejorado
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Verificar si los archivos existen, si no, probar rutas alternativas
-if (!file_exists($configPath)) {
-    // Probar ruta absoluta del servidor
-    $configPath = '/home/dtstudio/public_html/includes/config.php';
-    $authPath = '/home/dtstudio/public_html/includes/auth.php';
-    $functionsPath = '/home/dtstudio/public_html/includes/functions.php';
-}
-
-// Incluir archivos
-if (file_exists($configPath)) {
-    require_once $configPath;
-} else {
-    die('Error: No se pudo encontrar config.php');
-}
-
-if (file_exists($authPath)) {
-    require_once $authPath;
-} else {
-    die('Error: No se pudo encontrar auth.php');
-}
-
-if (file_exists($functionsPath)) {
-    require_once $functionsPath;
-} else {
-    die('Error: No se pudo encontrar functions.php');
-}
-
-// Incluir autoloader de Composer para mPDF
-require_once $projectRoot . '/vendor/autoload.php';
+// Incluir dependencias
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/pdf_generator.php';
 
 // Verificar autenticación
 if (!isLoggedIn()) {
@@ -42,262 +16,23 @@ if (!isLoggedIn()) {
     exit;
 }
 
-// Obtener datos del POST
-$input = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? '';
+// Obtener datos de la petición
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
 
-// Log para debugging
-error_log("PDF Generation - Action: " . $action);
-error_log("PDF Generation - Input data: " . print_r($input, true));
-
-if ($action === 'test') {
+if (!$data || !isset($data['action'])) {
     header('Content-Type: application/json');
-    echo json_encode([
-        'success' => true,
-        'message' => 'Archivo generate_pdf.php accesible correctamente',
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
     exit;
 }
 
-if ($action === 'generate_cotizacion_pdf') {
-    $data = $input['data'] ?? [];
-    
-    if (empty($data)) {
-        error_log("PDF Generation - Error: Datos de cotización vacíos");
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Datos de cotización requeridos']);
-        exit;
-    }
-    
-    error_log("PDF Generation - Iniciando generación de PDF para cotización: " . $data['numero']);
-    
-    // Generar PDF
-    generateCotizacionPDF($data);
-} else {
-    error_log("PDF Generation - Error: Acción no válida: " . $action);
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Acción no válida']);
-    exit;
-}
+$action = $data['action'];
+$cotizacionData = $data['data'] ?? [];
 
-function generateCotizacionPDF($data) {
-    error_log("PDF Generation - Iniciando createCotizacionHTML");
-    
-    // Crear HTML para el PDF
-    $html = createCotizacionHTML($data);
-    
-    error_log("PDF Generation - HTML generado, longitud: " . strlen($html));
-    
-    // Verificar si mPDF está disponible
-    if (class_exists('Mpdf\Mpdf')) {
-        error_log("PDF Generation - mPDF disponible, generando PDF");
-        
-        try {
-            // Usar mPDF si está disponible
-            $mpdf = new \Mpdf\Mpdf([
-                'mode' => 'utf-8',
-                'format' => 'A4',
-                'orientation' => 'P',
-                'margin_left' => 15,
-                'margin_right' => 15,
-                'margin_top' => 16,
-                'margin_bottom' => 16,
-                'margin_header' => 9,
-                'margin_footer' => 9,
-            ]);
-            
-            // Configurar metadatos del PDF
-            $mpdf->SetTitle('Cotización ' . $data['numero']);
-            $mpdf->SetAuthor('DT Studio');
-            $mpdf->SetCreator('DT Studio - Sistema de Cotizaciones');
-            $mpdf->SetSubject('Cotización de productos promocionales');
-            
-            // Escribir el HTML al PDF
-            $mpdf->WriteHTML($html);
-            
-            // Configurar headers para PDF
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
-            header('Cache-Control: private, max-age=0, must-revalidate');
-            header('Pragma: public');
-            
-            // Generar y enviar el PDF
-            $mpdf->Output('Cotizacion_' . $data['numero'] . '.pdf', 'D');
-            
-            error_log("PDF Generation - PDF generado exitosamente con mPDF");
-            exit;
-            
-        } catch (Exception $e) {
-            error_log("PDF Generation - Error con mPDF: " . $e->getMessage());
-            // Si mPDF falla, continuar con el fallback HTML
-        }
-    } else {
-        error_log("PDF Generation - mPDF no disponible, generando HTML con estilos de impresión");
-        
-        // Generar HTML con estilos optimizados para impresión/PDF
-        $htmlWithStyles = '
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Cotización ' . htmlspecialchars($data['numero']) . '</title>
-            <style>
-                @media print {
-                    body { margin: 0; padding: 0; }
-                    .no-print { display: none !important; }
-                    .page-break { page-break-before: always; }
-                }
-                
-                body {
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    line-height: 1.4;
-                    color: #333;
-                    margin: 0;
-                    padding: 20px;
-                    background: white;
-                }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                    border-bottom: 2px solid #7B3F9F;
-                    padding-bottom: 20px;
-                }
-                
-                .logo {
-                    max-width: 200px;
-                    height: auto;
-                    margin-bottom: 10px;
-                }
-                
-                .company-info {
-                    color: #7B3F9F;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                
-                .quote-title {
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #7B3F9F;
-                    margin: 20px 0;
-                }
-                
-                .quote-info {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 30px;
-                }
-                
-                .quote-details, .client-details {
-                    flex: 1;
-                    margin: 0 10px;
-                }
-                
-                .quote-details h3, .client-details h3 {
-                    color: #7B3F9F;
-                    border-bottom: 1px solid #ddd;
-                    padding-bottom: 5px;
-                    margin-bottom: 10px;
-                }
-                
-                .products-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }
-                
-                .products-table th,
-                .products-table td {
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
-                }
-                
-                .products-table th {
-                    background-color: #7B3F9F;
-                    color: white;
-                    font-weight: bold;
-                }
-                
-                .products-table tr:nth-child(even) {
-                    background-color: #f9f9f9;
-                }
-                
-                .totals {
-                    margin-top: 20px;
-                    text-align: right;
-                }
-                
-                .total-line {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 5px 0;
-                    padding: 5px 0;
-                }
-                
-                .total-final {
-                    font-size: 16px;
-                    font-weight: bold;
-                    color: #7B3F9F;
-                    border-top: 2px solid #7B3F9F;
-                    padding-top: 10px;
-                }
-                
-                .observations {
-                    margin-top: 30px;
-                    padding: 15px;
-                    background-color: #f8f9fa;
-                    border-left: 4px solid #7B3F9F;
-                }
-                
-                .footer {
-                    margin-top: 40px;
-                    text-align: center;
-                    font-size: 10px;
-                    color: #666;
-                    border-top: 1px solid #ddd;
-                    padding-top: 20px;
-                }
-                
-                @media print {
-                    body { margin: 0; padding: 10px; }
-                    .no-print { display: none !important; }
-                }
-            </style>
-        </head>
-        <body>
-            ' . $html . '
-        </body>
-        </html>';
-        
-        // Configurar headers para descarga
-        header('Content-Type: text/html; charset=UTF-8');
-        header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.html"');
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
-        
-        echo $htmlWithStyles;
-        error_log("PDF Generation - HTML con estilos generado exitosamente");
-    }
-}
-
+// Función para crear HTML de cotización
 function createCotizacionHTML($data) {
     $logoPath = '../assets/logo/LOGO.png';
     $logoExists = file_exists($logoPath);
-    
-    $estadoClass = [
-        'pendiente' => 'warning',
-        'enviada' => 'info',
-        'aceptada' => 'success',
-        'rechazada' => 'danger',
-        'cancelada' => 'secondary'
-    ];
-    $estadoColor = $estadoClass[$data['estado']] ?? 'secondary';
     
     $html = '
     <!DOCTYPE html>
@@ -386,24 +121,26 @@ function createCotizacionHTML($data) {
             .totals {
                 margin-left: auto;
                 width: 300px;
+                margin-top: 20px;
             }
             .totals table {
                 width: 100%;
                 border-collapse: collapse;
             }
             .totals td {
-                padding: 5px;
+                padding: 8px;
                 border: none;
             }
             .totals .total-row {
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 16px;
                 background-color: #7B3F9F;
                 color: white !important;
             }
             .totals .total-row td {
                 color: white !important;
                 background-color: #7B3F9F !important;
+                padding: 10px;
             }
             .observations {
                 margin-top: 30px;
@@ -535,5 +272,58 @@ function createCotizacionHTML($data) {
     </html>';
     
     return $html;
+}
+
+
+// Procesar acción
+if ($action === 'generate_cotizacion_pdf') {
+    if (empty($cotizacionData)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'No se proporcionaron datos de cotización']);
+        exit;
+    }
+    
+    try {
+        // Obtener ID de la cotización desde los datos
+        $cotizacionId = null;
+        if (isset($cotizacionData['numero'])) {
+            // Buscar por número de cotización
+            $stmt = $conn->prepare("SELECT id FROM cotizaciones WHERE numero_cotizacion = ?");
+            $stmt->bind_param("s", $cotizacionData['numero']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $cotizacionId = $row['id'] ?? null;
+            $stmt->close();
+        }
+        
+        if (!$cotizacionId) {
+            throw new Exception("No se pudo encontrar la cotización");
+        }
+        
+        // Generar PDF usando la función unificada
+        $pdfPath = generateCotizacionPDF($cotizacionId);
+        
+        // Enviar el PDF
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="Cotizacion_' . $cotizacionData['numero'] . '.pdf"');
+        header('Content-Length: ' . filesize($pdfPath));
+        
+        readfile($pdfPath);
+        
+        // Limpiar archivo temporal
+        unlink($pdfPath);
+        
+    } catch (Exception $e) {
+        error_log("Error generando PDF: " . $e->getMessage());
+        
+        // Fallback: mostrar HTML
+        header('Content-Type: text/html; charset=UTF-8');
+        echo createCotizacionHTML($cotizacionData);
+    }
+    
+} else {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Acción no válida: ' . $action]);
 }
 ?>
