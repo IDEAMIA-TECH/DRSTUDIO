@@ -212,7 +212,7 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                         </button>
                     <?php endif; ?>
                     
-                    <?php if ($cotizacion['estado'] == 'pagada'): ?>
+                    <?php if ($cotizacion['estado'] == 'pagada' || $cotizacion['estado'] == 'en_espera_deposito'): ?>
                         <button type="button" class="btn btn-primary" onclick="cambiarEstado('entregada')">
                             <i class="fas fa-truck me-2"></i>Marcar como Entregada
                         </button>
@@ -1023,16 +1023,71 @@ function mostrarModuloPagos(pagos) {
     
     html += '</tbody></table></div>';
     
-    // Botón para registrar pago si está en espera de depósito
-    <?php if ($cotizacion['estado'] == 'en_espera_deposito'): ?>
+    // Botones de acción según el estado de pagos
     html += '<div class="text-center mt-3">';
-    html += '<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">';
-    html += '<i class="fas fa-plus me-2"></i>Registrar Pago';
-    html += '</button>';
+    
+    if (pendiente <= 0) {
+        // Completamente pagado - mostrar botón de entregada
+        html += '<button type="button" class="btn btn-primary" onclick="cambiarEstado(\'entregada\')">';
+        html += '<i class="fas fa-truck me-2"></i>Marcar como Entregada';
+        html += '</button>';
+    } else if (totalPagado > 0) {
+        // Parcialmente pagado - mostrar ambos botones
+        html += '<button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">';
+        html += '<i class="fas fa-plus me-2"></i>Registrar Pago';
+        html += '</button>';
+        html += '<button type="button" class="btn btn-primary" onclick="cambiarEstado(\'entregada\')">';
+        html += '<i class="fas fa-truck me-2"></i>Marcar como Entregada';
+        html += '</button>';
+    } else {
+        // Sin pagos - solo botón de registrar pago
+        html += '<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">';
+        html += '<i class="fas fa-plus me-2"></i>Registrar Pago';
+        html += '</button>';
+    }
+    
     html += '</div>';
-    <?php endif; ?>
     
     container.innerHTML = html;
+    
+    // Actualizar botones de la sección de acciones principales
+    actualizarBotonesAcciones(pendiente, totalPagado);
+}
+
+// Función para actualizar botones de acciones principales
+function actualizarBotonesAcciones(pendiente, totalPagado) {
+    const accionesContainer = document.querySelector('.card-body .d-grid');
+    if (!accionesContainer) return;
+    
+    // Buscar botones existentes
+    const botonRegistrarPago = accionesContainer.querySelector('[data-bs-target="#modalRegistrarPago"]');
+    const botonEntregada = accionesContainer.querySelector('[onclick="cambiarEstado(\'entregada\')"]');
+    
+    if (pendiente <= 0) {
+        // Completamente pagado - ocultar botón de registrar pago, mostrar entregada
+        if (botonRegistrarPago) {
+            botonRegistrarPago.style.display = 'none';
+        }
+        if (botonEntregada) {
+            botonEntregada.style.display = 'block';
+        }
+    } else if (totalPagado > 0) {
+        // Parcialmente pagado - mostrar ambos botones
+        if (botonRegistrarPago) {
+            botonRegistrarPago.style.display = 'block';
+        }
+        if (botonEntregada) {
+            botonEntregada.style.display = 'block';
+        }
+    } else {
+        // Sin pagos - solo botón de registrar pago
+        if (botonRegistrarPago) {
+            botonRegistrarPago.style.display = 'block';
+        }
+        if (botonEntregada) {
+            botonEntregada.style.display = 'none';
+        }
+    }
 }
 
 // Cargar módulo de pagos al cargar la página
