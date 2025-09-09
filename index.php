@@ -74,9 +74,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <a class="nav-link" href="contacto.php">Contacto</a>
                     </li>
                 </ul>
-                <div class="d-flex">
+                <div class="d-flex gap-2">
                     <a href="cotizacion.php" class="btn btn-primary">
                         <i class="fas fa-calculator me-2"></i>Solicitar Cotización
+                    </a>
+                    <a href="admin/" class="btn btn-outline-secondary">
+                        <i class="fas fa-cog me-2"></i>Admin
                     </a>
                 </div>
             </div>
@@ -233,9 +236,14 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     <p class="lead mb-0">Solicita una cotización personalizada y descubre cómo podemos ayudarte a destacar tu marca.</p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
-                    <a href="cotizacion.php" class="btn btn-light btn-lg">
-                        <i class="fas fa-calculator me-2"></i>Solicitar Cotización
-                    </a>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="cotizacion.php" class="btn btn-light btn-lg">
+                            <i class="fas fa-calculator me-2"></i>Solicitar Cotización
+                        </a>
+                        <a href="admin/" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-cog me-2"></i>Panel de Administración
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
