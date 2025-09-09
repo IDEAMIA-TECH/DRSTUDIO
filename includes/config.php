@@ -25,4 +25,7 @@ if ($conn->connect_error) {
 
 // Configurar charset UTF-8 completo
 $conn->set_charset("utf8mb4");
+
+// Incluir funciones comunes
+require_once 'functions.php';
 ?>
