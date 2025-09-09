@@ -41,7 +41,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
-                <img src="assets/images/logo/LOGO.png" alt="DT Studio" height="40" class="me-2">
+                <img src="assets/logo/LOGO.png" alt="DT Studio" height="40" class="me-2">
                 <span style="color: var(--primary-color) !important;">DT Studio</span>
             </a>
             
@@ -255,7 +255,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="assets/images/logo/LOGO.png" alt="DT Studio" height="30" class="me-2">
+                        <img src="assets/logo/LOGO.png" alt="DT Studio" height="30" class="me-2">
                         <h5 class="fw-bold mb-0">DT Studio</h5>
                     </div>
                     <p class="text-muted">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
