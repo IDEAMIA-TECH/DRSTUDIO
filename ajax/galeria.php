@@ -70,7 +70,7 @@ switch ($action) {
             'updated_at' => date('Y-m-d H:i:s')
         ];
         
-        if (updateRecord('galeria', $id, $data)) {
+        if (updateRecord('galeria', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Imagen actualizada exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar la imagen']);

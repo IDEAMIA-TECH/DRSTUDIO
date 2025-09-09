@@ -50,7 +50,7 @@ if ($_POST) {
                 'direccion' => $direccion ?: null
             ];
             
-            if (updateRecord('clientes', $id, $data)) {
+            if (updateRecord('clientes', $data, $id)) {
                 $success = 'Cliente actualizado exitosamente';
                 // Actualizar datos locales
                 $cliente = array_merge($cliente, $data);

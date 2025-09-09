@@ -57,7 +57,7 @@ if ($_POST) {
                     'activo' => $activo
                 ];
                 
-                if (updateRecord('categorias', $id, $data)) {
+                if (updateRecord('categorias', $data, $id)) {
                     $success = 'Categoría actualizada exitosamente';
                     // Actualizar datos locales
                     $categoria = array_merge($categoria, $data);

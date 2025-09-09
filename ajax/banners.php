@@ -73,7 +73,7 @@ switch ($action) {
             'updated_at' => date('Y-m-d H:i:s')
         ];
         
-        if (updateRecord('banners', $id, $data)) {
+        if (updateRecord('banners', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Banner actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el banner']);

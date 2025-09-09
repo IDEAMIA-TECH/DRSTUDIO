@@ -107,7 +107,7 @@ switch ($action) {
             'activo' => $activo
         ];
         
-        if (updateRecord('categorias', $id, $data)) {
+        if (updateRecord('categorias', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Categoría actualizada exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar la categoría']);
@@ -149,7 +149,7 @@ switch ($action) {
         $activo = (int)$_POST['activo'];
         
         $data = ['activo' => $activo];
-        if (updateRecord('categorias', $id, $data)) {
+        if (updateRecord('categorias', $data, $id)) {
             $status = $activo ? 'activada' : 'desactivada';
             echo json_encode(['success' => true, 'message' => "Categoría $status exitosamente"]);
         } else {

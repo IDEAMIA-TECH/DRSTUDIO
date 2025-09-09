@@ -85,29 +85,44 @@ function updateRecord($table, $data, $id) {
     $sql = "UPDATE $table SET $setClause WHERE id = ?";
     $stmt = $conn->prepare($sql);
     
-    if ($stmt) {
-        // Detectar tipos de datos automáticamente
-        $types = '';
-        $values = array_values($data);
-        
-        foreach ($values as $value) {
-            if (is_int($value)) {
-                $types .= 'i';
-            } elseif (is_float($value)) {
-                $types .= 'd';
-            } else {
-                $types .= 's';
-            }
-        }
-        
-        // Agregar el ID al final (siempre integer)
-        $types .= 'i';
-        $values[] = $id;
-        
-        $stmt->bind_param($types, ...$values);
-        return $stmt->execute();
+    if (!$stmt) {
+        error_log("Error preparando consulta UPDATE: " . $conn->error);
+        error_log("SQL: " . $sql);
+        return false;
     }
-    return false;
+    
+    // Detectar tipos de datos automáticamente
+    $types = '';
+    $values = array_values($data);
+    
+    foreach ($values as $value) {
+        if (is_int($value)) {
+            $types .= 'i';
+        } elseif (is_float($value)) {
+            $types .= 'd';
+        } else {
+            $types .= 's';
+        }
+    }
+    
+    // Agregar el ID al final (siempre integer)
+    $types .= 'i';
+    $values[] = $id;
+    
+    $stmt->bind_param($types, ...$values);
+    $result = $stmt->execute();
+    
+    if (!$result) {
+        $errorMsg = "Error ejecutando UPDATE: " . $stmt->error;
+        $errorMsg .= "\nSQL: " . $sql;
+        $errorMsg .= "\nTipos: " . $types;
+        $errorMsg .= "\nValores: " . print_r($values, true);
+        error_log($errorMsg);
+        echo "ERROR: " . $errorMsg . "\n";
+    }
+    
+    $stmt->close();
+    return $result;
 }
 
 // Función para eliminar registros (soft delete)

@@ -61,7 +61,7 @@ if ($_POST) {
                 'updated_at' => date('Y-m-d H:i:s')
             ];
             
-            if (updateRecord('banners', $id, $data)) {
+            if (updateRecord('banners', $data, $id)) {
                 $success = 'Banner actualizado exitosamente';
                 // Actualizar datos del banner
                 $banner = getRecord('banners', $id);

@@ -46,7 +46,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                     'fecha_aceptacion' => date('Y-m-d H:i:s')
                 ];
                 
-                if (updateRecord('cotizaciones', $cotizacionId, $updateData)) {
+                if (updateRecord('cotizaciones', $updateData, $cotizacionId)) {
                     $success = '¡Cotización aceptada exitosamente! Nos pondremos en contacto con usted para coordinar el pago y la producción.';
                     
                     // Enviar confirmación por correo al cliente

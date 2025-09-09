@@ -101,7 +101,7 @@ switch ($action) {
             'direccion' => $direccion ?: null
         ];
         
-        if (updateRecord('clientes', $id, $data)) {
+        if (updateRecord('clientes', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Cliente actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el cliente']);

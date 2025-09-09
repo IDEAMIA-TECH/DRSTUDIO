@@ -67,7 +67,7 @@ if ($_POST) {
                 'updated_at' => date('Y-m-d H:i:s')
             ];
             
-            if (updateRecord('testimonios', $id, $data)) {
+            if (updateRecord('testimonios', $data, $id)) {
                 $success = 'Testimonio actualizado exitosamente';
                 // Actualizar datos del testimonio
                 $testimonio = getRecord('testimonios', $id);

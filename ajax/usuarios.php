@@ -89,7 +89,7 @@ switch ($action) {
             exit;
         }
         
-        if (updateRecord('usuarios', $id, $data)) {
+        if (updateRecord('usuarios', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Usuario actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el usuario']);

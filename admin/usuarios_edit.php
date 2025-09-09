@@ -65,7 +65,7 @@ if ($_POST) {
                 $data['password'] = password_hash($password, PASSWORD_DEFAULT);
             }
             
-            if (updateRecord('usuarios', $id, $data)) {
+            if (updateRecord('usuarios', $data, $id)) {
                 $success = 'Usuario actualizado exitosamente';
                 // Actualizar datos del usuario
                 $usuario = getRecord('usuarios', $id);

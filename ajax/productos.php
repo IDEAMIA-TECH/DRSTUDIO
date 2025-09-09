@@ -179,7 +179,7 @@ switch ($action) {
             'activo' => $activo
         ];
         
-        if (updateRecord('productos', $id, $data)) {
+        if (updateRecord('productos', $data, $id)) {
             // Actualizar variantes
             if (isset($_POST['variantes']) && is_array($_POST['variantes'])) {
                 // Eliminar variantes existentes
@@ -238,7 +238,7 @@ switch ($action) {
         $activo = (int)$_POST['activo'];
         
         $data = ['activo' => $activo];
-        if (updateRecord('productos', $id, $data)) {
+        if (updateRecord('productos', $data, $id)) {
             $status = $activo ? 'activado' : 'desactivado';
             echo json_encode(['success' => true, 'message' => "Producto $status exitosamente"]);
         } else {
@@ -251,7 +251,7 @@ switch ($action) {
         $destacado = (int)$_POST['destacado'];
         
         $data = ['destacado' => $destacado];
-        if (updateRecord('productos', $id, $data)) {
+        if (updateRecord('productos', $data, $id)) {
             $status = $destacado ? 'marcado como destacado' : 'desmarcado como destacado';
             echo json_encode(['success' => true, 'message' => "Producto $status exitosamente"]);
         } else {
@@ -309,7 +309,7 @@ switch ($action) {
         $stock = (int)$_POST['stock'];
         
         $data = ['stock' => $stock];
-        if (updateRecord('variantes_producto', $variante_id, $data)) {
+        if (updateRecord('variantes_producto', $data, $variante_id)) {
             echo json_encode(['success' => true, 'message' => 'Stock actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el stock']);

@@ -59,7 +59,7 @@ if ($_POST) {
                 'updated_at' => date('Y-m-d H:i:s')
             ];
             
-            if (updateRecord('galeria', $id, $data)) {
+            if (updateRecord('galeria', $data, $id)) {
                 $success = 'Imagen actualizada exitosamente';
                 // Actualizar datos de la imagen
                 $imagen = getRecord('galeria', $id);

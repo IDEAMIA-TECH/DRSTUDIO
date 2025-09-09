@@ -40,12 +40,19 @@ if ($_POST) {
     if (empty($sku) || empty($nombre) || $precio_venta <= 0 || $costo_fabricacion <= 0) {
         $error = 'Todos los campos requeridos deben ser completados correctamente';
     } else {
-        // Verificar si ya existe otro producto con el mismo SKU
-        $existing = readRecords('productos', ["sku = '$sku'", "id != $id"]);
-        if (!empty($existing)) {
-            $error = 'Ya existe otro producto con este SKU';
-        } else {
-            // Procesar imagen principal
+        // Verificar si ya existe otro producto con el mismo SKU usando consulta preparada
+        $checkSql = "SELECT id FROM productos WHERE sku = ? AND id != ?";
+        $checkStmt = $conn->prepare($checkSql);
+        if ($checkStmt) {
+            $checkStmt->bind_param("si", $sku, $id);
+            $checkStmt->execute();
+            $existing = $checkStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $checkStmt->close();
+            
+            if (!empty($existing)) {
+                $error = 'Ya existe otro producto con este SKU';
+            } else {
+                // Procesar imagen principal
             $imagen_principal = $producto['imagen_principal']; // Mantener imagen actual por defecto
             if (isset($_FILES['imagen_principal']) && $_FILES['imagen_principal']['error'] == 0) {
                 $newImagen = uploadFile($_FILES['imagen_principal'], '../uploads/productos/');
@@ -75,7 +82,9 @@ if ($_POST) {
                     'activo' => $activo
                 ];
                 
-                if (updateRecord('productos', $id, $data)) {
+                $updateResult = updateRecord('productos', $data, $id);
+                
+                if ($updateResult) {
                     // Actualizar variantes
                     if (isset($_POST['variantes']) && is_array($_POST['variantes'])) {
                         // Eliminar variantes existentes
@@ -105,6 +114,8 @@ if ($_POST) {
                 } else {
                     $error = 'Error al actualizar el producto';
                 }
+            } else {
+                $error = 'Error al verificar el SKU';
             }
         }
     }

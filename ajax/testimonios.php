@@ -75,7 +75,7 @@ switch ($action) {
             'updated_at' => date('Y-m-d H:i:s')
         ];
         
-        if (updateRecord('testimonios', $id, $data)) {
+        if (updateRecord('testimonios', $data, $id)) {
             echo json_encode(['success' => true, 'message' => 'Testimonio actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el testimonio']);

@@ -195,7 +195,7 @@ switch ($action) {
             'observaciones' => $observaciones
         ];
         
-        if (updateRecord('cotizaciones', $id, $data)) {
+        if (updateRecord('cotizaciones', $data, $id)) {
             // Eliminar items existentes
             $conn->query("DELETE FROM cotizacion_items WHERE cotizacion_id = $id");
             
@@ -251,7 +251,7 @@ switch ($action) {
         }
         
         $data = ['estado' => $estado];
-        if (updateRecord('cotizaciones', $id, $data)) {
+        if (updateRecord('cotizaciones', $data, $id)) {
             $estadoTexto = ucfirst($estado);
             
             // Si se marca como "enviada", enviar correo con PDF
