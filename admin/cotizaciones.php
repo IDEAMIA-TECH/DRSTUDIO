@@ -269,6 +269,35 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
     </div>
 </div>
 
+<style>
+/* Corregir z-index del dropdown de acciones */
+.dropdown-menu {
+    z-index: 1050 !important;
+}
+
+/* Asegurar que el dropdown se muestre correctamente en tablas */
+.table-responsive .dropdown-menu {
+    position: absolute !important;
+    z-index: 1050 !important;
+}
+
+/* Mejorar la visibilidad del dropdown */
+.dropdown-menu {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Asegurar que el contenedor de la tabla no corte el dropdown */
+.table-responsive {
+    overflow: visible !important;
+}
+
+/* Ajustar el contenedor de la tabla para evitar overflow */
+.card-body {
+    overflow: visible !important;
+}
+</style>
+
 <script>
 // Función para cambiar estado de cotización
 function cambiarEstado(id, estado) {
@@ -372,12 +401,32 @@ $(document).ready(function() {
         language: {
             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
         },
-        responsive: true,
+        responsive: {
+            details: {
+                type: 'column',
+                target: 'tr'
+            }
+        },
         pageLength: 25,
         order: [[0, 'desc']],
         columnDefs: [
             { orderable: false, targets: [7] } // Deshabilitar ordenamiento en acciones
-        ]
+        ],
+        dom: 'rtip', // Cambiar el layout para evitar problemas con dropdowns
+        scrollX: true // Permitir scroll horizontal si es necesario
+    });
+    
+    // Asegurar que los dropdowns se muestren correctamente
+    $('.dropdown-toggle').on('click', function(e) {
+        e.stopPropagation();
+        $(this).next('.dropdown-menu').toggle();
+    });
+    
+    // Cerrar dropdowns al hacer clic fuera
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dropdown').length) {
+            $('.dropdown-menu').hide();
+        }
     });
 });
 </script>
