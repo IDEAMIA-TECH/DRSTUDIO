@@ -121,8 +121,20 @@ function deleteRecord($table, $id, $soft = true) {
     }
     
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        error_log("Error preparando consulta DELETE: " . $conn->error);
+        return false;
+    }
+    
     $stmt->bind_param("i", $id);
-    return $stmt->execute();
+    $result = $stmt->execute();
+    
+    if (!$result) {
+        error_log("Error ejecutando DELETE: " . $stmt->error);
+    }
+    
+    $stmt->close();
+    return $result;
 }
 
 // Función para sanitizar datos

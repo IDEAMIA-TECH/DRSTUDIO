@@ -1,15 +1,30 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/auth.php';
-require_once '../includes/functions.php';
+// Sistema de rutas robusto
+function getProjectRoot() {
+    $currentDir = __DIR__;
+    $projectRoot = dirname($currentDir);
+    return $projectRoot;
+}
+
+$projectRoot = getProjectRoot();
+require_once $projectRoot . '/includes/config.php';
+require_once $projectRoot . '/includes/auth.php';
+require_once $projectRoot . '/includes/functions.php';
 
 header('Content-Type: application/json');
 
 // Verificar autenticación
+error_log('AJAX Cotizaciones - Verificando autenticación');
+error_log('AJAX Cotizaciones - Session ID: ' . session_id());
+error_log('AJAX Cotizaciones - User ID en sesión: ' . ($_SESSION['user_id'] ?? 'No definido'));
+
 if (!isLoggedIn()) {
+    error_log('AJAX Cotizaciones - Usuario no autenticado');
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }
+
+error_log('AJAX Cotizaciones - Usuario autenticado correctamente');
 
 $action = $_POST['action'] ?? '';
 
@@ -198,19 +213,27 @@ switch ($action) {
         
     case 'delete':
         $id = (int)$_POST['id'];
+        error_log("AJAX Cotizaciones - Intentando eliminar cotización ID: $id");
         
         // Obtener cotización
         $cotizacion = getRecord('cotizaciones', $id);
         if (!$cotizacion) {
+            error_log("AJAX Cotizaciones - Cotización ID $id no encontrada");
             echo json_encode(['success' => false, 'message' => 'Cotización no encontrada']);
             exit;
         }
         
+        error_log("AJAX Cotizaciones - Cotización encontrada: " . $cotizacion['numero_cotizacion']);
+        
         // Eliminar items de la cotización
-        $conn->query("DELETE FROM cotizacion_items WHERE cotizacion_id = $id");
+        $itemsResult = $conn->query("DELETE FROM cotizacion_items WHERE cotizacion_id = $id");
+        error_log("AJAX Cotizaciones - Items eliminados: " . ($itemsResult ? 'Sí' : 'No'));
         
         // Eliminar cotización
-        if (deleteRecord('cotizaciones', $id, false)) {
+        $deleteResult = deleteRecord('cotizaciones', $id, false);
+        error_log("AJAX Cotizaciones - Resultado eliminación: " . ($deleteResult ? 'Éxito' : 'Error'));
+        
+        if ($deleteResult) {
             echo json_encode(['success' => true, 'message' => 'Cotización eliminada exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al eliminar la cotización']);

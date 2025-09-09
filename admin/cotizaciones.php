@@ -269,7 +269,7 @@ function cambiarEstado(id, estado) {
     const estadoTexto = estados[estado] || estado;
     
     if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
-        fetch('ajax/cotizaciones.php', {
+        fetch('../ajax/cotizaciones.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -295,7 +295,7 @@ function cambiarEstado(id, estado) {
 // Función para eliminar cotización
 function deleteCotizacion(id) {
     if (confirm('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
-        fetch('ajax/cotizaciones.php', {
+        fetch('../ajax/cotizaciones.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

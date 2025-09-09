@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AJAX Delete</title>
+</head>
+<body>
+    <h1>Test de Eliminación AJAX</h1>
+    <button onclick="testDelete()">Probar Eliminación</button>
+    <div id="result"></div>
+
+    <script>
+    function testDelete() {
+        const id = 3; // ID de prueba
+        
+        fetch('../ajax/cotizaciones.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=delete&id=${id}`
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            return response.text();
+        })
+        .then(text => {
+            console.log('Response text:', text);
+            try {
+                const data = JSON.parse(text);
+                document.getElementById('result').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (e) {
+                document.getElementById('result').innerHTML = 
+                    '<pre>Error parsing JSON: ' + text + '</pre>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('result').innerHTML = 
+                '<pre>Error: ' + error.message + '</pre>';
+        });
+    }
+    </script>
+</body>
+</html>
