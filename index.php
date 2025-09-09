@@ -72,9 +72,6 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="galeria.php">Galería</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="contacto.php">Contacto</a>
                     </li>
                 </ul>
@@ -458,7 +455,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     </div>
                 </div>
                 <div class="col-lg-2 mb-4">
-                    <h6 class="fw-bold mb-3">Productos</h6>
+                    <h6 class="fw-bold mb-3 text-light">Productos</h6>
                     <ul class="list-unstyled">
                         <li><a href="productos.php" class="text-light text-decoration-none">Todos los Productos</a></li>
                         <?php foreach (array_slice($categorias, 0, 4) as $categoria): ?>
@@ -469,19 +466,17 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     </ul>
                 </div>
                 <div class="col-lg-2 mb-4">
-                    <h6 class="fw-bold mb-3">Empresa</h6>
+                    <h6 class="fw-bold mb-3 text-light">Empresa</h6>
                     <ul class="list-unstyled">
-                        <li><a href="galeria.php" class="text-light text-decoration-none">Galería</a></li>
                         <li><a href="contacto.php" class="text-light text-decoration-none">Contacto</a></li>
                         <li><a href="cotizacion.php" class="text-light text-decoration-none">Cotización</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 mb-4">
-                    <h6 class="fw-bold mb-3">Contacto</h6>
+                    <h6 class="fw-bold mb-3 text-light">Contacto</h6>
                     <ul class="list-unstyled text-light">
-                        <li><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</li>
-                        <li><i class="fas fa-envelope me-2"></i>info@drstudio.com</li>
-                        <li><i class="fas fa-map-marker-alt me-2"></i>123 Main St, City, State 12345</li>
+                        <li><i class="fas fa-phone me-2"></i>4462129198</li>
+                        <li><i class="fas fa-envelope me-2"></i>cotizaciones@dtstudio.com.mx</li>
                     </ul>
                 </div>
             </div>
