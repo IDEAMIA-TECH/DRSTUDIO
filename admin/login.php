@@ -1,6 +1,6 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/auth.php';
+require_once dirname(__DIR__) . '/includes/config.php';
+require_once dirname(__DIR__) . '/includes/auth.php';
 
 // Redirigir si ya está logueado
 redirectIfLoggedIn();
@@ -29,7 +29,7 @@ if ($_POST) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7B3F9F 0%, #5A2D73 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -41,10 +41,16 @@ if ($_POST) {
             overflow: hidden;
         }
         .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7B3F9F 0%, #5A2D73 100%);
             color: white;
             padding: 2rem;
             text-align: center;
+        }
+        .login-header img {
+            transition: transform 0.3s ease;
+        }
+        .login-header img:hover {
+            transform: scale(1.1);
         }
         .login-body {
             padding: 2rem;
@@ -55,11 +61,11 @@ if ($_POST) {
             padding: 12px 15px;
         }
         .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #7B3F9F;
+            box-shadow: 0 0 0 0.2rem rgba(123, 63, 159, 0.25);
         }
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7B3F9F 0%, #5A2D73 100%);
             border: none;
             border-radius: 10px;
             padding: 12px;
@@ -69,7 +75,14 @@ if ($_POST) {
         }
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(123, 63, 159, 0.4);
+        }
+        .back-link {
+            color: #6c757d !important;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover {
+            color: #7B3F9F !important;
         }
     </style>
 </head>
@@ -79,6 +92,9 @@ if ($_POST) {
             <div class="col-md-6 col-lg-4">
                 <div class="login-card">
                     <div class="login-header">
+                        <div class="d-flex justify-content-center mb-3">
+                            <img src="../assets/images/logo-dt-studio.svg" alt="DR Studio" height="50" style="filter: brightness(0) invert(1);">
+                        </div>
                         <h3><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración</h3>
                         <p class="mb-0">DR Studio - Promocionales</p>
                     </div>
@@ -108,6 +124,12 @@ if ($_POST) {
                                 <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                             </button>
                         </form>
+                        
+                        <div class="text-center mt-3">
+                            <a href="../index.php" class="back-link text-decoration-none">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al Sitio Web
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
