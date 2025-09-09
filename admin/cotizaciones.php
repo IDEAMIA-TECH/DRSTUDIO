@@ -235,29 +235,6 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                                        title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" 
-                                                class="btn btn-sm btn-secondary dropdown-toggle" 
-                                                data-bs-toggle="dropdown" 
-                                                title="Acciones">
-                                            <i class="fas fa-cog"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#" onclick="cambiarEstado(<?php echo $cotizacion['id']; ?>, 'enviada')">
-                                                <i class="fas fa-paper-plane me-2"></i>Marcar como Enviada
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="cambiarEstado(<?php echo $cotizacion['id']; ?>, 'aceptada')">
-                                                <i class="fas fa-check me-2"></i>Marcar como Aceptada
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="cambiarEstado(<?php echo $cotizacion['id']; ?>, 'rechazada')">
-                                                <i class="fas fa-times me-2"></i>Marcar como Rechazada
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteCotizacion(<?php echo $cotizacion['id']; ?>)">
-                                                <i class="fas fa-trash me-2"></i>Eliminar
-                                            </a></li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -269,210 +246,20 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
     </div>
 </div>
 
-<style>
-/* Corregir z-index del dropdown de acciones */
-.dropdown-menu {
-    z-index: 1050 !important;
-    min-width: 200px !important;
-    max-height: none !important;
-    overflow: visible !important;
-}
-
-/* Asegurar que el dropdown se muestre correctamente en tablas */
-.table-responsive .dropdown-menu {
-    position: absolute !important;
-    z-index: 1050 !important;
-    transform: translateY(0) !important;
-}
-
-/* Mejorar la visibilidad del dropdown */
-.dropdown-menu {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    border: 1px solid rgba(0, 0, 0, 0.15) !important;
-    background: white !important;
-}
-
-/* Asegurar que el contenedor de la tabla no corte el dropdown */
-.table-responsive {
-    overflow: visible !important;
-    margin-bottom: 100px !important; /* Espacio extra para el dropdown */
-}
-
-/* Ajustar el contenedor de la tabla para evitar overflow */
-.card-body {
-    overflow: visible !important;
-    padding-bottom: 50px !important; /* Espacio extra para el dropdown */
-}
-
-/* Asegurar que el dropdown se muestre completamente */
-.dropdown {
-    position: relative !important;
-}
-
-.dropdown-menu.show {
-    display: block !important;
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    z-index: 1050 !important;
-}
-</style>
 
 <script>
-// Función para cambiar estado de cotización
-function cambiarEstado(id, estado) {
-    console.log('DEBUG: Iniciando cambiarEstado');
-    console.log('DEBUG: ID:', id, 'Estado:', estado);
-    
-    const estados = {
-        'enviada': 'enviada',
-        'aceptada': 'aceptada',
-        'rechazada': 'rechazada'
-    };
-    
-    const estadoTexto = estados[estado] || estado;
-    console.log('DEBUG: Estado texto:', estadoTexto);
-    
-    if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
-        console.log('DEBUG: Usuario confirmó el cambio');
-        
-        const url = '../ajax/cotizaciones.php';
-        const body = `action=change_status&id=${id}&estado=${estado}`;
-        
-        console.log('DEBUG: URL:', url);
-        console.log('DEBUG: Body:', body);
-        
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: body
-        })
-        .then(response => {
-            console.log('DEBUG: Response status:', response.status);
-            console.log('DEBUG: Response headers:', response.headers);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            return response.text();
-        })
-        .then(text => {
-            console.log('DEBUG: Response text:', text);
-            
-            try {
-                const data = JSON.parse(text);
-                console.log('DEBUG: Parsed data:', data);
-                
-                if (data.success) {
-                    console.log('DEBUG: Éxito - mostrando alerta y recargando');
-                    showAlert(data.message, 'success');
-                    location.reload();
-                } else {
-                    console.log('DEBUG: Error - mostrando alerta de error');
-                    showAlert(data.message, 'danger');
-                }
-            } catch (e) {
-                console.error('DEBUG: Error parsing JSON:', e);
-                console.error('DEBUG: Raw response:', text);
-                showAlert('Error al procesar la respuesta del servidor', 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('DEBUG: Error en fetch:', error);
-            showAlert('Error al cambiar el estado de la cotización: ' + error.message, 'danger');
-        });
-    } else {
-        console.log('DEBUG: Usuario canceló el cambio');
-    }
-}
-
-// Función para eliminar cotización
-function deleteCotizacion(id) {
-    if (confirm('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
-        fetch('../ajax/cotizaciones.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=delete&id=${id}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert(data.message, 'success');
-                location.reload();
-            } else {
-                showAlert(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error al eliminar la cotización', 'danger');
-        });
-    }
-}
-
 // Inicializar DataTable
 $(document).ready(function() {
     $('#cotizacionesTable').DataTable({
         language: {
             url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
         },
-        responsive: {
-            details: {
-                type: 'column',
-                target: 'tr'
-            }
-        },
+        responsive: true,
         pageLength: 25,
         order: [[0, 'desc']],
         columnDefs: [
             { orderable: false, targets: [7] } // Deshabilitar ordenamiento en acciones
-        ],
-        dom: 'rtip', // Cambiar el layout para evitar problemas con dropdowns
-        scrollX: true // Permitir scroll horizontal si es necesario
-    });
-    
-    // Asegurar que los dropdowns se muestren correctamente
-    $('.dropdown-toggle').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Cerrar otros dropdowns abiertos
-        $('.dropdown-menu').not($(this).next('.dropdown-menu')).removeClass('show').hide();
-        
-        // Toggle el dropdown actual
-        const dropdown = $(this).next('.dropdown-menu');
-        dropdown.toggleClass('show');
-        
-        if (dropdown.hasClass('show')) {
-            dropdown.show();
-            // Asegurar que el dropdown esté visible
-            dropdown.css({
-                'display': 'block',
-                'position': 'absolute',
-                'z-index': '1050',
-                'top': '100%',
-                'left': '0'
-            });
-        } else {
-            dropdown.hide();
-        }
-    });
-    
-    // Cerrar dropdowns al hacer clic fuera
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.dropdown').length) {
-            $('.dropdown-menu').removeClass('show').hide();
-        }
-    });
-    
-    // Prevenir que el dropdown se cierre al hacer clic en él
-    $('.dropdown-menu').on('click', function(e) {
-        e.stopPropagation();
+        ]
     });
 });
 </script>
