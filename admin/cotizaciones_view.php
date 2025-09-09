@@ -207,6 +207,10 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                         <i class="fas fa-file-pdf me-2"></i>Exportar PDF
                     </button>
                     
+                    <button type="button" class="btn btn-danger" onclick="deleteCotizacion()">
+                        <i class="fas fa-trash me-2"></i>Eliminar Cotización
+                    </button>
+                    
                     <a href="cotizaciones.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Volver a Cotizaciones
                     </a>
