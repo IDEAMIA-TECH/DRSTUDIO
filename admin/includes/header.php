@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+// Incluir sistema de rutas centralizado
+require_once __DIR__ . '/paths.php';
 
 // Verificar autenticación
 requireLogin();
