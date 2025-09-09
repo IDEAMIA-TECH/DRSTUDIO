@@ -13,6 +13,11 @@ let currentData = {
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar sesión de administrador primero
+    if (typeof checkAdminSession === 'function') {
+        checkAdminSession();
+    }
+    
     initializeAdmin();
     loadDashboardData();
     setupEventListeners();
@@ -634,6 +639,11 @@ function hideModal(modalId) {
     }
 }
 
+// Alias para closeModal (usado en HTML)
+function closeModal(modalId) {
+    hideModal(modalId);
+}
+
 function updatePagination(section, pagination) {
     const container = document.getElementById(`${section}-pagination`);
     if (!container) return;
@@ -855,6 +865,7 @@ window.editCustomer = editCustomer;
 window.deleteProduct = deleteProduct;
 window.deleteCustomer = deleteCustomer;
 window.hideModal = hideModal;
+window.closeModal = closeModal;
 window.changePage = changePage;
 window.showProductModal = showProductModal;
 window.showCustomerModal = showCustomerModal;
