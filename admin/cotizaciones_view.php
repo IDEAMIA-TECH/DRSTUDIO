@@ -196,6 +196,10 @@ foreach ($items as &$item) {
                         <i class="fas fa-print me-2"></i>Imprimir
                     </button>
                     
+                    <button type="button" class="btn btn-success" onclick="exportarPDF()">
+                        <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+                    </button>
+                    
                     <a href="cotizaciones.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Volver a Cotizaciones
                     </a>
@@ -342,6 +346,69 @@ function cambiarEstado(estado) {
 // Función para imprimir
 function imprimirCotizacion() {
     window.print();
+}
+
+// Función para exportar a PDF
+function exportarPDF() {
+    // Mostrar loading
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generando PDF...';
+    btn.disabled = true;
+    
+    // Crear datos para el PDF
+    const cotizacionData = {
+        numero: '<?php echo $cotizacion['numero_cotizacion']; ?>',
+        fecha: '<?php echo formatDate($cotizacion['created_at']); ?>',
+        cliente: {
+            nombre: '<?php echo addslashes($cotizacion['cliente_nombre']); ?>',
+            empresa: '<?php echo addslashes($cotizacion['cliente_empresa'] ?? ''); ?>',
+            email: '<?php echo addslashes($cotizacion['cliente_email'] ?? ''); ?>',
+            telefono: '<?php echo addslashes($cotizacion['cliente_telefono'] ?? ''); ?>'
+        },
+        items: <?php echo json_encode($items); ?>,
+        subtotal: <?php echo $cotizacion['subtotal']; ?>,
+        descuento: <?php echo $cotizacion['descuento']; ?>,
+        total: <?php echo $cotizacion['total']; ?>,
+        observaciones: '<?php echo addslashes($cotizacion['observaciones'] ?? ''); ?>',
+        estado: '<?php echo $cotizacion['estado']; ?>'
+    };
+    
+    // Enviar datos al servidor para generar PDF
+    fetch('ajax/generate_pdf.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'generate_cotizacion_pdf',
+            data: cotizacionData
+        })
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Crear enlace de descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Cotizacion_${cotizacionData.numero}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Restaurar botón
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    })
+    .catch(error => {
+        console.error('Error generando PDF:', error);
+        showAlert('Error al generar el PDF', 'danger');
+        
+        // Restaurar botón
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 
 // Función para eliminar cotización
