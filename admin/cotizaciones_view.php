@@ -26,7 +26,8 @@ if (!$cotizacion) {
 // Obtener items de la cotización
 $items = readRecords('cotizacion_items', ["cotizacion_id = $id"], null, 'id ASC');
 
-// Obtener información de productos para los items
+// Obtener información de productos para los items y calcular totales
+$subtotal_calculado = 0;
 foreach ($items as &$item) {
     $producto = getRecord('productos', $item['producto_id']);
     $item['producto'] = $producto;
@@ -35,7 +36,13 @@ foreach ($items as &$item) {
         $variante = getRecord('variantes_producto', $item['variante_id']);
         $item['variante'] = $variante;
     }
+    
+    // Sumar al subtotal calculado
+    $subtotal_calculado += $item['subtotal'];
 }
+
+// Calcular total final
+$total_calculado = $subtotal_calculado - $cotizacion['descuento'];
 ?>
 
 <div class="row">
@@ -140,7 +147,7 @@ foreach ($items as &$item) {
                         <tfoot>
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
-                                <td class="text-end"><strong>$<?php echo number_format($cotizacion['subtotal'], 2); ?></strong></td>
+                                <td class="text-end"><strong>$<?php echo number_format($subtotal_calculado, 2); ?></strong></td>
                             </tr>
                             <?php if ($cotizacion['descuento'] > 0): ?>
                             <tr>
@@ -150,7 +157,7 @@ foreach ($items as &$item) {
                             <?php endif; ?>
                             <tr class="table-success">
                                 <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
-                                <td class="text-end"><strong>$<?php echo number_format($cotizacion['total'], 2); ?></strong></td>
+                                <td class="text-end"><strong>$<?php echo number_format($total_calculado, 2); ?></strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -219,7 +226,7 @@ foreach ($items as &$item) {
                     </li>
                     <li class="d-flex justify-content-between">
                         <span>Subtotal:</span>
-                        <strong>$<?php echo number_format($cotizacion['subtotal'], 2); ?></strong>
+                        <strong>$<?php echo number_format($subtotal_calculado, 2); ?></strong>
                     </li>
                     <?php if ($cotizacion['descuento'] > 0): ?>
                     <li class="d-flex justify-content-between">
@@ -229,7 +236,7 @@ foreach ($items as &$item) {
                     <?php endif; ?>
                     <li class="d-flex justify-content-between">
                         <span><strong>Total:</strong></span>
-                        <strong class="text-success">$<?php echo number_format($cotizacion['total'], 2); ?></strong>
+                        <strong class="text-success">$<?php echo number_format($total_calculado, 2); ?></strong>
                     </li>
                 </ul>
             </div>
@@ -377,9 +384,9 @@ function exportarPDF() {
             telefono: '<?php echo addslashes($cotizacion['cliente_telefono'] ?? ''); ?>'
         },
         items: <?php echo json_encode($items); ?>,
-        subtotal: <?php echo $cotizacion['subtotal']; ?>,
+        subtotal: <?php echo $subtotal_calculado; ?>,
         descuento: <?php echo $cotizacion['descuento']; ?>,
-        total: <?php echo $cotizacion['total']; ?>,
+        total: <?php echo $total_calculado; ?>,
         observaciones: '<?php echo addslashes($cotizacion['observaciones'] ?? ''); ?>',
         estado: '<?php echo $cotizacion['estado']; ?>'
     };
