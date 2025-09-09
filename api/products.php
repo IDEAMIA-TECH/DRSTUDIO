@@ -75,23 +75,31 @@ class ProductAPI {
         }
         
         if (!empty($category)) {
-            $whereConditions[] = "p.category = ?";
+            $whereConditions[] = "c.name = ?";
             $params[] = $category;
         }
         
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
         
         // Contar total
-        $countQuery = "SELECT COUNT(*) as total FROM products p $whereClause";
+        $countQuery = "SELECT COUNT(DISTINCT p.id) as total 
+                      FROM products p
+                      LEFT JOIN categories c ON p.category_id = c.id
+                      $whereClause";
         $countStmt = $this->db->prepare($countQuery);
         $countStmt->execute($params);
         $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
         
         // Obtener productos
         $query = "SELECT p.*, 
-                         GROUP_CONCAT(DISTINCT pi.image_url) as images
+                         c.name as category_name,
+                         GROUP_CONCAT(DISTINCT pi.url) as images,
+                         MIN(pv.price) as min_price,
+                         MAX(pv.price) as max_price
                   FROM products p
+                  LEFT JOIN categories c ON p.category_id = c.id
                   LEFT JOIN product_images pi ON p.id = pi.product_id
+                  LEFT JOIN product_variants pv ON p.id = pv.product_id
                   $whereClause
                   GROUP BY p.id
                   ORDER BY p.created_at DESC
@@ -107,9 +115,11 @@ class ProductAPI {
         // Procesar productos
         foreach ($products as &$product) {
             $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
-            $product['price'] = (float)$product['price'];
-            $product['featured'] = (bool)$product['featured'];
-            $product['active'] = (bool)$product['active'];
+            $product['min_price'] = (float)$product['min_price'];
+            $product['max_price'] = (float)$product['max_price'];
+            $product['price'] = $product['min_price']; // Precio principal
+            $product['featured'] = false; // No existe en el esquema actual
+            $product['active'] = $product['status'] === 'active';
         }
         
         $this->sendResponse(true, 'Productos obtenidos exitosamente', [
@@ -132,8 +142,10 @@ class ProductAPI {
         }
         
         $query = "SELECT p.*, 
-                         GROUP_CONCAT(DISTINCT pi.image_url) as images
+                         c.name as category_name,
+                         GROUP_CONCAT(DISTINCT pi.url) as images
                   FROM products p
+                  LEFT JOIN categories c ON p.category_id = c.id
                   LEFT JOIN product_images pi ON p.id = pi.product_id
                   WHERE p.id = ?
                   GROUP BY p.id";
@@ -147,10 +159,15 @@ class ProductAPI {
             return;
         }
         
+        // Obtener variantes del producto
+        $variantsQuery = "SELECT * FROM product_variants WHERE product_id = ? AND is_active = 1";
+        $variantsStmt = $this->db->prepare($variantsQuery);
+        $variantsStmt->execute([$id]);
+        $variants = $variantsStmt->fetchAll(PDO::FETCH_ASSOC);
+        
         $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
-        $product['price'] = (float)$product['price'];
-        $product['featured'] = (bool)$product['featured'];
-        $product['active'] = (bool)$product['active'];
+        $product['variants'] = $variants;
+        $product['active'] = $product['status'] === 'active';
         
         $this->sendResponse(true, 'Producto obtenido exitosamente', $product);
     }
@@ -158,7 +175,7 @@ class ProductAPI {
     private function createProduct() {
         $data = json_decode(file_get_contents('php://input'), true);
         
-        $required = ['name', 'description', 'price', 'category', 'material'];
+        $required = ['name', 'description', 'category_id', 'sku'];
         foreach ($required as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
                 $this->sendResponse(false, "Campo requerido: $field", null, 400);
@@ -169,25 +186,39 @@ class ProductAPI {
         try {
             $this->db->beginTransaction();
             
-            $query = "INSERT INTO products (name, description, price, category, material, 
-                                          featured, active, created_at, updated_at) 
-                      VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())";
+            // Insertar producto
+            $query = "INSERT INTO products (name, description, category_id, sku, status, 
+                                          meta_title, meta_description, created_by, created_at, updated_at) 
+                      VALUES (?, ?, ?, ?, 'active', ?, ?, 1, NOW(), NOW())";
             
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $data['name'],
                 $data['description'],
-                $data['price'],
-                $data['category'],
-                $data['material'],
-                $data['featured'] ?? 0
+                $data['category_id'],
+                $data['sku'],
+                $data['meta_title'] ?? '',
+                $data['meta_description'] ?? ''
             ]);
             
             $productId = $this->db->lastInsertId();
             
+            // Insertar variante por defecto si se proporciona precio
+            if (isset($data['price']) && $data['price'] > 0) {
+                $variantQuery = "INSERT INTO product_variants (product_id, name, sku, price, cost, stock, is_active) 
+                                VALUES (?, 'Default', ?, ?, ?, 0, 1)";
+                $variantStmt = $this->db->prepare($variantQuery);
+                $variantStmt->execute([
+                    $productId,
+                    $data['sku'] . '-001',
+                    $data['price'],
+                    $data['cost'] ?? $data['price']
+                ]);
+            }
+            
             // Insertar imágenes si existen
             if (!empty($data['images'])) {
-                $imageQuery = "INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)";
+                $imageQuery = "INSERT INTO product_images (product_id, url, is_primary) VALUES (?, ?, ?)";
                 $imageStmt = $this->db->prepare($imageQuery);
                 
                 foreach ($data['images'] as $index => $imageUrl) {
@@ -217,31 +248,33 @@ class ProductAPI {
         try {
             $this->db->beginTransaction();
             
+            // Actualizar producto
             $query = "UPDATE products SET 
-                         name = ?, description = ?, price = ?, category = ?, 
-                         material = ?, featured = ?, active = ?, updated_at = NOW()
+                         name = ?, description = ?, category_id = ?, sku = ?, 
+                         status = ?, meta_title = ?, meta_description = ?, updated_at = NOW()
                       WHERE id = ?";
             
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $data['name'],
                 $data['description'],
-                $data['price'],
-                $data['category'],
-                $data['material'],
-                $data['featured'] ?? 0,
-                $data['active'] ?? 1,
+                $data['category_id'],
+                $data['sku'],
+                $data['status'] ?? 'active',
+                $data['meta_title'] ?? '',
+                $data['meta_description'] ?? '',
                 $id
             ]);
             
-            // Actualizar imágenes
+            // Actualizar imágenes si se proporcionan
             if (isset($data['images'])) {
+                // Eliminar imágenes existentes
                 $deleteImagesQuery = "DELETE FROM product_images WHERE product_id = ?";
                 $deleteImagesStmt = $this->db->prepare($deleteImagesQuery);
                 $deleteImagesStmt->execute([$id]);
                 
                 if (!empty($data['images'])) {
-                    $imageQuery = "INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)";
+                    $imageQuery = "INSERT INTO product_images (product_id, url, is_primary) VALUES (?, ?, ?)";
                     $imageStmt = $this->db->prepare($imageQuery);
                     
                     foreach ($data['images'] as $index => $imageUrl) {
@@ -275,6 +308,11 @@ class ProductAPI {
             $deleteImagesQuery = "DELETE FROM product_images WHERE product_id = ?";
             $deleteImagesStmt = $this->db->prepare($deleteImagesQuery);
             $deleteImagesStmt->execute([$id]);
+            
+            // Eliminar variantes
+            $deleteVariantsQuery = "DELETE FROM product_variants WHERE product_id = ?";
+            $deleteVariantsStmt = $this->db->prepare($deleteVariantsQuery);
+            $deleteVariantsStmt->execute([$id]);
             
             // Eliminar producto
             $deleteProductQuery = "DELETE FROM products WHERE id = ?";
