@@ -732,6 +732,122 @@ function handleSearch(e) {
     // Implementar búsqueda en tiempo real
 }
 
+// Funciones de modales
+function showProductModal() {
+    const modal = document.getElementById('productModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        const form = document.getElementById('productForm');
+        if (form) {
+            form.reset();
+        }
+    } else {
+        console.log('Modal de producto no encontrado');
+    }
+}
+
+function showCustomerModal() {
+    const modal = document.getElementById('customerModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        const form = document.getElementById('customerForm');
+        if (form) {
+            form.reset();
+        }
+    } else {
+        console.log('Modal de cliente no encontrado');
+    }
+}
+
+function showQuotationModal() {
+    const modal = document.getElementById('quotationModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        const form = document.getElementById('quotationForm');
+        if (form) {
+            form.reset();
+        }
+    } else {
+        console.log('Modal de cotización no encontrado');
+    }
+}
+
+function showOrderModal() {
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        const form = document.getElementById('orderForm');
+        if (form) {
+            form.reset();
+        }
+    } else {
+        console.log('Modal de pedido no encontrado');
+    }
+}
+
+function showInventoryModal() {
+    const modal = document.getElementById('inventoryModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        const form = document.getElementById('inventoryForm');
+        if (form) {
+            form.reset();
+        }
+    } else {
+        console.log('Modal de inventario no encontrado');
+    }
+}
+
+// Funciones adicionales para modales
+function viewProduct(id) {
+    console.log('Ver producto:', id);
+    // Implementar vista de producto
+}
+
+function viewCustomer(id) {
+    console.log('Ver cliente:', id);
+    // Implementar vista de cliente
+}
+
+function viewQuotation(id) {
+    console.log('Ver cotización:', id);
+    // Implementar vista de cotización
+}
+
+function viewOrder(id) {
+    console.log('Ver pedido:', id);
+    // Implementar vista de pedido
+}
+
+function deleteQuotation(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta cotización?')) {
+        console.log('Eliminar cotización:', id);
+        // Implementar eliminación de cotización
+    }
+}
+
+function deleteOrder(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
+        console.log('Eliminar pedido:', id);
+        // Implementar eliminación de pedido
+    }
+}
+
+function editQuotation(id) {
+    console.log('Editar cotización:', id);
+    // Implementar edición de cotización
+}
+
+function editOrder(id) {
+    console.log('Editar pedido:', id);
+    // Implementar edición de pedido
+}
+
 // Exportar funciones globales
 window.showSection = showSection;
 window.editProduct = editProduct;
@@ -740,3 +856,16 @@ window.deleteProduct = deleteProduct;
 window.deleteCustomer = deleteCustomer;
 window.hideModal = hideModal;
 window.changePage = changePage;
+window.showProductModal = showProductModal;
+window.showCustomerModal = showCustomerModal;
+window.showQuotationModal = showQuotationModal;
+window.showOrderModal = showOrderModal;
+window.showInventoryModal = showInventoryModal;
+window.viewProduct = viewProduct;
+window.viewCustomer = viewCustomer;
+window.viewQuotation = viewQuotation;
+window.viewOrder = viewOrder;
+window.deleteQuotation = deleteQuotation;
+window.deleteOrder = deleteOrder;
+window.editQuotation = editQuotation;
+window.editOrder = editOrder;
