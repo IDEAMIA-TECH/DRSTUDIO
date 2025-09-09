@@ -992,13 +992,13 @@ function mostrarModuloPagos(pagos) {
     html += '<h6 class="mb-3"><i class="fas fa-list me-2"></i>Pagos Registrados</h6>';
     html += '<div class="table-responsive">';
     html += '<table class="table table-sm table-striped">';
-    html += '<thead class="table-dark">';
+    html += '<thead style="background-color: #f8f9fa;">';
     html += '<tr>';
-    html += '<th>Fecha</th>';
-    html += '<th>Monto</th>';
-    html += '<th>Método</th>';
-    html += '<th>Referencia</th>';
-    html += '<th>Usuario</th>';
+    html += '<th style="color: #000000; font-weight: 600;">Fecha</th>';
+    html += '<th style="color: #000000; font-weight: 600;">Monto</th>';
+    html += '<th style="color: #000000; font-weight: 600;">Método</th>';
+    html += '<th style="color: #000000; font-weight: 600;">Referencia</th>';
+    html += '<th style="color: #000000; font-weight: 600;">Usuario</th>';
     html += '</tr>';
     html += '</thead><tbody>';
     
