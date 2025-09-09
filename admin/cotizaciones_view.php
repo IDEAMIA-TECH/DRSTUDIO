@@ -387,9 +387,9 @@ function exportarPDF() {
     console.log('Datos de cotización:', cotizacionData);
     
     // Enviar datos al servidor para generar PDF
-    console.log('Enviando petición a ajax/generate_pdf.php...');
+    console.log('Enviando petición a ../ajax/generate_pdf_debug.php...');
     
-    fetch('ajax/generate_pdf.php', {
+    fetch('../ajax/generate_pdf_debug.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
