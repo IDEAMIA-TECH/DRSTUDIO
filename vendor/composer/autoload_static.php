@@ -20,6 +20,7 @@ class ComposerStaticInit37e5a3d428fecb3123f7f806176c5ec2
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' => 
         array (
@@ -49,6 +50,10 @@ class ComposerStaticInit37e5a3d428fecb3123f7f806176c5ec2
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Mpdf\\PsrLogAwareTrait\\' => 
         array (

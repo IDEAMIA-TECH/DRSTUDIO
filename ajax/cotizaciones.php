@@ -244,7 +244,7 @@ switch ($action) {
         $id = (int)$_POST['id'];
         $estado = $_POST['estado'];
         
-        $estadosValidos = ['pendiente', 'enviada', 'aceptada', 'rechazada', 'cancelada'];
+        $estadosValidos = ['pendiente', 'enviada', 'aceptada', 'rechazada', 'cancelada', 'en_espera_deposito'];
         if (!in_array($estado, $estadosValidos)) {
             echo json_encode(['success' => false, 'message' => 'Estado no válido']);
             exit;
@@ -253,6 +253,40 @@ switch ($action) {
         $data = ['estado' => $estado];
         if (updateRecord('cotizaciones', $id, $data)) {
             $estadoTexto = ucfirst($estado);
+            
+            // Si se marca como "enviada", enviar correo con PDF
+            if ($estado === 'enviada') {
+                try {
+                    require_once $projectRoot . '/includes/EmailSender.php';
+                    
+                    // Obtener información de la cotización y cliente
+                    $cotizacion = getRecord('cotizaciones', $id);
+                    $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+                    
+                    // Generar PDF temporal
+                    $pdfPath = generatePDFForEmail($cotizacion);
+                    
+                    // Enviar correo
+                    $emailSender = new EmailSender();
+                    $emailSent = $emailSender->sendQuoteEmail($cotizacion, $cliente, $pdfPath);
+                    
+                    // Limpiar PDF temporal
+                    if ($pdfPath && file_exists($pdfPath)) {
+                        unlink($pdfPath);
+                    }
+                    
+                    if ($emailSent) {
+                        $estadoTexto .= ' y correo enviado exitosamente';
+                    } else {
+                        $estadoTexto .= ' (Error al enviar correo)';
+                    }
+                    
+                } catch (Exception $e) {
+                    error_log("Error enviando correo: " . $e->getMessage());
+                    $estadoTexto .= ' (Error al enviar correo)';
+                }
+            }
+            
             echo json_encode(['success' => true, 'message' => "Cotización marcada como $estadoTexto exitosamente"]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado']);
@@ -368,5 +402,77 @@ switch ($action) {
     default:
         echo json_encode(['success' => false, 'message' => 'Acción no válida']);
         break;
+}
+
+// Función para generar PDF temporal para correo
+function generatePDFForEmail($cotizacion) {
+    try {
+        require_once $projectRoot . '/vendor/autoload.php';
+        
+        // Obtener items de la cotización
+        $items = readRecords('cotizacion_items', ["cotizacion_id = {$cotizacion['id']}"], null, 'id ASC');
+        foreach ($items as &$item) {
+            $producto = getRecord('productos', $item['producto_id']);
+            $item['producto'] = $producto;
+            
+            if ($item['variante_id']) {
+                $variante = getRecord('variantes_producto', $item['variante_id']);
+                $item['variante'] = $variante;
+            }
+        }
+        
+        // Obtener cliente
+        $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+        
+        // Preparar datos para el PDF
+        $pdfData = [
+            'numero' => $cotizacion['numero_cotizacion'],
+            'fecha' => date('d/m/Y H:i', strtotime($cotizacion['created_at'])),
+            'cliente' => [
+                'nombre' => $cliente['nombre'],
+                'empresa' => $cliente['empresa'] ?? '',
+                'email' => $cliente['email'],
+                'telefono' => $cliente['telefono'] ?? ''
+            ],
+            'items' => $items,
+            'subtotal' => $cotizacion['subtotal'],
+            'descuento' => $cotizacion['descuento'],
+            'total' => $cotizacion['total'],
+            'observaciones' => $cotizacion['observaciones'] ?? '',
+            'estado' => $cotizacion['estado']
+        ];
+        
+        // Generar HTML usando la función del generate_pdf.php
+        require_once $projectRoot . '/ajax/generate_pdf.php';
+        $html = createCotizacionHTML($pdfData);
+        
+        // Crear instancia de mPDF
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'margin_top' => 16,
+            'margin_bottom' => 16,
+        ]);
+        
+        // Configurar metadatos
+        $mpdf->SetTitle('Cotización ' . $cotizacion['numero_cotizacion']);
+        $mpdf->SetAuthor('DT Studio');
+        
+        // Escribir HTML
+        $mpdf->WriteHTML($html);
+        
+        // Generar archivo temporal
+        $tempPath = sys_get_temp_dir() . '/cotizacion_' . $cotizacion['numero_cotizacion'] . '_' . time() . '.pdf';
+        $mpdf->Output($tempPath, 'F');
+        
+        return $tempPath;
+        
+    } catch (Exception $e) {
+        error_log("Error generando PDF para correo: " . $e->getMessage());
+        return false;
+    }
 }
 ?>

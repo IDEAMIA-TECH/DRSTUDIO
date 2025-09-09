@@ -71,6 +71,7 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                             <option value="pendiente" <?php echo $estado === 'pendiente' ? 'selected' : ''; ?>>Pendiente</option>
                             <option value="enviada" <?php echo $estado === 'enviada' ? 'selected' : ''; ?>>Enviada</option>
                             <option value="aceptada" <?php echo $estado === 'aceptada' ? 'selected' : ''; ?>>Aceptada</option>
+                            <option value="en_espera_deposito" <?php echo $estado === 'en_espera_deposito' ? 'selected' : ''; ?>>En Espera de Depósito</option>
                             <option value="rechazada" <?php echo $estado === 'rechazada' ? 'selected' : ''; ?>>Rechazada</option>
                             <option value="cancelada" <?php echo $estado === 'cancelada' ? 'selected' : ''; ?>>Cancelada</option>
                         </select>
@@ -169,13 +170,24 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                                     'pendiente' => 'warning',
                                     'enviada' => 'info',
                                     'aceptada' => 'success',
+                                    'en_espera_deposito' => 'primary',
                                     'rechazada' => 'danger',
                                     'cancelada' => 'secondary'
                                 ];
                                 $class = $estadoClass[$cotizacion['estado']] ?? 'secondary';
                                 ?>
                                 <span class="badge bg-<?php echo $class; ?>">
-                                    <?php echo ucfirst($cotizacion['estado']); ?>
+                                    <?php 
+                                    $estadoTexto = [
+                                        'pendiente' => 'Pendiente',
+                                        'enviada' => 'Enviada',
+                                        'aceptada' => 'Aceptada',
+                                        'en_espera_deposito' => 'En Espera de Depósito',
+                                        'rechazada' => 'Rechazada',
+                                        'cancelada' => 'Cancelada'
+                                    ];
+                                    echo $estadoTexto[$cotizacion['estado']] ?? ucfirst($cotizacion['estado']);
+                                    ?>
                                 </span>
                             </td>
                             <td>
