@@ -120,17 +120,34 @@ function loadSectionData(sectionId) {
 
 // Cargar datos iniciales
 function loadInitialData() {
-    loadDashboardData();
+    // No cargar dashboard aquí para evitar duplicados
+    // loadDashboardData(); // Comentado para evitar duplicados
+}
+
+// Variable para evitar cargar dashboard múltiples veces
+let dashboardLoaded = false;
+
+// Función para resetear el estado del dashboard
+function resetDashboardState() {
+    dashboardLoaded = false;
+    console.log('Estado del dashboard reseteado');
 }
 
 // Cargar datos del dashboard
 async function loadDashboardData() {
+    if (dashboardLoaded) {
+        console.log('Dashboard ya cargado, saltando...');
+        return;
+    }
+    
     try {
         console.log('Cargando datos del dashboard...');
+        dashboardLoaded = true;
         
         const response = await fetch('api/dashboard.php?action=get_stats');
         if (!response.ok) {
             console.error('Error HTTP:', response.status, response.statusText);
+            dashboardLoaded = false; // Reset en caso de error
             return;
         }
         
@@ -158,6 +175,7 @@ async function loadDashboardData() {
         
     } catch (error) {
         console.error('Error de conexión en dashboard:', error);
+        dashboardLoaded = false; // Reset en caso de error
     }
 }
 
@@ -248,20 +266,32 @@ function updateRecentActivity(activities) {
 // Cargar productos
 async function loadProducts() {
     try {
+        console.log('Cargando productos...');
+        
         const response = await fetch('api/products.php?action=get_products');
+        console.log('Respuesta HTTP:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            console.error('Error HTTP:', response.status, response.statusText);
+            showError(`Error HTTP ${response.status}: ${response.statusText}`);
+            return;
+        }
+        
         const data = await response.json();
+        console.log('Datos de productos recibidos:', data);
         
         if (data.success) {
             currentData.products = data.data.products;
             displayProducts(data.data.products);
             updatePagination('products', data.data.pagination);
+            console.log('Productos cargados exitosamente:', data.data.products.length);
         } else {
             console.error('Error al cargar productos:', data.message);
             showError('Error al cargar productos: ' + data.message);
         }
     } catch (error) {
-        console.error('Error de conexión:', error);
-        showError('Error de conexión al cargar productos');
+        console.error('Error de conexión al cargar productos:', error);
+        showError('Error de conexión al cargar productos: ' + error.message);
     }
 }
 

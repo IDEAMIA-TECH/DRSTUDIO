@@ -59,80 +59,86 @@ class ProductAPI {
     }
     
     private function getProducts() {
-        $search = $_GET['search'] ?? '';
-        $category = $_GET['category'] ?? '';
-        $page = (int)($_GET['page'] ?? 1);
-        $limit = (int)($_GET['limit'] ?? 12);
-        $offset = ($page - 1) * $limit;
-        
-        $whereConditions = [];
-        $params = [];
-        
-        if (!empty($search)) {
-            $whereConditions[] = "(p.name LIKE ? OR p.description LIKE ?)";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
-        }
-        
-        if (!empty($category)) {
-            $whereConditions[] = "c.name = ?";
-            $params[] = $category;
-        }
-        
-        $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
-        
-        // Contar total
-        $countQuery = "SELECT COUNT(DISTINCT p.id) as total 
+        try {
+            $search = $_GET['search'] ?? '';
+            $category = $_GET['category'] ?? '';
+            $page = (int)($_GET['page'] ?? 1);
+            $limit = (int)($_GET['limit'] ?? 12);
+            $offset = ($page - 1) * $limit;
+            
+            $whereConditions = [];
+            $params = [];
+            
+            if (!empty($search)) {
+                $whereConditions[] = "(p.name LIKE ? OR p.description LIKE ?)";
+                $params[] = "%$search%";
+                $params[] = "%$search%";
+            }
+            
+            if (!empty($category)) {
+                $whereConditions[] = "c.name = ?";
+                $params[] = $category;
+            }
+            
+            $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+            
+            // Contar total
+            $countQuery = "SELECT COUNT(DISTINCT p.id) as total 
+                          FROM products p
+                          LEFT JOIN categories c ON p.category_id = c.id
+                          $whereClause";
+            $countStmt = $this->db->prepare($countQuery);
+            $countStmt->execute($params);
+            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+            
+            // Obtener productos
+            $query = "SELECT p.*, 
+                             c.name as category_name,
+                             GROUP_CONCAT(DISTINCT pi.url) as images,
+                             MIN(pv.price) as min_price,
+                             MAX(pv.price) as max_price,
+                             SUM(pv.stock) as total_stock
                       FROM products p
                       LEFT JOIN categories c ON p.category_id = c.id
-                      $whereClause";
-        $countStmt = $this->db->prepare($countQuery);
-        $countStmt->execute($params);
-        $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Obtener productos
-        $query = "SELECT p.*, 
-                         c.name as category_name,
-                         GROUP_CONCAT(DISTINCT pi.url) as images,
-                         MIN(pv.price) as min_price,
-                         MAX(pv.price) as max_price,
-                         SUM(pv.stock) as total_stock
-                  FROM products p
-                  LEFT JOIN categories c ON p.category_id = c.id
-                  LEFT JOIN product_images pi ON p.id = pi.product_id
-                  LEFT JOIN product_variants pv ON p.id = pv.product_id
-                  $whereClause
-                  GROUP BY p.id
-                  ORDER BY p.created_at DESC
-                  LIMIT ? OFFSET ?";
-        
-        $params[] = $limit;
-        $params[] = $offset;
-        
-        $stmt = $this->db->prepare($query);
-        $stmt->execute($params);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Procesar productos
-        foreach ($products as &$product) {
-            $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
-            $product['min_price'] = (float)$product['min_price'];
-            $product['max_price'] = (float)$product['max_price'];
-            $product['total_stock'] = (int)$product['total_stock'];
-            $product['price'] = $product['min_price']; // Precio principal
-            $product['featured'] = false; // No existe en el esquema actual
-            $product['active'] = $product['status'] === 'active';
+                      LEFT JOIN product_images pi ON p.id = pi.product_id
+                      LEFT JOIN product_variants pv ON p.id = pv.product_id
+                      $whereClause
+                      GROUP BY p.id
+                      ORDER BY p.created_at DESC
+                      LIMIT ? OFFSET ?";
+            
+            $params[] = $limit;
+            $params[] = $offset;
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->execute($params);
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Procesar productos
+            foreach ($products as &$product) {
+                $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
+                $product['min_price'] = (float)$product['min_price'];
+                $product['max_price'] = (float)$product['max_price'];
+                $product['total_stock'] = (int)$product['total_stock'];
+                $product['price'] = $product['min_price']; // Precio principal
+                $product['featured'] = false; // No existe en el esquema actual
+                $product['active'] = $product['status'] === 'active';
+            }
+            
+            $this->sendResponse(true, 'Productos obtenidos exitosamente', [
+                'products' => $products,
+                'pagination' => [
+                    'current_page' => $page,
+                    'per_page' => $limit,
+                    'total' => $total,
+                    'total_pages' => ceil($total / $limit)
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error en getProducts: " . $e->getMessage());
+            $this->sendResponse(false, 'Error al obtener productos: ' . $e->getMessage(), null, 500);
         }
-        
-        $this->sendResponse(true, 'Productos obtenidos exitosamente', [
-            'products' => $products,
-            'pagination' => [
-                'current_page' => $page,
-                'per_page' => $limit,
-                'total' => $total,
-                'total_pages' => ceil($total / $limit)
-            ]
-        ]);
     }
     
     private function getProduct() {
