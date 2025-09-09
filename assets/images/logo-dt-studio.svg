@@ -1,0 +1,16 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo -->
+  <rect width="200" height="60" fill="white"/>
+  
+  <!-- Letra "d" en gris oscuro -->
+  <path d="M20 15 C20 10, 25 5, 30 5 C35 5, 40 10, 40 15 L40 45 C40 50, 35 55, 30 55 C25 55, 20 50, 20 45 L20 15 Z M25 15 C25 12, 27 10, 30 10 C33 10, 35 12, 35 15 L35 45 C35 48, 33 50, 30 50 C27 50, 25 48, 25 45 L25 15 Z" fill="#333333"/>
+  
+  <!-- Letra "t" en púrpura -->
+  <path d="M50 15 C50 10, 55 5, 60 5 C65 5, 70 10, 70 15 L70 45 C70 50, 65 55, 60 55 C55 55, 50 50, 50 45 L50 15 Z M55 15 C55 12, 57 10, 60 10 C63 10, 65 12, 65 15 L65 45 C65 48, 63 50, 60 50 C57 50, 55 48, 55 45 L55 15 Z" fill="#7B3F9F"/>
+  
+  <!-- Punto de la "t" en púrpura -->
+  <circle cx="60" cy="20" r="3" fill="#7B3F9F"/>
+  
+  <!-- Texto "STUDIO" en gris oscuro -->
+  <text x="80" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333333">STUDIO</text>
+</svg>

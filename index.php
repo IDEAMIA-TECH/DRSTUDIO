@@ -37,7 +37,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="index.php">
+            <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color) !important;">
                 <i class="fas fa-gem me-2"></i>DR Studio
             </a>
             
@@ -84,10 +84,10 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Productos Promocionales de Calidad</h1>
-                    <p class="lead mb-4">Transformamos tus ideas en productos promocionales únicos. Cotizaciones personalizadas, entrega rápida y calidad garantizada.</p>
+                    <h1 class="display-4 fw-bold mb-4" style="color: white;">Productos Promocionales de Calidad</h1>
+                    <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">Transformamos tus ideas en productos promocionales únicos. Cotizaciones personalizadas, entrega rápida y calidad garantizada.</p>
                     <div class="d-flex gap-3">
-                        <a href="productos.php" class="btn btn-light btn-lg">
+                        <a href="productos.php" class="btn btn-light btn-lg" style="color: var(--primary-color); font-weight: 600;">
                             <i class="fas fa-shopping-bag me-2"></i>Ver Productos
                         </a>
                         <a href="cotizacion.php" class="btn btn-outline-light btn-lg">
@@ -130,7 +130,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         <div class="container">
             <div class="row mb-5">
                 <div class="col-12 text-center">
-                    <h2 class="display-5 fw-bold mb-3">Productos Destacados</h2>
+                    <h2 class="section-title">Productos Destacados</h2>
                     <p class="lead text-muted">Nuestros productos más populares y de mayor calidad</p>
                 </div>
             </div>
@@ -189,7 +189,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         <div class="container">
             <div class="row mb-5">
                 <div class="col-12 text-center">
-                    <h2 class="display-5 fw-bold mb-3">Lo que Dicen Nuestros Clientes</h2>
+                    <h2 class="section-title">Lo que Dicen Nuestros Clientes</h2>
                     <p class="lead text-muted">Testimonios reales de empresas que confían en nosotros</p>
                 </div>
             </div>
@@ -225,7 +225,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <h2 class="display-6 fw-bold mb-3">¿Listo para Impresionar a tus Clientes?</h2>
+                    <h2 class="display-6 fw-bold mb-3" style="color: var(--primary-color);">¿Listo para Impresionar a tus Clientes?</h2>
                     <p class="lead mb-0">Solicita una cotización personalizada y descubre cómo podemos ayudarte a destacar tu marca.</p>
                 </div>
                 <div class="col-lg-4 text-lg-end">

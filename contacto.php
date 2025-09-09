@@ -58,7 +58,7 @@ function validateEmail($email) {
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="index.php">
+            <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color) !important;">
                 <i class="fas fa-gem me-2"></i>DR Studio
             </a>
             
@@ -115,7 +115,7 @@ function validateEmail($email) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Contáctanos</h1>
+                    <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-color);">Contáctanos</h1>
                     <p class="lead mb-4">¿Tienes alguna pregunta? ¿Necesitas una cotización personalizada? Estamos aquí para ayudarte.</p>
                 </div>
                 <div class="col-lg-6 text-center">

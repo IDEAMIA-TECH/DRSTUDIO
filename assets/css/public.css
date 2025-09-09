@@ -1,12 +1,21 @@
 /* DR Studio - Public Site Styles */
 
 :root {
-    --primary-color: #0d6efd;
-    --secondary-color: #6c757d;
+    /* Colores del logo DT Studio */
+    --primary-color: #7B3F9F;        /* Púrpura del logo */
+    --primary-dark: #5A2D73;         /* Púrpura más oscuro */
+    --primary-light: #9B5BB8;        /* Púrpura más claro */
+    --secondary-color: #333333;      /* Gris oscuro del logo */
+    --secondary-light: #555555;      /* Gris más claro */
+    --secondary-dark: #1a1a1a;       /* Gris más oscuro */
+    
+    /* Colores de estado */
     --success-color: #198754;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
     --info-color: #0dcaf0;
+    
+    /* Colores neutros */
     --light-color: #f8f9fa;
     --dark-color: #212529;
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,24 +31,34 @@ body {
 .navbar-brand {
     font-size: 1.5rem;
     color: var(--primary-color) !important;
+    font-weight: 700;
 }
 
 .navbar-nav .nav-link {
     font-weight: 500;
     padding: 0.5rem 1rem;
     transition: color 0.3s ease;
+    color: var(--secondary-color) !important;
 }
 
 .navbar-nav .nav-link:hover {
     color: var(--primary-color) !important;
 }
 
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     min-height: 500px;
     display: flex;
     align-items: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
 }
 
 .hero-image i {
@@ -56,11 +75,23 @@ body {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: none;
     overflow: hidden;
+    border-radius: 12px;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 10px 25px rgba(123, 63, 159, 0.2) !important;
+}
+
+.product-card .card-title {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.product-card .price {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.2rem;
 }
 
 .product-image {
@@ -163,23 +194,33 @@ footer a:hover {
 .btn-primary {
     background: var(--primary-color);
     border-color: var(--primary-color);
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background: #0056b3;
-    border-color: #0056b3;
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(123, 63, 159, 0.3);
 }
 
 .btn-outline-primary {
     color: var(--primary-color);
     border-color: var(--primary-color);
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
 }
 
 .btn-outline-primary:hover {
-    background: var(--primary-color);
+    background-color: var(--primary-color);
     border-color: var(--primary-color);
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(123, 63, 159, 0.3);
 }
 
 .btn-outline-light:hover {
@@ -370,4 +411,79 @@ footer a:hover {
         box-shadow: none !important;
         border: 1px solid #dee2e6 !important;
     }
+}
+
+/* Typography - Colores del Logo DT Studio */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+h2 {
+    font-size: 2rem;
+    color: var(--secondary-color);
+}
+
+h3 {
+    font-size: 1.75rem;
+    color: var(--secondary-color);
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 2rem;
+    position: relative;
+    text-align: center;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* Enlaces */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-dark);
+}
+
+/* Formularios */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(123, 63, 159, 0.25);
+}
+
+.form-label {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+/* Badges y etiquetas */
+.badge-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.badge-secondary {
+    background-color: var(--secondary-color);
+    color: white;
 }

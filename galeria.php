@@ -47,7 +47,7 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="index.php">
+            <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color) !important;">
                 <i class="fas fa-gem me-2"></i>DR Studio
             </a>
             
@@ -104,7 +104,7 @@ $galeria = readRecords('galeria', ['activo' => 1], null, 'orden ASC');
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Galería de Productos</h1>
+                    <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-color);">Galería de Productos</h1>
                     <p class="lead mb-4">Descubre la calidad y creatividad de nuestros productos promocionales. Cada proyecto es único.</p>
                 </div>
                 <div class="col-lg-6 text-center">

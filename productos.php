@@ -62,7 +62,7 @@ $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="index.php">
+            <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color) !important;">
                 <i class="fas fa-gem me-2"></i>DR Studio
             </a>
             
@@ -169,7 +169,7 @@ $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
         <div class="container">
             <div class="row mb-4">
                 <div class="col-12">
-                    <h2 class="display-6 fw-bold mb-3">
+                    <h2 class="display-6 fw-bold mb-3" style="color: var(--primary-color);">
                         <?php if ($categoria_id): ?>
                             <?php 
                             $categoria_seleccionada = getRecord('categorias', $categoria_id);

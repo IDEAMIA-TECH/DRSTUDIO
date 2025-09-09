@@ -10,6 +10,7 @@ Sistema web completo para empresa de productos promocionales con panel de admini
 - ✅ **Gestión de Clientes** (CRUD completo)
 - ✅ **Sistema de Cotizaciones** (CRUD completo)
 - ✅ **Sitio Web Público** (completo)
+- ✅ **Diseño con Colores del Logo** (Púrpura #7B3F9F y Gris #333333)
 
 ## Tecnologías
 
@@ -18,6 +19,17 @@ Sistema web completo para empresa de productos promocionales con panel de admini
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+), AJAX
 - **Framework CSS**: Bootstrap 5
 - **Iconos**: Font Awesome 6
+
+## Paleta de Colores
+
+El sistema utiliza los colores oficiales del logo DT Studio:
+
+- **Púrpura Principal**: `#7B3F9F` - Color principal para botones, enlaces y elementos destacados
+- **Púrpura Oscuro**: `#5A2D73` - Para estados hover y elementos activos
+- **Púrpura Claro**: `#9B5BB8` - Para elementos secundarios
+- **Gris Oscuro**: `#333333` - Para texto principal y elementos de navegación
+- **Gris Claro**: `#555555` - Para texto secundario
+- **Gris Muy Oscuro**: `#1a1a1a` - Para texto de alto contraste
 
 ## Instalación ✅ COMPLETADA
 
