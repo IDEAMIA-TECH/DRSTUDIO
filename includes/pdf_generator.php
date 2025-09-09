@@ -1,172 +1,114 @@
 <?php
-// Archivo AJAX para manejo de cotizaciones
-function getProjectRoot() {
-    $currentDir = dirname(__FILE__);
-    $projectRoot = dirname($currentDir);
-    return $projectRoot;
-}
+/**
+ * Generador unificado de PDFs para cotizaciones
+ * Se usa tanto para correos como para exportación directa
+ */
 
-$projectRoot = getProjectRoot();
-require_once $projectRoot . '/includes/config.php';
-require_once $projectRoot . '/includes/auth.php';
-require_once $projectRoot . '/includes/functions.php';
-require_once $projectRoot . '/includes/pdf_generator.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/functions.php';
 
-// Solo ejecutar la lógica principal si se llama directamente (no si se incluye)
-if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
-    header('Content-Type: application/json');
+/**
+ * Genera un PDF de cotización con datos unificados
+ */
+function generateCotizacionPDF($cotizacionId, $outputPath = null) {
+    global $projectRoot;
     
-    // Verificar autenticación
-    if (!isLoggedIn()) {
-        echo json_encode(['success' => false, 'message' => 'No autorizado']);
-        exit;
-    }
-    
-    error_log("AJAX Cotizaciones - Verificando autenticación");
-    error_log("AJAX Cotizaciones - Session ID: " . session_id());
-    error_log("AJAX Cotizaciones - User ID en sesión: " . ($_SESSION['user_id'] ?? 'NO DEFINIDO'));
-    
-    if (isset($_SESSION['user_id'])) {
-        error_log("AJAX Cotizaciones - Usuario autenticado correctamente");
-    } else {
-        error_log("AJAX Cotizaciones - Usuario NO autenticado");
-        echo json_encode(['success' => false, 'message' => 'No autorizado']);
-        exit;
-    }
-    
-    // Obtener acción
-    $action = $_POST['action'] ?? '';
-    error_log("AJAX Cotizaciones - Acción recibida: " . $action);
-    
-    if ($action === 'change_status') {
-        error_log("AJAX Cotizaciones - ===== INICIANDO CHANGE_STATUS =====");
-        error_log("AJAX Cotizaciones - POST data: " . print_r($_POST, true));
+    try {
+        require_once $projectRoot . '/vendor/autoload.php';
         
-        $id = intval($_POST['id'] ?? 0);
-        $estado = $_POST['estado'] ?? '';
-        
-        error_log("AJAX Cotizaciones - ID extraído: $id");
-        error_log("AJAX Cotizaciones - Estado extraído: $estado");
-        
-        if (!$id || !$estado) {
-            error_log("AJAX Cotizaciones - ERROR: ID o estado faltante");
-            echo json_encode(['success' => false, 'message' => 'ID o estado faltante']);
-            exit;
+        // Obtener datos completos de la cotización
+        $cotizacion = getRecord('cotizaciones', $cotizacionId);
+        if (!$cotizacion) {
+            throw new Exception("Cotización no encontrada");
         }
         
-        // Verificar el estado actual de la cotización
-        $cotizacionActual = getRecord('cotizaciones', $id);
-        if (!$cotizacionActual) {
-            error_log("AJAX Cotizaciones - ERROR: Cotización no encontrada");
-            echo json_encode(['success' => false, 'message' => 'Cotización no encontrada']);
-            exit;
-        }
+        // Obtener items de la cotización
+        $items = readRecords('cotizacion_items', ["cotizacion_id = $cotizacionId"], null, 'id ASC');
         
-        error_log("AJAX Cotizaciones - Estado actual: " . $cotizacionActual['estado']);
-        
-        // Si ya tiene el mismo estado, no hacer nada
-        if ($cotizacionActual['estado'] === $estado) {
-            error_log("AJAX Cotizaciones - La cotización ya tiene el estado '$estado'");
-            echo json_encode(['success' => true, 'message' => "La cotización ya tiene el estado '$estado'"]);
-            exit;
-        }
-        
-        // Actualizar estado
-        $updateData = ['estado' => $estado];
-        error_log("AJAX Cotizaciones - Datos para actualizar: " . print_r($updateData, true));
-        
-        error_log("AJAX Cotizaciones - Llamando a updateRecord...");
-        $result = updateRecord('cotizaciones', $updateData, $id);
-        error_log("AJAX Cotizaciones - Resultado de updateRecord: " . ($result ? 'TRUE' : 'FALSE'));
-        
-        if ($result) {
-            error_log("AJAX Cotizaciones - Estado actualizado exitosamente");
+        foreach ($items as &$item) {
+            $producto = getRecord('productos', $item['producto_id']);
+            $item['producto'] = $producto;
             
-            // Si el estado es 'enviada', enviar correo
-            if ($estado === 'enviada') {
-                error_log("AJAX Cotizaciones - Enviando correo para cotización enviada");
-                
-                try {
-                    require_once $projectRoot . '/includes/EmailSender.php';
-                    
-                    // Obtener datos completos de la cotización
-                    $cotizacion = getRecord('cotizaciones', $id);
-                    $cliente = getRecord('clientes', $cotizacion['cliente_id']);
-                    
-                    error_log("AJAX Cotizaciones - Cliente obtenido: " . $cliente['nombre']);
-                    
-                    // Generar PDF temporal
-                    error_log("AJAX Cotizaciones - Generando PDF temporal");
-                    $pdfPath = generateCotizacionPDF($cotizacion['id']);
-                    if ($pdfPath) {
-                        error_log("AJAX Cotizaciones - PDF generado: $pdfPath");
-                    } else {
-                        error_log("AJAX Cotizaciones - Error generando PDF");
-                    }
-                    
-                    // Enviar correo
-                    $emailSender = new EmailSender();
-                    $emailResult = $emailSender->sendQuoteEmail($cotizacion, $cliente, $pdfPath);
-                    
-                    if ($emailResult) {
-                        error_log("AJAX Cotizaciones - Correo enviado exitosamente");
-                    } else {
-                        error_log("AJAX Cotizaciones - Error enviando correo");
-                    }
-                    
-                    // Limpiar archivo temporal
-                    if ($pdfPath && file_exists($pdfPath)) {
-                        unlink($pdfPath);
-                        error_log("AJAX Cotizaciones - Archivo temporal eliminado");
-                    }
-                    
-                } catch (Exception $e) {
-                    error_log("AJAX Cotizaciones - Error en envío de correo: " . $e->getMessage());
-                }
+            if ($item['variante_id']) {
+                $variante = getRecord('variantes_producto', $item['variante_id']);
+                $item['variante'] = $variante;
             }
-            
-            $estadoTexto = [
-                'enviada' => 'Enviada',
-                'aceptada' => 'Aceptada',
-                'rechazada' => 'Rechazada'
-            ];
-            
-            $mensaje = $estadoTexto[$estado] ?? ucfirst($estado);
-            error_log("AJAX Cotizaciones - Respuesta exitosa: $mensaje");
-            echo json_encode(['success' => true, 'message' => "Cotización marcada como $mensaje exitosamente"]);
-        } else {
-            error_log("AJAX Cotizaciones - ERROR: No se pudo actualizar el estado");
-            echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado de la cotización']);
         }
         
-    } elseif ($action === 'delete') {
-        $id = intval($_POST['id'] ?? 0);
-        
-        if (!$id) {
-            echo json_encode(['success' => false, 'message' => 'ID de cotización requerido']);
-            exit;
+        // Obtener cliente
+        $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+        if (!$cliente) {
+            throw new Exception("Cliente no encontrado");
         }
         
-        // Eliminar items de la cotización primero
-        $items = readRecords('cotizacion_items', ["cotizacion_id = $id"]);
+        // Calcular subtotal
+        $subtotal = 0;
         foreach ($items as $item) {
-            deleteRecord('cotizacion_items', $item['id']);
+            $subtotal += $item['subtotal'];
         }
         
-        // Eliminar la cotización
-        if (deleteRecord('cotizaciones', $id)) {
-            echo json_encode(['success' => true, 'message' => 'Cotización eliminada exitosamente']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error al eliminar la cotización']);
+        // Preparar datos unificados para el PDF
+        $pdfData = [
+            'numero' => $cotizacion['numero_cotizacion'],
+            'fecha' => date('d/m/Y H:i', strtotime($cotizacion['created_at'])),
+            'cliente' => [
+                'nombre' => $cliente['nombre'],
+                'empresa' => $cliente['empresa'] ?? '',
+                'email' => $cliente['email'] ?? '',
+                'telefono' => $cliente['telefono'] ?? ''
+            ],
+            'items' => $items,
+            'subtotal' => $subtotal,
+            'descuento' => $cotizacion['descuento'] ?? 0,
+            'total' => $subtotal - ($cotizacion['descuento'] ?? 0),
+            'observaciones' => $cotizacion['observaciones'] ?? '',
+            'estado' => $cotizacion['estado']
+        ];
+        
+        // Generar HTML
+        $html = createCotizacionHTML($pdfData);
+        
+        // Crear instancia de mPDF
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'margin_top' => 16,
+            'margin_bottom' => 16,
+            'margin_header' => 9,
+            'margin_footer' => 9
+        ]);
+        
+        // Configurar metadatos
+        $mpdf->SetTitle('Cotización ' . $cotizacion['numero_cotizacion']);
+        $mpdf->SetAuthor('DT Studio');
+        $mpdf->SetCreator('DT Studio Sistema');
+        
+        // Escribir HTML
+        $mpdf->WriteHTML($html);
+        
+        // Generar archivo temporal si no se especifica ruta
+        if (!$outputPath) {
+            $outputPath = sys_get_temp_dir() . '/cotizacion_' . $cotizacion['numero_cotizacion'] . '_' . time() . '.pdf';
         }
         
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Acción no válida']);
+        // Guardar PDF
+        $mpdf->Output($outputPath, 'F');
+        
+        return $outputPath;
+        
+    } catch (Exception $e) {
+        error_log("Error generando PDF: " . $e->getMessage());
+        throw $e;
     }
 }
 
-// Función para crear HTML de cotización para correo (DEPRECATED - usar includes/pdf_generator.php)
-function createCotizacionHTMLForEmail($data) {
+/**
+ * Crea el HTML para la cotización
+ */
+function createCotizacionHTML($data) {
     $logoPath = '../assets/logo/LOGO.png';
     $logoExists = file_exists($logoPath);
     

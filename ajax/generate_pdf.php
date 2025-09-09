@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/pdf_generator.php';
 
 // Verificar autenticación
 if (!isLoggedIn()) {
@@ -323,10 +324,40 @@ if ($action === 'generate_cotizacion_pdf') {
         exit;
     }
     
-    // Generar PDF
-    $success = generateCotizacionPDF($cotizacionData);
-    
-    if (!$success) {
+    try {
+        // Obtener ID de la cotización desde los datos
+        $cotizacionId = null;
+        if (isset($cotizacionData['numero'])) {
+            // Buscar por número de cotización
+            $stmt = $conn->prepare("SELECT id FROM cotizaciones WHERE numero_cotizacion = ?");
+            $stmt->bind_param("s", $cotizacionData['numero']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $cotizacionId = $row['id'] ?? null;
+            $stmt->close();
+        }
+        
+        if (!$cotizacionId) {
+            throw new Exception("No se pudo encontrar la cotización");
+        }
+        
+        // Generar PDF usando la función unificada
+        $pdfPath = generateCotizacionPDF($cotizacionId);
+        
+        // Enviar el PDF
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="Cotizacion_' . $cotizacionData['numero'] . '.pdf"');
+        header('Content-Length: ' . filesize($pdfPath));
+        
+        readfile($pdfPath);
+        
+        // Limpiar archivo temporal
+        unlink($pdfPath);
+        
+    } catch (Exception $e) {
+        error_log("Error generando PDF: " . $e->getMessage());
+        
         // Fallback: mostrar HTML
         header('Content-Type: text/html; charset=UTF-8');
         echo createCotizacionHTML($cotizacionData);
