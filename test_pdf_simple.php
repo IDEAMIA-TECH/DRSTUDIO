@@ -1,107 +1,57 @@
 <?php
-// Detectar la ruta correcta del proyecto
-$projectRoot = dirname(__DIR__);
-$configPath = $projectRoot . '/includes/config.php';
-$authPath = $projectRoot . '/includes/auth.php';
-$functionsPath = $projectRoot . '/includes/functions.php';
+// Archivo de prueba simplificado para verificar la generación de PDF
+require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
-// Verificar si los archivos existen, si no, probar rutas alternativas
-if (!file_exists($configPath)) {
-    // Probar ruta absoluta del servidor
-    $configPath = '/home/dtstudio/public_html/includes/config.php';
-    $authPath = '/home/dtstudio/public_html/includes/auth.php';
-    $functionsPath = '/home/dtstudio/public_html/includes/functions.php';
-}
+// Simular sesión de usuario
+$_SESSION['user_id'] = 1;
 
-// Incluir archivos
-if (file_exists($configPath)) {
-    require_once $configPath;
-} else {
-    die('Error: No se pudo encontrar config.php');
-}
+// Datos de prueba
+$testData = [
+    'numero' => 'COT-2024-0001',
+    'fecha' => '09/09/2024',
+    'cliente' => [
+        'nombre' => 'Juan Pérez',
+        'empresa' => 'Empresa de Prueba',
+        'email' => 'juan@empresa.com',
+        'telefono' => '555-1234'
+    ],
+    'items' => [
+        [
+            'producto' => [
+                'nombre' => 'Playera 100% algodón',
+                'sku' => 'PLA-2024-0001'
+            ],
+            'variante' => [
+                'talla' => 'M',
+                'color' => 'Azul',
+                'material' => 'Algodón'
+            ],
+            'cantidad' => 10,
+            'precio_unitario' => 150.00,
+            'subtotal' => 1500.00
+        ],
+        [
+            'producto' => [
+                'nombre' => 'Taza personalizada',
+                'sku' => 'TZA-2024-0001'
+            ],
+            'variante' => null,
+            'cantidad' => 5,
+            'precio_unitario' => 80.00,
+            'subtotal' => 400.00
+        ]
+    ],
+    'subtotal' => 1900.00,
+    'descuento' => 100.00,
+    'total' => 1800.00,
+    'observaciones' => 'Esta es una cotización de prueba para verificar el funcionamiento del sistema.',
+    'estado' => 'pendiente'
+];
 
-if (file_exists($authPath)) {
-    require_once $authPath;
-} else {
-    die('Error: No se pudo encontrar auth.php');
-}
-
-if (file_exists($functionsPath)) {
-    require_once $functionsPath;
-} else {
-    die('Error: No se pudo encontrar functions.php');
-}
-
-// Verificar autenticación
-if (!isLoggedIn()) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'No autorizado']);
-    exit;
-}
-
-// Obtener datos del POST
-$input = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? '';
-
-if ($action === 'generate_cotizacion_pdf') {
-    $data = $input['data'] ?? [];
-    
-    if (empty($data)) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Datos de cotización requeridos']);
-        exit;
-    }
-    
-    // Generar PDF
-    generateCotizacionPDF($data);
-} else {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Acción no válida']);
-    exit;
-}
-
-function generateCotizacionPDF($data) {
-    // Crear HTML para el PDF
-    $html = createCotizacionHTML($data);
-    
-    // Configurar headers para PDF
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
-    header('Cache-Control: private, max-age=0, must-revalidate');
-    header('Pragma: public');
-    
-    // Generar PDF usando mPDF (si está disponible) o HTML simple
-    if (class_exists('Mpdf\Mpdf')) {
-        try {
-            // Usar mPDF si está disponible
-            $mpdf = new \Mpdf\Mpdf([
-                'mode' => 'utf-8',
-                'format' => 'A4',
-                'orientation' => 'P',
-                'margin_left' => 15,
-                'margin_right' => 15,
-                'margin_top' => 16,
-                'margin_bottom' => 16,
-                'margin_header' => 9,
-                'margin_footer' => 9,
-            ]);
-            
-            $mpdf->WriteHTML($html);
-            $mpdf->Output();
-        } catch (Exception $e) {
-            // Si mPDF falla, devolver HTML
-            header('Content-Type: text/html; charset=UTF-8');
-            echo $html;
-        }
-    } else {
-        // Fallback: generar HTML que se puede convertir a PDF
-        header('Content-Type: text/html; charset=UTF-8');
-        echo $html;
-    }
-}
-
+// Función para crear HTML de la cotización
 function createCotizacionHTML($data) {
-    $logoPath = '../assets/images/logo-dt-studio.svg';
+    $logoPath = 'assets/images/logo-dt-studio.svg';
     $logoExists = file_exists($logoPath);
     
     $estadoClass = [
@@ -346,4 +296,13 @@ function createCotizacionHTML($data) {
     
     return $html;
 }
+
+// Generar HTML de prueba
+$html = createCotizacionHTML($testData);
+
+// Guardar en archivo para verificar
+file_put_contents('test_cotizacion.html', $html);
+
+echo "HTML generado y guardado en test_cotizacion.html\n";
+echo "Puedes abrir el archivo en un navegador para ver el resultado\n";
 ?>

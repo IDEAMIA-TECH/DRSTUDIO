@@ -328,17 +328,25 @@ function cambiarEstado(estado) {
     const estadoTexto = estados[estado] || estado;
     
     if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
-        ajaxRequest('ajax/cotizaciones.php', {
-            action: 'change_status',
-            id: <?php echo $id; ?>,
-            estado: estado
-        }, function(response) {
-            if (response.success) {
-                showAlert(response.message);
+        fetch('ajax/cotizaciones.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=change_status&id=<?php echo $id; ?>&estado=${estado}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
                 location.reload();
             } else {
-                showAlert(response.message, 'danger');
+                showAlert(data.message, 'danger');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error al cambiar el estado de la cotización', 'danger');
         });
     }
 }
@@ -385,17 +393,35 @@ function exportarPDF() {
             data: cotizacionData
         })
     })
-    .then(response => response.blob())
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        } else {
+            throw new Error('Error del servidor: ' + response.status);
+        }
+    })
     .then(blob => {
-        // Crear enlace de descarga
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Cotizacion_${cotizacionData.numero}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        // Verificar si es un PDF válido
+        if (blob.type === 'application/pdf' || blob.size > 0) {
+            // Crear enlace de descarga
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cotizacion_${cotizacionData.numero}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else {
+            // Si no es PDF, mostrar el contenido como HTML
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(e.target.result);
+                newWindow.document.close();
+            };
+            reader.readAsText(blob);
+        }
         
         // Restaurar botón
         btn.innerHTML = originalText;
@@ -403,7 +429,7 @@ function exportarPDF() {
     })
     .catch(error => {
         console.error('Error generando PDF:', error);
-        showAlert('Error al generar el PDF', 'danger');
+        showAlert('Error al generar el PDF: ' + error.message, 'danger');
         
         // Restaurar botón
         btn.innerHTML = originalText;
@@ -413,19 +439,28 @@ function exportarPDF() {
 
 // Función para eliminar cotización
 function deleteCotizacion() {
-    if (confirmDelete('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
-        ajaxRequest('ajax/cotizaciones.php', {
-            action: 'delete',
-            id: <?php echo $id; ?>
-        }, function(response) {
-            if (response.success) {
-                showAlert(response.message);
+    if (confirm('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
+        fetch('ajax/cotizaciones.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=delete&id=<?php echo $id; ?>`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
                 setTimeout(() => {
                     window.location.href = 'cotizaciones.php';
                 }, 1500);
             } else {
-                showAlert(response.message, 'danger');
+                showAlert(data.message, 'danger');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error al eliminar la cotización', 'danger');
         });
     }
 }
