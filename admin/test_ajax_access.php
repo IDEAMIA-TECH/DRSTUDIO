@@ -48,7 +48,7 @@
         setTimeout(() => {
             console.log('Probando acceso a generate_pdf.php...');
             
-            fetch('../ajax/generate_pdf.php', {
+            fetch('../ajax/generate_pdf_debug.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -59,24 +59,24 @@
                 })
             })
             .then(response => {
-                console.log('Respuesta generate_pdf.php:', response.status);
-                return response.text();
-            })
-            .then(text => {
-                console.log('Respuesta texto:', text);
-                document.getElementById('result').innerHTML += `
-                    <div class="alert alert-info">
-                        <h5>Test generate_pdf.php</h5>
-                        <p><strong>Status:</strong> ${response.status}</p>
-                        <p><strong>Respuesta:</strong> ${text.substring(0, 200)}...</p>
-                    </div>
-                `;
+                console.log('Respuesta generate_pdf_debug.php:', response.status);
+                return response.json().then(data => {
+                    console.log('Datos recibidos:', data);
+                    document.getElementById('result').innerHTML += `
+                        <div class="alert alert-info">
+                            <h5>Test generate_pdf_debug.php</h5>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Mensaje:</strong> ${data.message}</p>
+                            <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        </div>
+                    `;
+                });
             })
             .catch(error => {
-                console.error('Error generate_pdf.php:', error);
+                console.error('Error generate_pdf_debug.php:', error);
                 document.getElementById('result').innerHTML += `
                     <div class="alert alert-warning">
-                        <h5>Test generate_pdf.php - ❌ Error</h5>
+                        <h5>Test generate_pdf_debug.php - ❌ Error</h5>
                         <p>Error: ${error.message}</p>
                     </div>
                 `;
