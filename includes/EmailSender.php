@@ -16,13 +16,19 @@ class EmailSender {
     
     private function configureSMTP() {
         try {
+            // Verificar si la configuración de email está disponible
+            if (empty(SMTP_HOST) || empty(FROM_EMAIL)) {
+                error_log("Configuración de email no disponible - usando configuración por defecto");
+                return;
+            }
+            
             // Configuración del servidor
             $this->mailer->isSMTP();
             $this->mailer->Host = SMTP_HOST;
             $this->mailer->SMTPAuth = true;
             $this->mailer->Username = SMTP_USERNAME;
             $this->mailer->Password = SMTP_PASSWORD;
-            $this->mailer->SMTPSecure = SMTP_ENCRYPTION;
+            $this->mailer->SMTPSecure = SMTP_SECURE;
             $this->mailer->Port = SMTP_PORT;
             $this->mailer->CharSet = 'UTF-8';
             
