@@ -11,10 +11,8 @@ require_once __DIR__ . '/functions.php';
  * Genera un PDF de cotización con datos unificados
  */
 function generateCotizacionPDF($cotizacionId, $outputPath = null) {
-    global $projectRoot;
-    
     try {
-        require_once $projectRoot . '/vendor/autoload.php';
+        require_once __DIR__ . '/../vendor/autoload.php';
         
         // Obtener datos completos de la cotización
         $cotizacion = getRecord('cotizaciones', $cotizacionId);
