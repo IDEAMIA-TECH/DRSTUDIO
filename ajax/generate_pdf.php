@@ -287,7 +287,7 @@ function generateCotizacionPDF($data) {
 }
 
 function createCotizacionHTML($data) {
-    $logoPath = '../assets/images/logo-dt-studio.svg';
+    $logoPath = '../assets/logo/LOGO.png';
     $logoExists = file_exists($logoPath);
     
     $estadoClass = [

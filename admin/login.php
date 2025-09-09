@@ -93,7 +93,7 @@ if ($_POST) {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="d-flex justify-content-center mb-3">
-                            <img src="../assets/images/logo-dt-studio.svg" alt="DR Studio" height="50" style="filter: brightness(0) invert(1);">
+                            <img src="../assets/images/logo/LOGO.png" alt="DR Studio" height="50" style="filter: brightness(0) invert(1);">
                         </div>
                         <h3><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración</h3>
                         <p class="mb-0">DR Studio - Promocionales</p>
