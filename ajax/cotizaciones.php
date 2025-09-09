@@ -150,11 +150,11 @@ if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
         // Eliminar items de la cotización primero
         $items = readRecords('cotizacion_items', ["cotizacion_id = $id"]);
         foreach ($items as $item) {
-            deleteRecord('cotizacion_items', $item['id']);
+            deleteRecord('cotizacion_items', $item['id'], false); // Eliminación física
         }
         
         // Eliminar la cotización
-        if (deleteRecord('cotizaciones', $id)) {
+        if (deleteRecord('cotizaciones', $id, false)) { // Eliminación física
             echo json_encode(['success' => true, 'message' => 'Cotización eliminada exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al eliminar la cotización']);
