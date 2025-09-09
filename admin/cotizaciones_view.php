@@ -207,8 +207,8 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                     <?php endif; ?>
                     
                     <?php if ($cotizacion['estado'] == 'en_espera_deposito'): ?>
-                        <button type="button" class="btn btn-success" onclick="cambiarEstado('pagada')">
-                            <i class="fas fa-credit-card me-2"></i>Marcar como Pagada
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">
+                            <i class="fas fa-credit-card me-2"></i>Registrar Pago
                         </button>
                     <?php endif; ?>
                     
@@ -293,6 +293,87 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
         </div>
     </div>
 </div>
+
+<!-- Modal para registrar pago -->
+<div class="modal fade" id="modalRegistrarPago" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-credit-card me-2"></i>Registrar Pago
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRegistrarPago">
+                    <input type="hidden" id="cotizacion_id_pago" value="<?php echo $id; ?>">
+                    
+                    <div class="mb-3">
+                        <label for="monto_pago" class="form-label">Monto del Pago *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="monto_pago" 
+                                   step="0.01" min="0.01" max="<?php echo $total_calculado; ?>" 
+                                   value="<?php echo $total_calculado; ?>" required>
+                        </div>
+                        <div class="form-text">Total de la cotización: $<?php echo number_format($total_calculado, 2); ?></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="metodo_pago" class="form-label">Método de Pago *</label>
+                        <select class="form-select" id="metodo_pago" required>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="transferencia">Transferencia</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="referencia_pago" class="form-label">Referencia</label>
+                        <input type="text" class="form-control" id="referencia_pago" 
+                               placeholder="Número de referencia, folio, etc.">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observaciones_pago" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones_pago" rows="3" 
+                                  placeholder="Notas adicionales sobre el pago"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="registrarPago()">
+                    <i class="fas fa-save me-2"></i>Registrar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sección de Historial de Pagos -->
+<?php if ($cotizacion['estado'] == 'pagada' || $cotizacion['estado'] == 'entregada'): ?>
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Historial de Pagos
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="historial-pagos">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando historial de pagos...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <style>
 .timeline {
@@ -551,6 +632,164 @@ function deleteCotizacion() {
         });
     }
 }
+
+// Función para registrar pago
+function registrarPago() {
+    const cotizacionId = document.getElementById('cotizacion_id_pago').value;
+    const monto = parseFloat(document.getElementById('monto_pago').value);
+    const metodoPago = document.getElementById('metodo_pago').value;
+    const referencia = document.getElementById('referencia_pago').value;
+    const observaciones = document.getElementById('observaciones_pago').value;
+    
+    // Validar monto
+    if (monto <= 0) {
+        showAlert('El monto debe ser mayor a 0', 'danger');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registrando...';
+    btn.disabled = true;
+    
+    const formData = new FormData();
+    formData.append('action', 'registrar_pago');
+    formData.append('cotizacion_id', cotizacionId);
+    formData.append('monto', monto);
+    formData.append('metodo_pago', metodoPago);
+    formData.append('referencia', referencia);
+    formData.append('observaciones', observaciones);
+    
+    fetch('../ajax/pagos.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalRegistrarPago'));
+            modal.hide();
+            // Recargar página para actualizar estado
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error al registrar el pago', 'danger');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+// Función para cargar historial de pagos
+function cargarHistorialPagos() {
+    const cotizacionId = <?php echo $id; ?>;
+    
+    const formData = new FormData();
+    formData.append('action', 'obtener_pagos');
+    formData.append('cotizacion_id', cotizacionId);
+    
+    fetch('../ajax/pagos.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarHistorialPagos(data.pagos);
+        } else {
+            document.getElementById('historial-pagos').innerHTML = 
+                '<div class="text-center text-muted">No se pudo cargar el historial de pagos</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('historial-pagos').innerHTML = 
+            '<div class="text-center text-danger">Error al cargar el historial de pagos</div>';
+    });
+}
+
+// Función para mostrar historial de pagos
+function mostrarHistorialPagos(pagos) {
+    const container = document.getElementById('historial-pagos');
+    
+    if (pagos.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted">No hay pagos registrados</div>';
+        return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-striped">';
+    html += '<thead><tr>';
+    html += '<th>Fecha</th>';
+    html += '<th>Monto</th>';
+    html += '<th>Método</th>';
+    html += '<th>Referencia</th>';
+    html += '<th>Registrado por</th>';
+    html += '<th>Observaciones</th>';
+    html += '</tr></thead><tbody>';
+    
+    let totalPagado = 0;
+    
+    pagos.forEach(pago => {
+        totalPagado += parseFloat(pago.monto);
+        
+        html += '<tr>';
+        html += `<td>${new Date(pago.fecha_pago).toLocaleDateString('es-ES')}</td>`;
+        html += `<td class="text-end"><strong>$${parseFloat(pago.monto).toFixed(2)}</strong></td>`;
+        html += `<td><span class="badge bg-info">${pago.metodo_pago}</span></td>`;
+        html += `<td>${pago.referencia || '-'}</td>`;
+        html += `<td>${pago.usuario_nombre || 'Sistema'}</td>`;
+        html += `<td>${pago.observaciones || '-'}</td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    
+    // Agregar resumen
+    const totalCotizacion = <?php echo $total_calculado; ?>;
+    const pendiente = totalCotizacion - totalPagado;
+    
+    html += '<div class="row mt-3">';
+    html += '<div class="col-md-4">';
+    html += '<div class="card bg-light">';
+    html += '<div class="card-body text-center">';
+    html += '<h6 class="card-title">Total Cotización</h6>';
+    html += `<h4 class="text-primary">$${totalCotizacion.toFixed(2)}</h4>`;
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<div class="card bg-success text-white">';
+    html += '<div class="card-body text-center">';
+    html += '<h6 class="card-title">Total Pagado</h6>';
+    html += `<h4>$${totalPagado.toFixed(2)}</h4>`;
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<div class="card bg-warning text-dark">';
+    html += '<div class="card-body text-center">';
+    html += '<h6 class="card-title">Pendiente</h6>';
+    html += `<h4>$${pendiente.toFixed(2)}</h4>`;
+    html += '</div></div></div>';
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+// Cargar historial de pagos al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if ($cotizacion['estado'] == 'pagada' || $cotizacion['estado'] == 'entregada'): ?>
+    cargarHistorialPagos();
+    <?php endif; ?>
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
