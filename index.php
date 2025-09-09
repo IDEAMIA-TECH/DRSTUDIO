@@ -80,13 +80,13 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                 </ul>
                 <div class="d-flex gap-2">
                     <a href="cotizacion.php" class="btn btn-primary">
-                        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=24&h=24&fit=crop&crop=center" 
-                             alt="Calculadora" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
+                        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=20&h=20&fit=crop&crop=center" 
+                             alt="Calculadora" class="me-2 btn-icon">
                         Solicitar Cotización
                     </a>
                     <a href="admin/" class="btn btn-outline-secondary">
-                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                             alt="Configuración" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
+                             alt="Configuración" class="me-2 btn-icon">
                         Admin
                     </a>
                 </div>
@@ -133,12 +133,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="d-flex flex-wrap gap-3">
                             <a href="productos.php" class="btn btn-light btn-lg px-4 py-3">
                                 <img src="https://images.unsplash.com/photo-1555529907-2a2a4b0b0b0b?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Bolsa de compras" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
+                                     alt="Bolsa de compras" class="me-2 btn-icon">
                                 Explorar Productos
                             </a>
                             <a href="cotizacion.php" class="btn btn-outline-light btn-lg px-4 py-3">
                                 <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Calculadora" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
+                                     alt="Calculadora" class="me-2 btn-icon">
                                 Solicitar Cotización
                             </a>
                         </div>
@@ -148,25 +148,25 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     <div class="hero-visual text-center position-relative">
                         <div class="floating-elements">
                             <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 0s;">
-                                <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=48&h=48&fit=crop&crop=center" 
-                                     alt="Gema" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                                <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=60&h=60&fit=crop&crop=center" 
+                                     alt="Gema" class="floating-img">
                             </div>
                             <div class="floating-icon" style="top: 20%; right: 15%; animation-delay: 1s;">
-                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=48&h=48&fit=crop&crop=center" 
-                                     alt="Estrella" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=60&h=60&fit=crop&crop=center" 
+                                     alt="Estrella" class="floating-img">
                             </div>
                             <div class="floating-icon" style="bottom: 30%; left: 5%; animation-delay: 2s;">
-                                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=48&h=48&fit=crop&crop=center" 
-                                     alt="Corazón" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=60&h=60&fit=crop&crop=center" 
+                                     alt="Corazón" class="floating-img">
                             </div>
                             <div class="floating-icon" style="bottom: 10%; right: 10%; animation-delay: 3s;">
-                                <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=48&h=48&fit=crop&crop=center" 
-                                     alt="Trofeo" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                                <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=60&h=60&fit=crop&crop=center" 
+                                     alt="Trofeo" class="floating-img">
                             </div>
                         </div>
                         <div class="main-icon">
                             <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200&h=200&fit=crop&crop=center" 
-                                 alt="Gema principal" style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));">
+                                 alt="Gema principal" class="main-hero-img">
                         </div>
                     </div>
                 </div>
@@ -223,15 +223,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                                      alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
                             <?php else: ?>
                                 <div class="no-image">
-                                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&h=120&fit=crop&crop=center" 
-                                         alt="Imagen no disponible" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; opacity: 0.5;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
                                 </div>
                             <?php endif; ?>
                             <div class="product-overlay">
                                 <a href="producto.php?id=<?php echo $producto['id']; ?>" class="btn btn-primary">
-                                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=20&h=20&fit=crop&crop=center" 
-                                         alt="Ver detalles" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
-                                    Ver Detalles
+                                    <i class="fas fa-eye me-2"></i>Ver Detalles
                                 </a>
                             </div>
                         </div>
@@ -250,15 +247,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
             
             <div class="text-center mt-4">
                 <a href="productos.php" class="btn btn-outline-primary btn-lg">
-                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                         alt="Ver productos" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
-                    Ver Todos los Productos
+                    <i class="fas fa-th me-2"></i>Ver Todos los Productos
                 </a>
             </div>
             <?php else: ?>
             <div class="text-center py-5">
-                <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&h=120&fit=crop&crop=center" 
-                     alt="Sin productos" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; opacity: 0.5;" class="mb-3">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">No hay productos destacados disponibles</h5>
             </div>
             <?php endif; ?>
@@ -297,12 +291,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="step-features">
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Cotización gratuita</span>
                             </div>
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Diseño personalizado</span>
                             </div>
                         </div>
@@ -324,12 +318,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="step-features">
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Pago seguro</span>
                             </div>
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Confirmación inmediata</span>
                             </div>
                         </div>
@@ -351,12 +345,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="step-features">
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Entrega puntual</span>
                             </div>
                             <div class="feature-item">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                     alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                     alt="Check" class="me-2 check-icon">
                                 <span>Calidad garantizada</span>
                             </div>
                         </div>
@@ -397,8 +391,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="card-body text-center">
                             <div class="stars mb-3">
                                 <?php for ($i = 1; $i <= 5; $i++): ?>
-                                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=20&h=20&fit=crop&crop=center" 
-                                         alt="Estrella" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%; margin-right: 2px;">
+                                    <i class="fas fa-star text-warning"></i>
                                 <?php endfor; ?>
                             </div>
                             <p class="card-text">"<?php echo htmlspecialchars($testimonio['testimonio']); ?>"</p>
@@ -425,7 +418,7 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     <div class="cta-content">
                         <span class="cta-badge mb-3 d-inline-block">
                             <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                 alt="Cohete" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
+                                 alt="Cohete" class="me-2 badge-icon">
                             ¡Comienza Ahora!
                         </span>
                         <h2 class="display-5 fw-bold mb-4" style="color: white; font-family: var(--font-display);">
@@ -440,21 +433,21 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
                                         <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                             alt="Check" class="me-2 check-icon">
                                         <span class="text-white-75">Cotización Gratuita</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
                                         <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                             alt="Check" class="me-2 check-icon">
                                         <span class="text-white-75">Diseño Personalizado</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <div class="feature-item d-flex align-items-center">
                                         <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=20&h=20&fit=crop&crop=center" 
-                                             alt="Check" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%;">
+                                             alt="Check" class="me-2 check-icon">
                                         <span class="text-white-75">Entrega Rápida</span>
                                     </div>
                                 </div>
@@ -467,12 +460,12 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                         <div class="d-flex flex-column gap-3">
                             <a href="cotizacion.php" class="btn btn-light btn-lg px-4 py-3">
                                 <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Calculadora" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
+                                     alt="Calculadora" class="me-2 btn-icon">
                                 Solicitar Cotización
                             </a>
                             <a href="admin/" class="btn btn-outline-light btn-lg px-4 py-3">
                                 <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                     alt="Configuración" class="me-2" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
+                                     alt="Configuración" class="me-2 btn-icon">
                                 Panel de Administración
                             </a>
                         </div>
@@ -511,22 +504,10 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                     </div>
                     <p class="text-light">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
                     <div class="social-links">
-                        <a href="#" class="text-light me-3">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                 alt="Facebook" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
-                        </a>
-                        <a href="#" class="text-light me-3">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                 alt="Instagram" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
-                        </a>
-                        <a href="#" class="text-light me-3">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                 alt="LinkedIn" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
-                        </a>
-                        <a href="#" class="text-light">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=24&h=24&fit=crop&crop=center" 
-                                 alt="Twitter" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">
-                        </a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter fa-lg"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-2 mb-4">
@@ -551,21 +532,9 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
                 <div class="col-lg-4 mb-4">
                     <h6 class="fw-bold mb-3">Contacto</h6>
                     <ul class="list-unstyled text-light">
-                        <li class="d-flex align-items-center mb-2">
-                            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=20&h=20&fit=crop&crop=center" 
-                                 alt="Teléfono" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
-                            +1 (555) 123-4567
-                        </li>
-                        <li class="d-flex align-items-center mb-2">
-                            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=20&h=20&fit=crop&crop=center" 
-                                 alt="Email" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
-                            info@drstudio.com
-                        </li>
-                        <li class="d-flex align-items-center mb-2">
-                            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=20&h=20&fit=crop&crop=center" 
-                                 alt="Ubicación" class="me-2" style="width: 20px; height: 20px; object-fit: cover; border-radius: 4px;">
-                            123 Main St, City, State 12345
-                        </li>
+                        <li><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope me-2"></i>info@drstudio.com</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i>123 Main St, City, State 12345</li>
                     </ul>
                 </div>
             </div>
