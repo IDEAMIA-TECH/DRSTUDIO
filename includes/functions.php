@@ -69,8 +69,12 @@ function getRecord($table, $id) {
 }
 
 // Función para actualizar registros
-function updateRecord($table, $id, $data) {
+function updateRecord($table, $data, $id) {
     global $conn;
+    
+    if (empty($data) || !is_array($data)) {
+        return false;
+    }
     
     $setClause = [];
     foreach ($data as $key => $value) {

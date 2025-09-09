@@ -269,34 +269,51 @@ function cambiarEstado(id, estado) {
     const estadoTexto = estados[estado] || estado;
     
     if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
-        ajaxRequest('ajax/cotizaciones.php', {
-            action: 'change_status',
-            id: id,
-            estado: estado
-        }, function(response) {
-            if (response.success) {
-                showAlert(response.message);
+        fetch('ajax/cotizaciones.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=change_status&id=${id}&estado=${estado}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
                 location.reload();
             } else {
-                showAlert(response.message, 'danger');
+                showAlert(data.message, 'danger');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error al cambiar el estado de la cotización', 'danger');
         });
     }
 }
 
 // Función para eliminar cotización
 function deleteCotizacion(id) {
-    if (confirmDelete('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
-        ajaxRequest('ajax/cotizaciones.php', {
-            action: 'delete',
-            id: id
-        }, function(response) {
-            if (response.success) {
-                showAlert(response.message);
+    if (confirm('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
+        fetch('ajax/cotizaciones.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=delete&id=${id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
                 location.reload();
             } else {
-                showAlert(response.message, 'danger');
+                showAlert(data.message, 'danger');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error al eliminar la cotización', 'danger');
         });
     }
 }
