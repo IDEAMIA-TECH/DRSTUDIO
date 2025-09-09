@@ -1,4 +1,7 @@
 <?php
+// Configurar headers UTF-8
+header('Content-Type: text/html; charset=UTF-8');
+
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 

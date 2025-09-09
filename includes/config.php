@@ -23,6 +23,6 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
-// Configurar charset
-$conn->set_charset("utf8");
+// Configurar charset UTF-8 completo
+$conn->set_charset("utf8mb4");
 ?>
