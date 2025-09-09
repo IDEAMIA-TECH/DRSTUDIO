@@ -329,10 +329,11 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" class="form-control" id="monto_pago" 
-                                   step="0.01" min="0.01" max="<?php echo $total_calculado; ?>" 
-                                   value="<?php echo $total_calculado; ?>" required>
+                                   step="0.01" min="0.01" required>
                         </div>
-                        <div class="form-text">Total de la cotización: $<?php echo number_format($total_calculado, 2); ?></div>
+                        <div class="form-text">
+                            <span id="info_saldo_pendiente">Cargando información...</span>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -440,6 +441,22 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
     margin: 0;
     font-size: 12px;
     color: #6c757d;
+}
+
+/* Estilos para validación de monto */
+#monto_pago.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+#monto_pago.is-valid {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+#info_saldo_pendiente {
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 </style>
 
@@ -649,6 +666,69 @@ function deleteCotizacion() {
     }
 }
 
+// Función para cargar saldo pendiente en el modal
+function cargarSaldoPendiente() {
+    const cotizacionId = <?php echo $id; ?>;
+    const totalCotizacion = <?php echo $total_calculado; ?>;
+    
+    const formData = new FormData();
+    formData.append('action', 'obtener_pagos');
+    formData.append('cotizacion_id', cotizacionId);
+    
+    fetch('../ajax/pagos.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let totalPagado = 0;
+            if (data.pagos && data.pagos.length > 0) {
+                totalPagado = data.pagos.reduce((sum, pago) => sum + parseFloat(pago.monto), 0);
+            }
+            
+            const saldoPendiente = totalCotizacion - totalPagado;
+            const montoInput = document.getElementById('monto_pago');
+            const infoSaldo = document.getElementById('info_saldo_pendiente');
+            
+            // Actualizar información del saldo
+            infoSaldo.innerHTML = `
+                <strong>Total de la cotización:</strong> $${totalCotizacion.toFixed(2)}<br>
+                <strong>Total pagado:</strong> $${totalPagado.toFixed(2)}<br>
+                <strong class="text-warning">Saldo pendiente:</strong> $${saldoPendiente.toFixed(2)}
+            `;
+            
+            // Configurar el input de monto
+            montoInput.max = saldoPendiente;
+            montoInput.value = saldoPendiente;
+            
+            // Agregar validación en tiempo real
+            montoInput.addEventListener('input', function() {
+                const montoIngresado = parseFloat(this.value);
+                if (montoIngresado > saldoPendiente) {
+                    this.setCustomValidity(`El monto no puede exceder el saldo pendiente de $${saldoPendiente.toFixed(2)}`);
+                    this.classList.add('is-invalid');
+                } else if (montoIngresado <= 0) {
+                    this.setCustomValidity('El monto debe ser mayor a 0');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('is-invalid');
+                }
+            });
+            
+        } else {
+            document.getElementById('info_saldo_pendiente').innerHTML = 
+                '<span class="text-danger">Error al cargar la información de pagos</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('info_saldo_pendiente').innerHTML = 
+            '<span class="text-danger">Error al cargar la información de pagos</span>';
+    });
+}
+
 // Función para registrar pago
 function registrarPago() {
     const cotizacionId = document.getElementById('cotizacion_id_pago').value;
@@ -660,6 +740,13 @@ function registrarPago() {
     // Validar monto
     if (monto <= 0) {
         showAlert('El monto debe ser mayor a 0', 'danger');
+        return;
+    }
+    
+    // Validar que no exceda el saldo pendiente
+    const montoInput = document.getElementById('monto_pago');
+    if (montoInput.checkValidity() === false) {
+        showAlert(montoInput.validationMessage, 'danger');
         return;
     }
     
@@ -946,6 +1033,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php if ($cotizacion['estado'] == 'pagada' || $cotizacion['estado'] == 'entregada'): ?>
     cargarHistorialPagos();
     <?php endif; ?>
+    
+    // Cargar saldo pendiente cuando se abre el modal de registro de pago
+    const modalRegistrarPago = document.getElementById('modalRegistrarPago');
+    if (modalRegistrarPago) {
+        modalRegistrarPago.addEventListener('show.bs.modal', function() {
+            cargarSaldoPendiente();
+        });
+    }
 });
 </script>
 
