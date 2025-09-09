@@ -246,6 +246,114 @@ $testimonios = readRecords('testimonios', ['activo = 1'], 3, 'created_at DESC');
         </div>
     </section>
 
+    <!-- Cómo Funciona -->
+    <section class="como-funciona-section py-5 bg-white">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <div class="section-header">
+                        <span class="section-badge">🚀 Proceso Simple</span>
+                        <h2 class="section-title display-4 fw-bold mb-3" style="font-family: var(--font-display);">
+                            ¿Cómo <span class="text-gradient">Funciona</span>?
+                        </h2>
+                        <p class="lead text-muted fs-5">Solo 3 pasos simples para obtener tus productos promocionales</p>
+                        <div class="section-divider mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="step-card text-center">
+                        <div class="step-image mb-4">
+                            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=300&fit=crop&crop=center" 
+                                 alt="Ordena tu producto" 
+                                 class="img-fluid rounded-circle step-img">
+                            <div class="step-number">1</div>
+                        </div>
+                        <h4 class="step-title mb-3">Ordena</h4>
+                        <p class="step-description text-muted">
+                            Solicita tu cotización personalizada con todos los detalles de tu producto promocional.
+                        </p>
+                        <div class="step-features">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Cotización gratuita</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Diseño personalizado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="step-card text-center">
+                        <div class="step-image mb-4">
+                            <img src="https://images.unsplash.com/photo-1556742111-a301076d9d18?w=300&h=300&fit=crop&crop=center" 
+                                 alt="Deposita el pago" 
+                                 class="img-fluid rounded-circle step-img">
+                            <div class="step-number">2</div>
+                        </div>
+                        <h4 class="step-title mb-3">Deposita</h4>
+                        <p class="step-description text-muted">
+                            Realiza tu pago de manera segura y confirma tu pedido para comenzar la producción.
+                        </p>
+                        <div class="step-features">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Pago seguro</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Confirmación inmediata</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="step-card text-center">
+                        <div class="step-image mb-4">
+                            <img src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=300&h=300&fit=crop&crop=center" 
+                                 alt="Recoge tu producto" 
+                                 class="img-fluid rounded-circle step-img">
+                            <div class="step-number">3</div>
+                        </div>
+                        <h4 class="step-title mb-3">Recoge</h4>
+                        <p class="step-description text-muted">
+                            Recibe tus productos terminados con la calidad y puntualidad que nos caracteriza.
+                        </p>
+                        <div class="step-features">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Entrega puntual</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Calidad garantizada</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-12 text-center">
+                    <div class="process-timeline">
+                        <div class="timeline-line"></div>
+                        <div class="timeline-dots">
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-dot active"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Testimonios -->
     <?php if (!empty($testimonios)): ?>
     <section class="testimonios-section py-5 bg-light">
