@@ -1,4 +1,8 @@
 <?php
+// Incluir configuración de base de datos
+require_once '../includes/config.php';
+require_once '../includes/functions.php';
+
 // Obtener ID de la cotización
 $id = $_GET['id'] ?? 0;
 if (!$id) {

@@ -51,10 +51,6 @@ if ($_POST) {
     }
 }
 
-// Función para validar email
-function validateEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL);
-}
 ?>
 
 <!DOCTYPE html>
