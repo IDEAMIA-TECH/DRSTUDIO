@@ -55,13 +55,34 @@ function registrarPago() {
     $stmt->bind_param('idsssi', $cotizacion_id, $monto, $metodo_pago, $referencia, $observaciones, $usuario_id);
     
     if ($stmt->execute()) {
-        // Actualizar estado de la cotización a 'pagada'
-        updateRecord('cotizaciones', $cotizacion_id, ['estado' => 'pagada']);
+        // Calcular si el pago completo el total de la cotización
+        $sql_total = "SELECT SUM(monto) as total_pagado FROM pagos_cotizacion WHERE cotizacion_id = ?";
+        $stmt_total = $conn->prepare($sql_total);
+        $stmt_total->bind_param('i', $cotizacion_id);
+        $stmt_total->execute();
+        $result_total = $stmt_total->get_result();
+        $total_pagado = $result_total->fetch_assoc()['total_pagado'] ?? 0;
+        $stmt_total->close();
+        
+        // Obtener el total de la cotización
+        $cotizacion_data = getRecord('cotizaciones', $cotizacion_id);
+        $total_cotizacion = $cotizacion_data['subtotal'] - $cotizacion_data['descuento'];
+        
+        // Si el total pagado es mayor o igual al total de la cotización, cambiar estado a 'pagada'
+        if ($total_pagado >= $total_cotizacion) {
+            updateRecord('cotizaciones', $cotizacion_id, ['estado' => 'pagada']);
+            $message = 'Pago registrado exitosamente. La cotización ha sido marcada como pagada.';
+        } else {
+            $message = 'Pago registrado exitosamente.';
+        }
         
         echo json_encode([
             'success' => true, 
-            'message' => 'Pago registrado exitosamente',
-            'pago_id' => $conn->insert_id
+            'message' => $message,
+            'pago_id' => $conn->insert_id,
+            'total_pagado' => $total_pagado,
+            'total_cotizacion' => $total_cotizacion,
+            'completamente_pagado' => $total_pagado >= $total_cotizacion
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al registrar el pago: ' . $conn->error]);

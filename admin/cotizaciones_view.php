@@ -1052,6 +1052,52 @@ function mostrarModuloPagos(pagos) {
     
     // Actualizar botones de la sección de acciones principales
     actualizarBotonesAcciones(pendiente, totalPagado);
+    
+    // Si está completamente pagado y el estado es "en_espera_deposito", cambiar a "pagada"
+    if (pendiente <= 0 && <?php echo json_encode($cotizacion['estado']); ?> === 'en_espera_deposito') {
+        cambiarEstadoAutomatico('pagada');
+    }
+}
+
+// Función para cambiar estado automáticamente (sin confirmación)
+function cambiarEstadoAutomatico(estado) {
+    console.log('DEBUG: Cambiando estado automáticamente a:', estado);
+    
+    const url = '../ajax/cotizaciones.php';
+    const body = `action=change_status&id=<?php echo $id; ?>&estado=${estado}`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                console.log('DEBUG: Estado cambiado automáticamente:', data.message);
+                // Recargar la página para mostrar el nuevo estado
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                console.error('DEBUG: Error al cambiar estado automáticamente:', data.message);
+            }
+        } catch (e) {
+            console.error('DEBUG: Error parsing JSON:', e);
+        }
+    })
+    .catch(error => {
+        console.error('DEBUG: Error en cambio automático:', error);
+    });
 }
 
 // Función para actualizar botones de acciones principales
