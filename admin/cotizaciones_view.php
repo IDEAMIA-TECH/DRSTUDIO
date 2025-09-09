@@ -342,7 +342,7 @@ function cambiarEstado(estado) {
     if (confirm(`¿Estás seguro de marcar esta cotización como ${estadoTexto}?`)) {
         console.log('DEBUG: Usuario confirmó el cambio');
         
-        const url = 'ajax/cotizaciones.php';
+        const url = '../ajax/cotizaciones.php';
         const body = `action=change_status&id=<?php echo $id; ?>&estado=${estado}`;
         
         console.log('DEBUG: URL:', url);
@@ -502,7 +502,7 @@ function exportarPDF() {
 // Función para eliminar cotización
 function deleteCotizacion() {
     if (confirm('¿Estás seguro de eliminar esta cotización? Esta acción no se puede deshacer.')) {
-        fetch('ajax/cotizaciones.php', {
+        fetch('../ajax/cotizaciones.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
