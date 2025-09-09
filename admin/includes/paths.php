@@ -49,4 +49,9 @@ if (file_exists(AUTH_PATH)) {
 } else {
     die('Error: No se pudo encontrar auth.php en: ' . AUTH_PATH);
 }
+
+// Incluir functions.php si existe
+if (file_exists(FUNCTIONS_PATH)) {
+    require_once FUNCTIONS_PATH;
+}
 ?>

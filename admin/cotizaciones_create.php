@@ -318,19 +318,30 @@ function cargarVariantes(select, index) {
     
     if (productoId) {
         // Cargar variantes via AJAX
-        ajaxRequest('ajax/productos.php', {
-            action: 'get_variantes',
-            producto_id: productoId
-        }, function(response) {
-            if (response.success) {
-                response.data.forEach(variante => {
+        fetch('../ajax/productos.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=get_variantes&producto_id=' + productoId
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Variantes recibidas:', data);
+            if (data.success) {
+                data.data.forEach(variante => {
                     const option = document.createElement('option');
                     option.value = variante.id;
                     option.dataset.precio_extra = variante.precio_extra;
                     option.textContent = `${variante.talla || ''} ${variante.color || ''} ${variante.material || ''}`.trim() || 'Variante sin nombre';
                     varianteSelect.appendChild(option);
                 });
+            } else {
+                console.error('Error cargando variantes:', data.message);
             }
+        })
+        .catch(error => {
+            console.error('Error de red:', error);
         });
     }
     

@@ -402,25 +402,35 @@ let varianteCount = 1;
 
 // Generar SKU automáticamente
 function generateSKU(categoriaId = null) {
-    fetch('ajax/generate_sku.php', {
+    console.log('Generando SKU para categoría:', categoriaId);
+    
+    fetch('../ajax/generate_sku.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: 'categoria_id=' + (categoriaId || '')
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Respuesta del servidor:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Datos recibidos:', data);
         if (data.success) {
             document.getElementById('sku').value = data.sku;
             document.getElementById('skuPreview').textContent = 'SKU generado: ' + data.sku;
             document.getElementById('skuPreview').className = 'text-success';
         } else {
             console.error('Error generando SKU:', data.message);
+            document.getElementById('skuPreview').textContent = 'Error: ' + data.message;
+            document.getElementById('skuPreview').className = 'text-danger';
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error de red:', error);
+        document.getElementById('skuPreview').textContent = 'Error de conexión';
+        document.getElementById('skuPreview').className = 'text-danger';
     });
 }
 

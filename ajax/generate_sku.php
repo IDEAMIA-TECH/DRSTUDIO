@@ -1,7 +1,36 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/auth.php';
-require_once '../includes/functions.php';
+// Detectar la ruta correcta del proyecto
+$projectRoot = dirname(__DIR__);
+$configPath = $projectRoot . '/includes/config.php';
+$authPath = $projectRoot . '/includes/auth.php';
+$functionsPath = $projectRoot . '/includes/functions.php';
+
+// Verificar si los archivos existen, si no, probar rutas alternativas
+if (!file_exists($configPath)) {
+    // Probar ruta absoluta del servidor
+    $configPath = '/home/dtstudio/public_html/includes/config.php';
+    $authPath = '/home/dtstudio/public_html/includes/auth.php';
+    $functionsPath = '/home/dtstudio/public_html/includes/functions.php';
+}
+
+// Incluir archivos
+if (file_exists($configPath)) {
+    require_once $configPath;
+} else {
+    die('Error: No se pudo encontrar config.php');
+}
+
+if (file_exists($authPath)) {
+    require_once $authPath;
+} else {
+    die('Error: No se pudo encontrar auth.php');
+}
+
+if (file_exists($functionsPath)) {
+    require_once $functionsPath;
+} else {
+    die('Error: No se pudo encontrar functions.php');
+}
 
 header('Content-Type: application/json');
 
