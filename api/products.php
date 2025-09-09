@@ -95,7 +95,8 @@ class ProductAPI {
                          c.name as category_name,
                          GROUP_CONCAT(DISTINCT pi.url) as images,
                          MIN(pv.price) as min_price,
-                         MAX(pv.price) as max_price
+                         MAX(pv.price) as max_price,
+                         SUM(pv.stock) as total_stock
                   FROM products p
                   LEFT JOIN categories c ON p.category_id = c.id
                   LEFT JOIN product_images pi ON p.id = pi.product_id
@@ -117,6 +118,7 @@ class ProductAPI {
             $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
             $product['min_price'] = (float)$product['min_price'];
             $product['max_price'] = (float)$product['max_price'];
+            $product['total_stock'] = (int)$product['total_stock'];
             $product['price'] = $product['min_price']; // Precio principal
             $product['featured'] = false; // No existe en el esquema actual
             $product['active'] = $product['status'] === 'active';

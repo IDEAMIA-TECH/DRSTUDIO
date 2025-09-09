@@ -267,37 +267,53 @@ async function loadProducts() {
 
 // Mostrar productos
 function displayProducts(products) {
-    const container = document.getElementById('products-list');
+    const container = document.getElementById('productsTableBody');
     if (!container) return;
     
     container.innerHTML = products.map(product => `
-        <div class="data-item">
-            <div class="item-image">
-                <img src="${product.images[0] || 'https://via.placeholder.com/100x100'}" alt="${product.name}">
-            </div>
-            <div class="item-info">
-                <h3>${product.name}</h3>
-                <p>${product.description}</p>
-                <div class="item-meta">
-                    <span class="category">${product.category}</span>
-                    <span class="material">${product.material}</span>
-                    <span class="featured ${product.featured ? 'yes' : 'no'}">
-                        ${product.featured ? 'Destacado' : 'Normal'}
-                    </span>
+        <tr>
+            <td>${product.id}</td>
+            <td>
+                <div class="product-info">
+                    <div class="product-image">
+                        <img src="${product.images ? product.images.split(',')[0] : 'https://via.placeholder.com/50x50'}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                    </div>
+                    <div class="product-details">
+                        <strong>${product.name}</strong>
+                        <br><small>${product.sku}</small>
+                    </div>
                 </div>
-            </div>
-            <div class="item-actions">
-                <span class="price">$${product.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </td>
+            <td>${product.category_name || 'Sin categoría'}</td>
+            <td>
+                <span class="price-range">
+                    $${product.min_price || '0.00'} - $${product.max_price || '0.00'}
+                </span>
+            </td>
+            <td>
+                <span class="stock-info">
+                    ${product.total_stock || 0} unidades
+                </span>
+            </td>
+            <td>
+                <span class="status-badge status-${product.status}">
+                    ${product.status === 'active' ? 'Activo' : product.status === 'inactive' ? 'Inactivo' : 'Borrador'}
+                </span>
+            </td>
+            <td>
                 <div class="action-buttons">
-                    <button class="btn-edit" onclick="editProduct(${product.id})">
+                    <button class="btn-view" onclick="viewProduct(${product.id})" title="Ver">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-edit" onclick="editProduct(${product.id})" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-delete" onclick="deleteProduct(${product.id})">
+                    <button class="btn-delete" onclick="deleteProduct(${product.id})" title="Eliminar">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-            </div>
-        </div>
+            </td>
+        </tr>
     `).join('');
 }
 
@@ -474,11 +490,41 @@ function displayOrders(orders) {
 }
 
 // Funciones de formularios
+function generateVariantSku() {
+    const productSku = document.getElementById('product-sku').value;
+    const variantSkuField = document.getElementById('variant-sku');
+    
+    if (productSku && !variantSkuField.value) {
+        variantSkuField.value = productSku + '-001';
+    }
+}
+
+// Agregar event listener para generar SKU de variante
+document.addEventListener('DOMContentLoaded', function() {
+    const productSkuField = document.getElementById('product-sku');
+    if (productSkuField) {
+        productSkuField.addEventListener('blur', generateVariantSku);
+    }
+});
+
 async function handleProductSubmit(e) {
     e.preventDefault();
     
+    console.log('Enviando formulario de producto...');
+    
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+    
+    console.log('Datos del formulario:', data);
+    
+    // Validar que todos los campos requeridos estén presentes
+    const requiredFields = ['name', 'sku', 'category_id', 'description', 'status', 'variant_name', 'variant_sku', 'variant_price', 'variant_cost', 'variant_stock'];
+    const missingFields = requiredFields.filter(field => !data[field] || data[field] === '');
+    
+    if (missingFields.length > 0) {
+        showError('Faltan campos requeridos: ' + missingFields.join(', '));
+        return;
+    }
     
     try {
         const response = await fetch('api/products.php?action=create_product', {
@@ -490,10 +536,12 @@ async function handleProductSubmit(e) {
         });
         
         const result = await response.json();
+        console.log('Respuesta de la API:', result);
         
         if (result.success) {
             showSuccess('Producto creado exitosamente');
             e.target.reset();
+            closeModal('productModal');
             loadProducts();
         } else {
             showError('Error al crear producto: ' + result.message);

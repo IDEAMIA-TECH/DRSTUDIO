@@ -446,7 +446,7 @@
                         <label for="product-category">Categoría:</label>
                         <select id="product-category" name="category_id" class="form-input" required>
                             <option value="">Seleccionar categoría</option>
-                            <option value="1">Playeras</option>
+                            <option value="1" selected>Playeras</option>
                             <option value="2">Vasos</option>
                             <option value="3">Gorras</option>
                             <option value="4">Lonas</option>
@@ -460,7 +460,8 @@
                     <div class="form-group">
                         <label for="product-status">Estado:</label>
                         <select id="product-status" name="status" class="form-input" required>
-                            <option value="draft">Borrador</option>
+                            <option value="">Seleccionar estado</option>
+                            <option value="draft" selected>Borrador</option>
                             <option value="active">Activo</option>
                             <option value="inactive">Inactivo</option>
                         </select>
@@ -494,16 +495,16 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="variant-price">Precio:</label>
-                            <input type="number" id="variant-price" name="variant_price" class="form-input" step="0.01" required>
+                            <input type="number" id="variant-price" name="variant_price" class="form-input" step="0.01" value="0.00" required>
                         </div>
                         <div class="form-group">
                             <label for="variant-cost">Costo:</label>
-                            <input type="number" id="variant-cost" name="variant_cost" class="form-input" step="0.01" required>
+                            <input type="number" id="variant-cost" name="variant_cost" class="form-input" step="0.01" value="0.00" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="variant-stock">Stock:</label>
-                        <input type="number" id="variant-stock" name="variant_stock" class="form-input" min="0" required>
+                        <input type="number" id="variant-stock" name="variant_stock" class="form-input" min="0" value="0" required>
                     </div>
                     <div class="form-group">
                         <label for="variant-attributes">Atributos (JSON):</label>
