@@ -43,35 +43,49 @@ if (!isLoggedIn()) {
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? '';
 
+// Log para debugging
+error_log("PDF Generation - Action: " . $action);
+error_log("PDF Generation - Input data: " . print_r($input, true));
+
 if ($action === 'generate_cotizacion_pdf') {
     $data = $input['data'] ?? [];
     
     if (empty($data)) {
+        error_log("PDF Generation - Error: Datos de cotización vacíos");
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Datos de cotización requeridos']);
         exit;
     }
     
+    error_log("PDF Generation - Iniciando generación de PDF para cotización: " . $data['numero']);
+    
     // Generar PDF
     generateCotizacionPDF($data);
 } else {
+    error_log("PDF Generation - Error: Acción no válida: " . $action);
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Acción no válida']);
     exit;
 }
 
 function generateCotizacionPDF($data) {
+    error_log("PDF Generation - Iniciando createCotizacionHTML");
+    
     // Crear HTML para el PDF
     $html = createCotizacionHTML($data);
     
-    // Configurar headers para PDF
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
-    header('Cache-Control: private, max-age=0, must-revalidate');
-    header('Pragma: public');
+    error_log("PDF Generation - HTML generado, longitud: " . strlen($html));
     
-    // Generar PDF usando mPDF (si está disponible) o HTML simple
+    // Verificar si mPDF está disponible
     if (class_exists('Mpdf\Mpdf')) {
+        error_log("PDF Generation - mPDF disponible, generando PDF");
+        
+        // Configurar headers para PDF
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+        
         try {
             // Usar mPDF si está disponible
             $mpdf = new \Mpdf\Mpdf([
@@ -88,12 +102,15 @@ function generateCotizacionPDF($data) {
             
             $mpdf->WriteHTML($html);
             $mpdf->Output();
+            error_log("PDF Generation - PDF generado exitosamente con mPDF");
         } catch (Exception $e) {
+            error_log("PDF Generation - Error con mPDF: " . $e->getMessage());
             // Si mPDF falla, devolver HTML
             header('Content-Type: text/html; charset=UTF-8');
             echo $html;
         }
     } else {
+        error_log("PDF Generation - mPDF no disponible, generando HTML");
         // Fallback: generar HTML que se puede convertir a PDF
         header('Content-Type: text/html; charset=UTF-8');
         echo $html;

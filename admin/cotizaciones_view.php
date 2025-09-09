@@ -116,13 +116,13 @@ foreach ($items as &$item) {
                                     <small class="text-muted">SKU: <?php echo htmlspecialchars($item['producto']['sku']); ?></small>
                                 </td>
                                 <td>
-                                    <?php if ($item['variante']): ?>
+                                    <?php if (isset($item['variante']) && $item['variante']): ?>
                                         <span class="badge bg-light text-dark">
                                             <?php 
                                             $variante_parts = array_filter([
-                                                $item['variante']['talla'],
-                                                $item['variante']['color'],
-                                                $item['variante']['material']
+                                                $item['variante']['talla'] ?? '',
+                                                $item['variante']['color'] ?? '',
+                                                $item['variante']['material'] ?? ''
                                             ]);
                                             echo htmlspecialchars(implode(' - ', $variante_parts));
                                             ?>
@@ -358,6 +358,8 @@ function imprimirCotizacion() {
 
 // Función para exportar a PDF
 function exportarPDF() {
+    console.log('Iniciando exportación de PDF...');
+    
     // Mostrar loading
     const btn = event.target;
     const originalText = btn.innerHTML;
@@ -382,7 +384,11 @@ function exportarPDF() {
         estado: '<?php echo $cotizacion['estado']; ?>'
     };
     
+    console.log('Datos de cotización:', cotizacionData);
+    
     // Enviar datos al servidor para generar PDF
+    console.log('Enviando petición a ajax/generate_pdf.php...');
+    
     fetch('ajax/generate_pdf.php', {
         method: 'POST',
         headers: {
@@ -394,15 +400,24 @@ function exportarPDF() {
         })
     })
     .then(response => {
+        console.log('Respuesta del servidor:', response.status, response.statusText);
+        console.log('Content-Type:', response.headers.get('content-type'));
+        
         if (response.ok) {
             return response.blob();
         } else {
-            throw new Error('Error del servidor: ' + response.status);
+            return response.text().then(text => {
+                console.error('Error del servidor:', text);
+                throw new Error('Error del servidor: ' + response.status + ' - ' + text);
+            });
         }
     })
     .then(blob => {
+        console.log('Blob recibido:', blob.type, blob.size, 'bytes');
+        
         // Verificar si es un PDF válido
         if (blob.type === 'application/pdf' || blob.size > 0) {
+            console.log('Generando enlace de descarga...');
             // Crear enlace de descarga
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -412,10 +427,13 @@ function exportarPDF() {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+            console.log('PDF descargado exitosamente');
         } else {
+            console.log('No es PDF, mostrando como HTML...');
             // Si no es PDF, mostrar el contenido como HTML
             const reader = new FileReader();
             reader.onload = function(e) {
+                console.log('Contenido HTML:', e.target.result);
                 const newWindow = window.open('', '_blank');
                 newWindow.document.write(e.target.result);
                 newWindow.document.close();

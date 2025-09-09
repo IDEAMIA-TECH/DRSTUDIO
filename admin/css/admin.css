@@ -148,6 +148,9 @@ body {
     border: none;
     border-radius: 0.5rem;
     font-weight: 500;
+    position: relative;
+    z-index: 1050;
+    margin-bottom: 1rem;
 }
 
 .alert-success {
@@ -168,6 +171,29 @@ body {
 .alert-info {
     background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
     color: #0c5460;
+}
+
+/* Alertas fijas */
+.alert-fixed {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 1060;
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Badges */
