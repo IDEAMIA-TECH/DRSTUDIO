@@ -32,6 +32,9 @@ if (file_exists($functionsPath)) {
     die('Error: No se pudo encontrar functions.php');
 }
 
+// Incluir autoloader de Composer para mPDF
+require_once $projectRoot . '/vendor/autoload.php';
+
 // Verificar autenticación
 if (!isLoggedIn()) {
     header('Content-Type: application/json');
@@ -91,12 +94,6 @@ function generateCotizacionPDF($data) {
     if (class_exists('Mpdf\Mpdf')) {
         error_log("PDF Generation - mPDF disponible, generando PDF");
         
-        // Configurar headers para PDF
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
-        
         try {
             // Usar mPDF si está disponible
             $mpdf = new \Mpdf\Mpdf([
@@ -111,14 +108,30 @@ function generateCotizacionPDF($data) {
                 'margin_footer' => 9,
             ]);
             
+            // Configurar metadatos del PDF
+            $mpdf->SetTitle('Cotización ' . $data['numero']);
+            $mpdf->SetAuthor('DR Studio');
+            $mpdf->SetCreator('DR Studio - Sistema de Cotizaciones');
+            $mpdf->SetSubject('Cotización de productos promocionales');
+            
+            // Escribir el HTML al PDF
             $mpdf->WriteHTML($html);
-            $mpdf->Output();
+            
+            // Configurar headers para PDF
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="Cotizacion_' . $data['numero'] . '.pdf"');
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            
+            // Generar y enviar el PDF
+            $mpdf->Output('Cotizacion_' . $data['numero'] . '.pdf', 'D');
+            
             error_log("PDF Generation - PDF generado exitosamente con mPDF");
+            exit;
+            
         } catch (Exception $e) {
             error_log("PDF Generation - Error con mPDF: " . $e->getMessage());
-            // Si mPDF falla, devolver HTML
-            header('Content-Type: text/html; charset=UTF-8');
-            echo $html;
+            // Si mPDF falla, continuar con el fallback HTML
         }
     } else {
         error_log("PDF Generation - mPDF no disponible, generando HTML con estilos de impresión");
