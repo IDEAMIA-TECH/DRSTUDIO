@@ -1,7 +1,8 @@
 <?php
-$pageTitle = 'Crear Nueva Cotización';
-require_once 'includes/header.php';
+// Incluir archivos necesarios sin output
+require_once 'includes/paths.php';
 
+$pageTitle = 'Crear Nueva Cotización';
 $error = '';
 $success = '';
 
@@ -104,6 +105,9 @@ if ($_POST) {
         }
     }
 }
+
+// Incluir header después del procesamiento
+require_once 'includes/header.php';
 ?>
 
 <div class="row">

@@ -47,6 +47,17 @@ $action = $input['action'] ?? '';
 error_log("PDF Generation - Action: " . $action);
 error_log("PDF Generation - Input data: " . print_r($input, true));
 
+if ($action === 'test') {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'message' => 'Archivo generate_pdf.php accesible correctamente',
+        'timestamp' => date('Y-m-d H:i:s'),
+        'action' => $action
+    ]);
+    exit;
+}
+
 if ($action === 'generate_cotizacion_pdf') {
     $data = $input['data'] ?? [];
     
