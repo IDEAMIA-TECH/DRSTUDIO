@@ -273,28 +273,48 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
 /* Corregir z-index del dropdown de acciones */
 .dropdown-menu {
     z-index: 1050 !important;
+    min-width: 200px !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 
 /* Asegurar que el dropdown se muestre correctamente en tablas */
 .table-responsive .dropdown-menu {
     position: absolute !important;
     z-index: 1050 !important;
+    transform: translateY(0) !important;
 }
 
 /* Mejorar la visibilidad del dropdown */
 .dropdown-menu {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    background: white !important;
 }
 
 /* Asegurar que el contenedor de la tabla no corte el dropdown */
 .table-responsive {
     overflow: visible !important;
+    margin-bottom: 100px !important; /* Espacio extra para el dropdown */
 }
 
 /* Ajustar el contenedor de la tabla para evitar overflow */
 .card-body {
     overflow: visible !important;
+    padding-bottom: 50px !important; /* Espacio extra para el dropdown */
+}
+
+/* Asegurar que el dropdown se muestre completamente */
+.dropdown {
+    position: relative !important;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    z-index: 1050 !important;
 }
 </style>
 
@@ -418,15 +438,41 @@ $(document).ready(function() {
     
     // Asegurar que los dropdowns se muestren correctamente
     $('.dropdown-toggle').on('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
-        $(this).next('.dropdown-menu').toggle();
+        
+        // Cerrar otros dropdowns abiertos
+        $('.dropdown-menu').not($(this).next('.dropdown-menu')).removeClass('show').hide();
+        
+        // Toggle el dropdown actual
+        const dropdown = $(this).next('.dropdown-menu');
+        dropdown.toggleClass('show');
+        
+        if (dropdown.hasClass('show')) {
+            dropdown.show();
+            // Asegurar que el dropdown esté visible
+            dropdown.css({
+                'display': 'block',
+                'position': 'absolute',
+                'z-index': '1050',
+                'top': '100%',
+                'left': '0'
+            });
+        } else {
+            dropdown.hide();
+        }
     });
     
     // Cerrar dropdowns al hacer clic fuera
     $(document).on('click', function(e) {
         if (!$(e.target).closest('.dropdown').length) {
-            $('.dropdown-menu').hide();
+            $('.dropdown-menu').removeClass('show').hide();
         }
+    });
+    
+    // Prevenir que el dropdown se cierre al hacer clic en él
+    $('.dropdown-menu').on('click', function(e) {
+        e.stopPropagation();
     });
 });
 </script>
