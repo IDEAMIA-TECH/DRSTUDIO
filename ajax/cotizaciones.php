@@ -244,51 +244,83 @@ switch ($action) {
         $id = (int)$_POST['id'];
         $estado = $_POST['estado'];
         
+        error_log("AJAX Cotizaciones - Cambiando estado: ID=$id, Estado=$estado");
+        
         $estadosValidos = ['pendiente', 'enviada', 'aceptada', 'rechazada', 'cancelada', 'en_espera_deposito'];
         if (!in_array($estado, $estadosValidos)) {
+            error_log("AJAX Cotizaciones - Estado no válido: $estado");
             echo json_encode(['success' => false, 'message' => 'Estado no válido']);
             exit;
         }
         
         $data = ['estado' => $estado];
+        error_log("AJAX Cotizaciones - Datos para actualizar: " . print_r($data, true));
+        
         if (updateRecord('cotizaciones', $data, $id)) {
+            error_log("AJAX Cotizaciones - Estado actualizado exitosamente");
             $estadoTexto = ucfirst($estado);
             
             // Si se marca como "enviada", enviar correo con PDF
             if ($estado === 'enviada') {
+                error_log("AJAX Cotizaciones - Iniciando proceso de envío de correo");
                 try {
                     require_once $projectRoot . '/includes/EmailSender.php';
+                    error_log("AJAX Cotizaciones - EmailSender incluido correctamente");
                     
                     // Obtener información de la cotización y cliente
                     $cotizacion = getRecord('cotizaciones', $id);
+                    if (!$cotizacion) {
+                        error_log("AJAX Cotizaciones - Error: Cotización no encontrada");
+                        throw new Exception("Cotización no encontrada");
+                    }
+                    error_log("AJAX Cotizaciones - Cotización obtenida: " . $cotizacion['numero_cotizacion']);
+                    
                     $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+                    if (!$cliente) {
+                        error_log("AJAX Cotizaciones - Error: Cliente no encontrado");
+                        throw new Exception("Cliente no encontrado");
+                    }
+                    error_log("AJAX Cotizaciones - Cliente obtenido: " . $cliente['nombre']);
                     
                     // Generar PDF temporal
+                    error_log("AJAX Cotizaciones - Generando PDF temporal");
                     $pdfPath = generatePDFForEmail($cotizacion);
+                    if ($pdfPath) {
+                        error_log("AJAX Cotizaciones - PDF generado: $pdfPath");
+                    } else {
+                        error_log("AJAX Cotizaciones - Error generando PDF");
+                    }
                     
                     // Enviar correo
+                    error_log("AJAX Cotizaciones - Enviando correo");
                     $emailSender = new EmailSender();
                     $emailSent = $emailSender->sendQuoteEmail($cotizacion, $cliente, $pdfPath);
                     
                     // Limpiar PDF temporal
                     if ($pdfPath && file_exists($pdfPath)) {
                         unlink($pdfPath);
+                        error_log("AJAX Cotizaciones - PDF temporal eliminado");
                     }
                     
                     if ($emailSent) {
+                        error_log("AJAX Cotizaciones - Correo enviado exitosamente");
                         $estadoTexto .= ' y correo enviado exitosamente';
                     } else {
+                        error_log("AJAX Cotizaciones - Error al enviar correo");
                         $estadoTexto .= ' (Error al enviar correo)';
                     }
                     
                 } catch (Exception $e) {
-                    error_log("Error enviando correo: " . $e->getMessage());
-                    $estadoTexto .= ' (Error al enviar correo)';
+                    error_log("AJAX Cotizaciones - Excepción enviando correo: " . $e->getMessage());
+                    error_log("AJAX Cotizaciones - Stack trace: " . $e->getTraceAsString());
+                    $estadoTexto .= ' (Error al enviar correo: ' . $e->getMessage() . ')';
                 }
             }
             
+            error_log("AJAX Cotizaciones - Respuesta exitosa: $estadoTexto");
             echo json_encode(['success' => true, 'message' => "Cotización marcada como $estadoTexto exitosamente"]);
         } else {
+            error_log("AJAX Cotizaciones - Error actualizando estado en base de datos");
             echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado']);
         }
         break;
@@ -406,11 +438,18 @@ switch ($action) {
 
 // Función para generar PDF temporal para correo
 function generatePDFForEmail($cotizacion) {
+    global $projectRoot;
+    
+    error_log("generatePDFForEmail - Iniciando generación de PDF para cotización: " . $cotizacion['numero_cotizacion']);
+    
     try {
         require_once $projectRoot . '/vendor/autoload.php';
+        error_log("generatePDFForEmail - Vendor autoload incluido");
         
         // Obtener items de la cotización
         $items = readRecords('cotizacion_items', ["cotizacion_id = {$cotizacion['id']}"], null, 'id ASC');
+        error_log("generatePDFForEmail - Items obtenidos: " . count($items));
+        
         foreach ($items as &$item) {
             $producto = getRecord('productos', $item['producto_id']);
             $item['producto'] = $producto;
@@ -423,6 +462,7 @@ function generatePDFForEmail($cotizacion) {
         
         // Obtener cliente
         $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+        error_log("generatePDFForEmail - Cliente obtenido: " . $cliente['nombre']);
         
         // Preparar datos para el PDF
         $pdfData = [
@@ -442,9 +482,13 @@ function generatePDFForEmail($cotizacion) {
             'estado' => $cotizacion['estado']
         ];
         
-        // Generar HTML usando la función del generate_pdf.php
-        require_once $projectRoot . '/ajax/generate_pdf.php';
-        $html = createCotizacionHTML($pdfData);
+        error_log("generatePDFForEmail - Datos preparados para PDF");
+        
+        // Generar HTML directamente (sin depender de generate_pdf.php)
+        error_log("generatePDFForEmail - Generando HTML directamente");
+        
+        $html = createCotizacionHTMLForEmail($pdfData);
+        error_log("generatePDFForEmail - HTML generado, longitud: " . strlen($html));
         
         // Crear instancia de mPDF
         $mpdf = new \Mpdf\Mpdf([
@@ -456,23 +500,273 @@ function generatePDFForEmail($cotizacion) {
             'margin_top' => 16,
             'margin_bottom' => 16,
         ]);
+        error_log("generatePDFForEmail - Instancia mPDF creada");
         
         // Configurar metadatos
         $mpdf->SetTitle('Cotización ' . $cotizacion['numero_cotizacion']);
         $mpdf->SetAuthor('DT Studio');
+        error_log("generatePDFForEmail - Metadatos configurados");
         
         // Escribir HTML
         $mpdf->WriteHTML($html);
+        error_log("generatePDFForEmail - HTML escrito en mPDF");
         
         // Generar archivo temporal
         $tempPath = sys_get_temp_dir() . '/cotizacion_' . $cotizacion['numero_cotizacion'] . '_' . time() . '.pdf';
         $mpdf->Output($tempPath, 'F');
+        error_log("generatePDFForEmail - PDF generado en: $tempPath");
         
         return $tempPath;
         
     } catch (Exception $e) {
-        error_log("Error generando PDF para correo: " . $e->getMessage());
+        error_log("generatePDFForEmail - Error: " . $e->getMessage());
+        error_log("generatePDFForEmail - Stack trace: " . $e->getTraceAsString());
         return false;
     }
+}
+
+// Función para crear HTML de cotización para correo
+function createCotizacionHTMLForEmail($data) {
+    $logoPath = '../assets/logo/LOGO.png';
+    $logoExists = file_exists($logoPath);
+    
+    $html = '
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                line-height: 1.4;
+                color: #333;
+                margin: 0;
+                padding: 20px;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #7B3F9F;
+            }
+            .logo {
+                max-height: 60px;
+            }
+            .company-info {
+                text-align: right;
+            }
+            .company-name {
+                font-size: 24px;
+                font-weight: bold;
+                color: #7B3F9F;
+                margin: 0;
+            }
+            .company-subtitle {
+                font-size: 14px;
+                color: #666;
+                margin: 5px 0;
+            }
+            .document-title {
+                font-size: 28px;
+                font-weight: bold;
+                color: #333;
+                margin: 20px 0;
+                text-align: center;
+            }
+            .document-info {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+            }
+            .client-info, .quote-info {
+                flex: 1;
+            }
+            .client-info h3, .quote-info h3 {
+                margin: 0 0 10px 0;
+                color: #7B3F9F;
+                font-size: 16px;
+            }
+            .client-info p, .quote-info p {
+                margin: 5px 0;
+                font-size: 12px;
+            }
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 30px;
+            }
+            .items-table th, .items-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .items-table th {
+                background-color: #7B3F9F;
+                color: white;
+                font-weight: bold;
+            }
+            .items-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .totals {
+                margin-left: auto;
+                width: 300px;
+                margin-top: 20px;
+            }
+            .totals table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .totals td {
+                padding: 8px;
+                border: none;
+            }
+            .totals .total-row {
+                font-weight: bold;
+                font-size: 16px;
+                background-color: #7B3F9F;
+                color: white !important;
+            }
+            .totals .total-row td {
+                color: white !important;
+                background-color: #7B3F9F !important;
+                padding: 10px;
+            }
+            .observations {
+                margin-top: 30px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-left: 4px solid #7B3F9F;
+            }
+            .observations h3 {
+                margin: 0 0 10px 0;
+                color: #7B3F9F;
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 10px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .status-pendiente { background-color: #ffc107; color: #000; }
+            .status-enviada { background-color: #17a2b8; color: #fff; }
+            .status-aceptada { background-color: #28a745; color: #fff; }
+            .status-rechazada { background-color: #dc3545; color: #fff; }
+            .status-cancelada { background-color: #6c757d; color: #fff; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div>
+                ' . ($logoExists ? '<img src="' . $logoPath . '" alt="DT Studio" class="logo">' : '') . '
+            </div>
+            <div class="company-info">
+                <h1 class="company-name">DT Studio</h1>
+                <p class="company-subtitle">DT Studio</p>
+                <p>Tel: (55) 1234-5678</p>
+                <p>Email: info@dtstudio.com.mx</p>
+                <p>Web: www.dtstudio.com.mx</p>
+            </div>
+        </div>
+        
+        <h2 class="document-title">COTIZACIÓN</h2>
+        
+        <div class="document-info">
+            <div class="client-info">
+                <h3>Cliente</h3>
+                <p><strong>Nombre:</strong> ' . htmlspecialchars($data['cliente']['nombre']) . '</p>
+                ' . ($data['cliente']['empresa'] ? '<p><strong>Empresa:</strong> ' . htmlspecialchars($data['cliente']['empresa']) . '</p>' : '') . '
+                ' . ($data['cliente']['email'] ? '<p><strong>Email:</strong> ' . htmlspecialchars($data['cliente']['email']) . '</p>' : '') . '
+                ' . ($data['cliente']['telefono'] ? '<p><strong>Teléfono:</strong> ' . htmlspecialchars($data['cliente']['telefono']) . '</p>' : '') . '
+            </div>
+            <div class="quote-info">
+                <h3>Información de Cotización</h3>
+                <p><strong>Número:</strong> ' . htmlspecialchars($data['numero']) . '</p>
+                <p><strong>Fecha:</strong> ' . htmlspecialchars($data['fecha']) . '</p>
+                <p><strong>Estado:</strong> <span class="status-badge status-' . $data['estado'] . '">' . ucfirst($data['estado']) . '</span></p>
+            </div>
+        </div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Variante</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>';
+    
+    foreach ($data['items'] as $item) {
+        $variante = '';
+        if (isset($item['variante']) && $item['variante']) {
+            $variante_parts = array_filter([
+                $item['variante']['talla'] ?? '',
+                $item['variante']['color'] ?? '',
+                $item['variante']['material'] ?? ''
+            ]);
+            $variante = implode(' - ', $variante_parts);
+        }
+        
+        $html .= '
+                <tr>
+                    <td>' . htmlspecialchars($item['producto']['nombre']) . '<br><small>SKU: ' . htmlspecialchars($item['producto']['sku']) . '</small></td>
+                    <td>' . ($variante ? htmlspecialchars($variante) : 'Sin variante') . '</td>
+                    <td>' . $item['cantidad'] . '</td>
+                    <td>$' . number_format($item['precio_unitario'], 2) . '</td>
+                    <td>$' . number_format($item['subtotal'], 2) . '</td>
+                </tr>';
+    }
+    
+    $html .= '
+            </tbody>
+        </table>
+        
+        <div class="totals">
+            <table>
+                <tr>
+                    <td>Subtotal:</td>
+                    <td style="text-align: right;">$' . number_format($data['subtotal'], 2) . '</td>
+                </tr>';
+    
+    if ($data['descuento'] > 0) {
+        $html .= '
+                <tr>
+                    <td>Descuento:</td>
+                    <td style="text-align: right; color: #dc3545;">-$' . number_format($data['descuento'], 2) . '</td>
+                </tr>';
+    }
+    
+    $html .= '
+                <tr class="total-row">
+                    <td>TOTAL:</td>
+                    <td style="text-align: right;">$' . number_format($data['total'], 2) . '</td>
+                </tr>
+            </table>
+        </div>';
+    
+    if (!empty($data['observaciones'])) {
+        $html .= '
+        <div class="observations">
+            <h3>Observaciones</h3>
+            <p>' . nl2br(htmlspecialchars($data['observaciones'])) . '</p>
+        </div>';
+    }
+    
+    $html .= '
+    </body>
+    </html>';
+    
+    return $html;
 }
 ?>
