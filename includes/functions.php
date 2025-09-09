@@ -118,7 +118,6 @@ function updateRecord($table, $data, $id) {
         $errorMsg .= "\nTipos: " . $types;
         $errorMsg .= "\nValores: " . print_r($values, true);
         error_log($errorMsg);
-        echo "ERROR: " . $errorMsg . "\n";
     }
     
     $stmt->close();

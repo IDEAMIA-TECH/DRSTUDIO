@@ -11,22 +11,24 @@ require_once $projectRoot . '/includes/config.php';
 require_once $projectRoot . '/includes/auth.php';
 require_once $projectRoot . '/includes/functions.php';
 
-header('Content-Type: application/json');
+// Solo ejecutar la lógica principal si se llama directamente (no si se incluye)
+if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
+    header('Content-Type: application/json');
 
-// Verificar autenticación
-error_log('AJAX Cotizaciones - Verificando autenticación');
-error_log('AJAX Cotizaciones - Session ID: ' . session_id());
-error_log('AJAX Cotizaciones - User ID en sesión: ' . ($_SESSION['user_id'] ?? 'No definido'));
+    // Verificar autenticación
+    error_log('AJAX Cotizaciones - Verificando autenticación');
+    error_log('AJAX Cotizaciones - Session ID: ' . session_id());
+    error_log('AJAX Cotizaciones - User ID en sesión: ' . ($_SESSION['user_id'] ?? 'No definido'));
 
-if (!isLoggedIn()) {
-    error_log('AJAX Cotizaciones - Usuario no autenticado');
-    echo json_encode(['success' => false, 'message' => 'No autorizado']);
-    exit;
-}
+    if (!isLoggedIn()) {
+        error_log('AJAX Cotizaciones - Usuario no autenticado');
+        echo json_encode(['success' => false, 'message' => 'No autorizado']);
+        exit;
+    }
 
-error_log('AJAX Cotizaciones - Usuario autenticado correctamente');
+    error_log('AJAX Cotizaciones - Usuario autenticado correctamente');
 
-$action = $_POST['action'] ?? '';
+    $action = $_POST['action'] ?? '';
 
 switch ($action) {
     case 'create':
@@ -764,6 +766,353 @@ function createCotizacionHTMLForEmail($data) {
     }
     
     $html .= '
+    </body>
+    </html>';
+    
+    return $html;
+}
+
+// Cerrar el if principal
+}
+
+// Funciones auxiliares (disponibles siempre)
+function generatePDFForEmail($cotizacion) {
+    global $projectRoot;
+    
+    error_log("generatePDFForEmail - Iniciando generación de PDF para cotización: " . $cotizacion['numero_cotizacion']);
+    
+    try {
+        require_once $projectRoot . '/vendor/autoload.php';
+        error_log("generatePDFForEmail - Vendor autoload incluido");
+        
+        // Obtener items de la cotización
+        $items = readRecords('cotizacion_items', ["cotizacion_id = {$cotizacion['id']}"], null, 'id ASC');
+        error_log("generatePDFForEmail - Items obtenidos: " . count($items));
+        
+        foreach ($items as &$item) {
+            $producto = getRecord('productos', $item['producto_id']);
+            $item['producto'] = $producto;
+            
+            if ($item['variante_id']) {
+                $variante = getRecord('variantes_producto', $item['variante_id']);
+                $item['variante'] = $variante;
+            }
+        }
+        
+        // Obtener cliente
+        $cliente = getRecord('clientes', $cotizacion['cliente_id']);
+        error_log("generatePDFForEmail - Cliente obtenido: " . $cliente['nombre']);
+        
+        // Preparar datos para el PDF
+        $pdfData = [
+            'cotizacion' => $cotizacion,
+            'cliente' => $cliente,
+            'items' => $items
+        ];
+        
+        error_log("generatePDFForEmail - Generando HTML directamente");
+        $html = createCotizacionHTMLForEmail($pdfData);
+        error_log("generatePDFForEmail - HTML generado, longitud: " . strlen($html));
+        
+        // Crear instancia de mPDF
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'margin_top' => 16,
+            'margin_bottom' => 16,
+            'margin_header' => 9,
+            'margin_footer' => 9
+        ]);
+        
+        // Configurar metadatos
+        $mpdf->SetTitle('Cotización ' . $cotizacion['numero_cotizacion']);
+        $mpdf->SetAuthor('DT Studio');
+        $mpdf->SetSubject('Cotización de productos promocionales');
+        
+        // Escribir HTML
+        $mpdf->WriteHTML($html);
+        
+        // Generar archivo temporal
+        $tempPath = sys_get_temp_dir() . '/cotizacion_' . $cotizacion['id'] . '_' . time() . '.pdf';
+        $mpdf->Output($tempPath, 'F');
+        
+        error_log("generatePDFForEmail - PDF generado en: $tempPath");
+        return $tempPath;
+        
+    } catch (Exception $e) {
+        error_log("generatePDFForEmail - Error: " . $e->getMessage());
+        error_log("generatePDFForEmail - Stack trace: " . $e->getTraceAsString());
+        return false;
+    }
+}
+
+function createCotizacionHTMLForEmail($data) {
+    $cotizacion = $data['cotizacion'];
+    $cliente = $data['cliente'];
+    $items = $data['items'];
+    
+    // Verificar si el logo existe
+    $logoPath = '../assets/logo/LOGO.png';
+    $logoExists = file_exists($logoPath);
+    
+    // Calcular totales
+    $subtotal = 0;
+    foreach ($items as $item) {
+        $precio = ($item['precio'] ?? 0) + ($item['precio_extra'] ?? 0);
+        $subtotal += $precio * $item['cantidad'];
+    }
+    
+    $descuento = $cotizacion['descuento'] ?? 0;
+    $total = $subtotal - $descuento;
+    
+    $html = '<!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cotización ' . htmlspecialchars($cotizacion['numero_cotizacion']) . '</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                line-height: 1.4;
+                color: #333;
+                margin: 0;
+                padding: 0;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #7B3F9F;
+            }
+            .logo {
+                max-width: 150px;
+                max-height: 80px;
+            }
+            .company-info {
+                text-align: right;
+                color: #7B3F9F;
+            }
+            .company-name {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .quote-info {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+            }
+            .quote-title {
+                font-size: 24px;
+                font-weight: bold;
+                color: #7B3F9F;
+                margin-bottom: 10px;
+            }
+            .client-section {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+            }
+            .client-info, .quote-details {
+                flex: 1;
+                margin-right: 20px;
+            }
+            .section-title {
+                font-size: 14px;
+                font-weight: bold;
+                color: #7B3F9F;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 1px solid #ddd;
+            }
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            .items-table th,
+            .items-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .items-table th {
+                background-color: #7B3F9F;
+                color: white;
+                font-weight: bold;
+            }
+            .items-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .totals {
+                margin-top: 20px;
+                text-align: right;
+            }
+            .total-row {
+                background-color: #7B3F9F !important;
+                color: white !important;
+            }
+            .total-row td {
+                color: white !important;
+                font-weight: bold;
+            }
+            .footer {
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 1px solid #ddd;
+                text-align: center;
+                color: #666;
+                font-size: 10px;
+            }
+            .accept-button {
+                display: inline-block;
+                background-color: #28a745;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 10px 0;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div>';
+    
+    if ($logoExists) {
+        $html .= '<img src="' . $logoPath . '" alt="DT Studio" class="logo">';
+    } else {
+        $html .= '<div class="company-name">DT Studio</div>';
+    }
+    
+    $html .= '</div>
+            <div class="company-info">
+                <div class="company-name">DT Studio</div>
+                <div>Promocionales y Merchandising</div>
+                <div>www.dtstudio.com.mx</div>
+            </div>
+        </div>
+        
+        <div class="quote-info">
+            <div class="quote-title">COTIZACIÓN</div>
+            <div><strong>Número:</strong> ' . htmlspecialchars($cotizacion['numero_cotizacion']) . '</div>
+            <div><strong>Fecha:</strong> ' . date('d/m/Y', strtotime($cotizacion['created_at'])) . '</div>
+            <div><strong>Válida hasta:</strong> ' . ($cotizacion['fecha_vencimiento'] ? date('d/m/Y', strtotime($cotizacion['fecha_vencimiento'])) : 'No especificada') . '</div>
+        </div>
+        
+        <div class="client-section">
+            <div class="client-info">
+                <div class="section-title">INFORMACIÓN DEL CLIENTE</div>
+                <div><strong>' . htmlspecialchars($cliente['nombre']) . '</strong></div>';
+    
+    if ($cliente['empresa']) {
+        $html .= '<div>' . htmlspecialchars($cliente['empresa']) . '</div>';
+    }
+    
+    if ($cliente['email']) {
+        $html .= '<div>Email: ' . htmlspecialchars($cliente['email']) . '</div>';
+    }
+    
+    if ($cliente['telefono']) {
+        $html .= '<div>Teléfono: ' . htmlspecialchars($cliente['telefono']) . '</div>';
+    }
+    
+    $html .= '</div>
+            <div class="quote-details">
+                <div class="section-title">INFORMACIÓN DE COTIZACIÓN</div>
+                <div><strong>Subtotal:</strong> $' . number_format($subtotal, 2) . '</div>';
+    
+    if ($descuento > 0) {
+        $html .= '<div><strong>Descuento:</strong> -$' . number_format($descuento, 2) . '</div>';
+    }
+    
+    $html .= '<div><strong>Total:</strong> $' . number_format($total, 2) . '</div>
+            </div>
+        </div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>';
+    
+    foreach ($items as $item) {
+        $precio = ($item['precio'] ?? 0) + ($item['precio_extra'] ?? 0);
+        $totalItem = $precio * $item['cantidad'];
+        
+        $html .= '<tr>
+                    <td>' . htmlspecialchars($item['producto']['nombre']) . '</td>
+                    <td>';
+        
+        if (isset($item['variante']) && $item['variante']) {
+            $varianteInfo = [];
+            if ($item['variante']['talla']) $varianteInfo[] = 'Talla: ' . $item['variante']['talla'];
+            if ($item['variante']['color']) $varianteInfo[] = 'Color: ' . $item['variante']['color'];
+            if ($item['variante']['material']) $varianteInfo[] = 'Material: ' . $item['variante']['material'];
+            $html .= implode(', ', $varianteInfo);
+        }
+        
+        $html .= '</td>
+                    <td>' . $item['cantidad'] . '</td>
+                    <td>$' . number_format($precio, 2) . '</td>
+                    <td>$' . number_format($totalItem, 2) . '</td>
+                </tr>';
+    }
+    
+    $html .= '</tbody>
+        </table>
+        
+        <div class="totals">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="text-align: right; padding: 5px;"><strong>Subtotal:</strong></td>
+                    <td style="text-align: right; padding: 5px; width: 100px;">$' . number_format($subtotal, 2) . '</td>
+                </tr>';
+    
+    if ($descuento > 0) {
+        $html .= '<tr>
+                    <td style="text-align: right; padding: 5px;"><strong>Descuento:</strong></td>
+                    <td style="text-align: right; padding: 5px;">-$' . number_format($descuento, 2) . '</td>
+                </tr>';
+    }
+    
+    $html .= '<tr class="total-row">
+                    <td style="text-align: right; padding: 10px; background-color: #7B3F9F; color: white;"><strong>TOTAL:</strong></td>
+                    <td style="text-align: right; padding: 10px; background-color: #7B3F9F; color: white; font-size: 16px;"><strong>$' . number_format($total, 2) . '</strong></td>
+                </tr>
+            </table>
+        </div>';
+    
+    if ($cotizacion['observaciones']) {
+        $html .= '<div style="margin-top: 20px;">
+                    <div class="section-title">OBSERVACIONES</div>
+                    <div>' . nl2br(htmlspecialchars($cotizacion['observaciones'])) . '</div>
+                </div>';
+    }
+    
+    $html .= '<div class="footer">
+            <p>Esta cotización es válida por 30 días a partir de la fecha de emisión.</p>
+            <p>Para aceptar esta cotización, haga clic en el siguiente enlace:</p>
+            <a href="' . (defined('BASE_URL') ? BASE_URL : 'https://dtstudio.com.mx') . '/aceptar-cotizacion.php?token=' . ($cotizacion['token_aceptacion'] ?? '') . '" class="accept-button">
+                ACEPTAR COTIZACIÓN
+            </a>
+            <p>DT Studio - Promocionales y Merchandising | www.dtstudio.com.mx</p>
+        </div>
     </body>
     </html>';
     
