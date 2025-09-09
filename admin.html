@@ -433,30 +433,35 @@
             <form id="productForm">
                 <div class="form-group">
                     <label for="product-name">Nombre del Producto:</label>
-                    <input type="text" id="product-name" class="form-input" required>
+                    <input type="text" id="product-name" name="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-sku">SKU:</label>
+                    <input type="text" id="product-sku" name="sku" class="form-input" required>
                 </div>
                 <div class="form-group">
                     <label for="product-category">Categoría:</label>
-                    <select id="product-category" class="form-input" required>
+                    <select id="product-category" name="category_id" class="form-input" required>
                         <option value="">Seleccionar categoría</option>
-                        <option value="textiles">Textiles</option>
-                        <option value="tecnologia">Tecnología</option>
-                        <option value="oficina">Oficina</option>
-                        <option value="deportes">Deportes</option>
+                        <option value="1">Playeras</option>
+                        <option value="2">Vasos</option>
+                        <option value="3">Gorras</option>
+                        <option value="4">Lonas</option>
+                        <option value="5">Accesorios</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="product-description">Descripción:</label>
-                    <textarea id="product-description" class="form-textarea" rows="3"></textarea>
+                    <textarea id="product-description" name="description" class="form-textarea" rows="3" required></textarea>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="product-price">Precio:</label>
-                        <input type="number" id="product-price" class="form-input" step="0.01" required>
+                        <input type="number" id="product-price" name="price" class="form-input" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="product-cost">Costo:</label>
-                        <input type="number" id="product-cost" class="form-input" step="0.01" required>
+                        <input type="number" id="product-cost" name="cost" class="form-input" step="0.01" required>
                     </div>
                 </div>
                 <div class="form-actions">
