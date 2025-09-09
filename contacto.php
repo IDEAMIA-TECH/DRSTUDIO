@@ -85,9 +85,6 @@ if ($_POST) {
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="galeria.php">Galería</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link active" href="contacto.php">Contacto</a>
                     </li>
                 </ul>
@@ -247,22 +244,14 @@ if ($_POST) {
                                     <i class="fas fa-phone text-primary me-3"></i>
                                     <div>
                                         <strong>Teléfono</strong><br>
-                                        <a href="tel:+15551234567" class="text-decoration-none">+1 (555) 123-4567</a>
+                                        <a href="tel:4462129198" class="text-decoration-none">4462129198</a>
                                     </div>
                                 </div>
                                 <div class="contact-item mb-3">
                                     <i class="fas fa-envelope text-primary me-3"></i>
                                     <div>
                                         <strong>Email</strong><br>
-                                        <a href="mailto:info@drstudio.com" class="text-decoration-none">info@drstudio.com</a>
-                                    </div>
-                                </div>
-                                <div class="contact-item mb-3">
-                                    <i class="fas fa-map-marker-alt text-primary me-3"></i>
-                                    <div>
-                                        <strong>Dirección</strong><br>
-                                        123 Main Street<br>
-                                        City, State 12345
+                                        <a href="mailto:cotizaciones@dtstudio.com.mx" class="text-decoration-none">cotizaciones@dtstudio.com.mx</a>
                                     </div>
                                 </div>
                                 <div class="contact-item">
@@ -347,49 +336,47 @@ if ($_POST) {
                         <img src="assets/logo/LOGO.png" alt="DT Studio" height="30" class="me-2">
                         <h5 class="fw-bold mb-0">DT Studio</h5>
                     </div>
-                    <p class="text-muted">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
+                    <p class="text-light">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
                     <div class="social-links">
-                        <a href="#" class="text-muted me-3"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-muted me-3"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-muted me-3"><i class="fab fa-linkedin fa-lg"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter fa-lg"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-2 mb-4">
-                    <h6 class="fw-bold mb-3">Productos</h6>
+                    <h6 class="fw-bold mb-3 text-light">Productos</h6>
                     <ul class="list-unstyled">
-                        <li><a href="productos.php" class="text-muted text-decoration-none">Todos los Productos</a></li>
+                        <li><a href="productos.php" class="text-light text-decoration-none">Todos los Productos</a></li>
                         <?php foreach (array_slice($categorias, 0, 4) as $categoria): ?>
-                            <li><a href="productos.php?categoria=<?php echo $categoria['id']; ?>" class="text-muted text-decoration-none">
+                            <li><a href="productos.php?categoria=<?php echo $categoria['id']; ?>" class="text-light text-decoration-none">
                                 <?php echo htmlspecialchars($categoria['nombre']); ?>
                             </a></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
                 <div class="col-lg-2 mb-4">
-                    <h6 class="fw-bold mb-3">Empresa</h6>
+                    <h6 class="fw-bold mb-3 text-light">Empresa</h6>
                     <ul class="list-unstyled">
-                        <li><a href="galeria.php" class="text-muted text-decoration-none">Galería</a></li>
-                        <li><a href="contacto.php" class="text-muted text-decoration-none">Contacto</a></li>
-                        <li><a href="cotizacion.php" class="text-muted text-decoration-none">Cotización</a></li>
+                        <li><a href="contacto.php" class="text-light text-decoration-none">Contacto</a></li>
+                        <li><a href="cotizacion.php" class="text-light text-decoration-none">Cotización</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 mb-4">
-                    <h6 class="fw-bold mb-3">Contacto</h6>
-                    <ul class="list-unstyled text-muted">
-                        <li><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</li>
-                        <li><i class="fas fa-envelope me-2"></i>info@drstudio.com</li>
-                        <li><i class="fas fa-map-marker-alt me-2"></i>123 Main St, City, State 12345</li>
+                    <h6 class="fw-bold mb-3 text-light">Contacto</h6>
+                    <ul class="list-unstyled text-light">
+                        <li><i class="fas fa-phone me-2"></i>4462129198</li>
+                        <li><i class="fas fa-envelope me-2"></i>cotizaciones@dtstudio.com.mx</li>
                     </ul>
                 </div>
             </div>
             <hr class="my-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="text-muted mb-0">&copy; 2024 DT Studio. Todos los derechos reservados.</p>
+                    <p class="text-light mb-0">&copy; 2024 DT Studio. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="admin/" class="text-muted text-decoration-none">Panel de Administración</a>
+                    <a href="admin/" class="text-light text-decoration-none">Panel de Administración</a>
                 </div>
             </div>
         </div>

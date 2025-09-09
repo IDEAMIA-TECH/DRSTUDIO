@@ -185,11 +185,31 @@ function createCotizacionHTML($data) {
                 border: 1px solid #ddd;
                 padding: 8px;
                 text-align: left;
+                vertical-align: middle;
             }
             .items-table th {
                 background-color: #7B3F9F;
                 color: white;
                 font-weight: bold;
+            }
+            .product-image {
+                width: 50px;
+                height: 50px;
+                object-fit: cover;
+                border-radius: 4px;
+                border: 1px solid #ddd;
+            }
+            .no-image {
+                width: 50px;
+                height: 50px;
+                background: #f0f0f0;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                color: #999;
+                border: 1px solid #ddd;
             }
             .items-table tr:nth-child(even) {
                 background-color: #f9f9f9;
@@ -263,6 +283,7 @@ function createCotizacionHTML($data) {
         <table class="items-table">
             <thead>
                 <tr>
+                    <th style="width: 60px;">Imagen</th>
                     <th>Producto</th>
                     <th>Variante</th>
                     <th>Cantidad</th>
@@ -283,8 +304,22 @@ function createCotizacionHTML($data) {
             $varianteText = implode(' - ', $varianteParts);
         }
         
+        // Obtener imagen del producto
+        $imagenHtml = '';
+        if (!empty($item['producto']['imagen_principal'])) {
+            $imagenPath = '../uploads/productos/' . $item['producto']['imagen_principal'];
+            if (file_exists($imagenPath)) {
+                $imagenHtml = '<img src="' . $imagenPath . '" alt="' . htmlspecialchars($item['producto']['nombre']) . '" class="product-image">';
+            } else {
+                $imagenHtml = '<div class="no-image">Sin imagen</div>';
+            }
+        } else {
+            $imagenHtml = '<div class="no-image">Sin imagen</div>';
+        }
+        
         $html .= '
                 <tr>
+                    <td style="text-align: center; vertical-align: middle;">' . $imagenHtml . '</td>
                     <td>
                         <strong>' . htmlspecialchars($item['producto']['nombre']) . '</strong><br>
                         <small>SKU: ' . htmlspecialchars($item['producto']['sku']) . '</small>
