@@ -1,9 +1,15 @@
 // Admin JavaScript - DT Studio Panel de Administración
-// Funcionalidades del panel administrativo
+// Funcionalidades del panel administrativo con APIs reales
 
 // Variables globales
 let currentSection = 'dashboard';
 let charts = {};
+let currentData = {
+    products: [],
+    customers: [],
+    quotations: [],
+    orders: []
+};
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
@@ -29,6 +35,11 @@ function setupEventListeners() {
     const productForm = document.getElementById('productForm');
     if (productForm) {
         productForm.addEventListener('submit', handleProductSubmit);
+    }
+    
+    const customerForm = document.getElementById('customerForm');
+    if (customerForm) {
+        customerForm.addEventListener('submit', handleCustomerSubmit);
     }
     
     // Búsqueda
@@ -59,36 +70,17 @@ function showSection(sectionId) {
     });
     
     const activeNavItem = document.querySelector(`[onclick="showSection('${sectionId}')"]`).parentElement;
-    activeNavItem.classList.add('active');
-    
-    // Actualizar título de la página
-    const pageTitle = document.querySelector('.page-title');
-    if (pageTitle) {
-        pageTitle.textContent = getSectionTitle(sectionId);
+    if (activeNavItem) {
+        activeNavItem.classList.add('active');
     }
     
-    // Cargar datos de la sección
-    loadSectionData(sectionId);
-    
     currentSection = sectionId;
+    
+    // Cargar datos específicos de la sección
+    loadSectionData(sectionId);
 }
 
-// Obtener título de la sección
-function getSectionTitle(sectionId) {
-    const titles = {
-        'dashboard': 'Dashboard',
-        'products': 'Productos',
-        'customers': 'Clientes',
-        'quotations': 'Cotizaciones',
-        'orders': 'Pedidos',
-        'inventory': 'Inventario',
-        'reports': 'Reportes',
-        'settings': 'Configuración'
-    };
-    return titles[sectionId] || 'Dashboard';
-}
-
-// Cargar datos de la sección
+// Cargar datos específicos de la sección
 function loadSectionData(sectionId) {
     switch (sectionId) {
         case 'products':
@@ -103,556 +95,648 @@ function loadSectionData(sectionId) {
         case 'orders':
             loadOrders();
             break;
-        case 'inventory':
-            loadInventory();
-            break;
-        case 'reports':
-            loadReports();
+        case 'dashboard':
+            loadDashboardData();
             break;
     }
-}
-
-// Cargar datos del dashboard
-function loadDashboardData() {
-    // Los datos del dashboard se cargan en initializeAdmin()
-    console.log('Datos del dashboard cargados');
 }
 
 // Cargar datos iniciales
 function loadInitialData() {
-    // Simular carga de datos
-    setTimeout(() => {
-        console.log('Datos iniciales cargados');
-    }, 1000);
+    loadDashboardData();
 }
 
-// Configurar gráficos
-function setupCharts() {
-    // Gráfico de ventas por mes
-    const salesCtx = document.getElementById('salesChart');
-    if (salesCtx) {
-        charts.sales = new Chart(salesCtx, {
-            type: 'line',
-            data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Ventas',
-                    data: [12000, 15000, 18000, 14000, 20000, 25000],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    }
-                }
-            }
-        });
+// Cargar datos del dashboard
+async function loadDashboardData() {
+    try {
+        const response = await fetch('api/dashboard.php?action=get_stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            updateDashboardStats(data.data);
+        } else {
+            console.error('Error al cargar estadísticas:', data.message);
+        }
+        
+        // Cargar actividad reciente
+        const activityResponse = await fetch('api/dashboard.php?action=get_recent_activity');
+        const activityData = await activityResponse.json();
+        
+        if (activityData.success) {
+            updateRecentActivity(activityData.data);
+        }
+        
+        // Cargar gráfico de ventas
+        loadSalesChart();
+        
+    } catch (error) {
+        console.error('Error de conexión:', error);
     }
+}
+
+// Actualizar estadísticas del dashboard
+function updateDashboardStats(stats) {
+    // Actualizar contadores
+    updateCounter('total-products', stats.total_products);
+    updateCounter('total-customers', stats.total_customers);
+    updateCounter('total-quotations', stats.total_quotations);
+    updateCounter('total-orders', stats.total_orders);
+    updateCounter('monthly-sales', stats.monthly_sales, true);
+    updateCounter('sales-growth', stats.sales_growth, true, '%');
     
-    // Gráfico de productos más vendidos
-    const productsCtx = document.getElementById('productsChart');
-    if (productsCtx) {
-        charts.products = new Chart(productsCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Camisetas', 'Tazas', 'Bolsas', 'Tecnología'],
-                datasets: [{
-                    data: [35, 25, 20, 20],
-                    backgroundColor: [
-                        '#667eea',
-                        '#764ba2',
-                        '#ff6b6b',
-                        '#feca57'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
+    // Actualizar productos más vendidos
+    updateTopProducts(stats.top_products);
+    
+    // Actualizar clientes más activos
+    updateTopCustomers(stats.top_customers);
+}
+
+// Actualizar contador
+function updateCounter(elementId, value, isCurrency = false, suffix = '') {
+    const element = document.getElementById(elementId);
+    if (element) {
+        if (isCurrency) {
+            element.textContent = '$' + value.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        } else {
+            element.textContent = value.toLocaleString('es-MX') + suffix;
+        }
     }
+}
+
+// Actualizar productos más vendidos
+function updateTopProducts(products) {
+    const container = document.getElementById('top-products');
+    if (!container) return;
+    
+    container.innerHTML = products.map((product, index) => `
+        <div class="top-item">
+            <span class="rank">${index + 1}</span>
+            <div class="item-info">
+                <h4>${product.name}</h4>
+                <p>${product.total_sold} vendidos</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Actualizar clientes más activos
+function updateTopCustomers(customers) {
+    const container = document.getElementById('top-customers');
+    if (!container) return;
+    
+    container.innerHTML = customers.map((customer, index) => `
+        <div class="top-item">
+            <span class="rank">${index + 1}</span>
+            <div class="item-info">
+                <h4>${customer.name}</h4>
+                <p>${customer.company || 'Sin empresa'}</p>
+                <small>$${customer.total_spent.toLocaleString('es-MX')} gastado</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Actualizar actividad reciente
+function updateRecentActivity(activities) {
+    const container = document.getElementById('recent-activity');
+    if (!container) return;
+    
+    container.innerHTML = activities.map(activity => `
+        <div class="activity-item">
+            <div class="activity-icon ${activity.type}">
+                <i class="fas fa-${activity.type === 'quotation' ? 'file-invoice' : 'shopping-cart'}"></i>
+            </div>
+            <div class="activity-content">
+                <h4>${activity.title}</h4>
+                <p>${activity.description}</p>
+                <span class="activity-date">${formatDate(activity.date)}</span>
+            </div>
+            <div class="activity-amount">
+                $${activity.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </div>
+        </div>
+    `).join('');
 }
 
 // Cargar productos
 async function loadProducts() {
     try {
-        const response = await fetch('api/products.php?action=get_all');
+        const response = await fetch('api/products.php?action=get_products');
         const data = await response.json();
         
         if (data.success) {
-            displayProducts(data.data);
+            currentData.products = data.data.products;
+            displayProducts(data.data.products);
+            updatePagination('products', data.data.pagination);
         } else {
             console.error('Error al cargar productos:', data.message);
-            displayMockProducts();
+            showError('Error al cargar productos: ' + data.message);
         }
     } catch (error) {
         console.error('Error de conexión:', error);
-        displayMockProducts();
+        showError('Error de conexión al cargar productos');
     }
 }
 
-// Mostrar productos mock
-function displayMockProducts() {
-    const mockProducts = [
-        { id: 1, name: 'Camisetas Personalizadas', category: 'Textiles', price: 150.00, stock: 50, status: 'Activo' },
-        { id: 2, name: 'Tazas Promocionales', category: 'Oficina', price: 80.00, stock: 30, status: 'Activo' },
-        { id: 3, name: 'Bolsas Ecológicas', category: 'Textiles', price: 120.00, stock: 25, status: 'Activo' },
-        { id: 4, name: 'Power Banks', category: 'Tecnología', price: 300.00, stock: 15, status: 'Activo' },
-        { id: 5, name: 'Gorras Deportivas', category: 'Deportes', price: 200.00, stock: 40, status: 'Activo' }
-    ];
-    
-    displayProducts(mockProducts);
-}
-
-// Mostrar productos en la tabla
+// Mostrar productos
 function displayProducts(products) {
-    const tbody = document.getElementById('productsTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('products-list');
+    if (!container) return;
     
-    tbody.innerHTML = products.map(product => `
-        <tr>
-            <td>${product.id}</td>
-            <td>${product.name}</td>
-            <td>${product.category}</td>
-            <td>$${product.price.toFixed(2)}</td>
-            <td>${product.stock}</td>
-            <td><span class="status-badge ${product.status.toLowerCase()}">${product.status}</span></td>
-            <td>
-                <button class="btn-action" onclick="editProduct(${product.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-action" onclick="deleteProduct(${product.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>
+    container.innerHTML = products.map(product => `
+        <div class="data-item">
+            <div class="item-image">
+                <img src="${product.images[0] || 'https://via.placeholder.com/100x100'}" alt="${product.name}">
+            </div>
+            <div class="item-info">
+                <h3>${product.name}</h3>
+                <p>${product.description}</p>
+                <div class="item-meta">
+                    <span class="category">${product.category}</span>
+                    <span class="material">${product.material}</span>
+                    <span class="featured ${product.featured ? 'yes' : 'no'}">
+                        ${product.featured ? 'Destacado' : 'Normal'}
+                    </span>
+                </div>
+            </div>
+            <div class="item-actions">
+                <span class="price">$${product.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <div class="action-buttons">
+                    <button class="btn-edit" onclick="editProduct(${product.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-delete" onclick="deleteProduct(${product.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     `).join('');
 }
 
 // Cargar clientes
 async function loadCustomers() {
     try {
-        const response = await fetch('api/customers.php?action=get_all');
+        const response = await fetch('api/customers.php?action=get_customers');
         const data = await response.json();
         
         if (data.success) {
-            displayCustomers(data.data);
+            currentData.customers = data.data.customers;
+            displayCustomers(data.data.customers);
+            updatePagination('customers', data.data.pagination);
         } else {
             console.error('Error al cargar clientes:', data.message);
-            displayMockCustomers();
+            showError('Error al cargar clientes: ' + data.message);
         }
     } catch (error) {
         console.error('Error de conexión:', error);
-        displayMockCustomers();
+        showError('Error de conexión al cargar clientes');
     }
 }
 
-// Mostrar clientes mock
-function displayMockCustomers() {
-    const mockCustomers = [
-        { id: 1, name: 'Juan Pérez', email: 'juan@empresa.com', phone: '+52 55 1234-5678', company: 'Empresa ABC' },
-        { id: 2, name: 'María García', email: 'maria@empresa.com', phone: '+52 55 2345-6789', company: 'Empresa XYZ' },
-        { id: 3, name: 'Carlos López', email: 'carlos@empresa.com', phone: '+52 55 3456-7890', company: 'Empresa 123' }
-    ];
-    
-    displayCustomers(mockCustomers);
-}
-
-// Mostrar clientes en la tabla
+// Mostrar clientes
 function displayCustomers(customers) {
-    const tbody = document.getElementById('customersTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('customers-list');
+    if (!container) return;
     
-    tbody.innerHTML = customers.map(customer => `
-        <tr>
-            <td>${customer.id}</td>
-            <td>${customer.name}</td>
-            <td>${customer.email}</td>
-            <td>${customer.phone}</td>
-            <td>${customer.company}</td>
-            <td>
-                <button class="btn-action" onclick="editCustomer(${customer.id})">
+    container.innerHTML = customers.map(customer => `
+        <div class="data-item">
+            <div class="item-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="item-info">
+                <h3>${customer.name}</h3>
+                <p>${customer.email}</p>
+                <div class="item-meta">
+                    <span class="company">${customer.company || 'Sin empresa'}</span>
+                    <span class="phone">${customer.phone || 'Sin teléfono'}</span>
+                </div>
+            </div>
+            <div class="item-stats">
+                <div class="stat">
+                    <span class="number">${customer.total_quotations}</span>
+                    <span class="label">Cotizaciones</span>
+                </div>
+                <div class="stat">
+                    <span class="number">${customer.total_orders}</span>
+                    <span class="label">Pedidos</span>
+                </div>
+            </div>
+            <div class="item-actions">
+                <button class="btn-edit" onclick="editCustomer(${customer.id})">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-action" onclick="deleteCustomer(${customer.id})">
+                <button class="btn-delete" onclick="deleteCustomer(${customer.id})">
                     <i class="fas fa-trash"></i>
                 </button>
-            </td>
-        </tr>
+            </div>
+        </div>
     `).join('');
 }
 
 // Cargar cotizaciones
 async function loadQuotations() {
     try {
-        const response = await fetch('api/quotations.php?action=get_all');
+        const response = await fetch('api/quotations.php?action=get_quotations');
         const data = await response.json();
         
         if (data.success) {
-            displayQuotations(data.data);
+            currentData.quotations = data.data.quotations;
+            displayQuotations(data.data.quotations);
+            updatePagination('quotations', data.data.pagination);
         } else {
             console.error('Error al cargar cotizaciones:', data.message);
-            displayMockQuotations();
+            showError('Error al cargar cotizaciones: ' + data.message);
         }
     } catch (error) {
         console.error('Error de conexión:', error);
-        displayMockQuotations();
+        showError('Error de conexión al cargar cotizaciones');
     }
 }
 
-// Mostrar cotizaciones mock
-function displayMockQuotations() {
-    const mockQuotations = [
-        { id: 'QT-001', customer: 'Juan Pérez', total: 2500.00, status: 'Aprobada', date: '2024-01-15' },
-        { id: 'QT-002', customer: 'María García', total: 1800.00, status: 'Pendiente', date: '2024-01-16' },
-        { id: 'QT-003', customer: 'Carlos López', total: 3200.00, status: 'Enviada', date: '2024-01-17' }
-    ];
-    
-    displayQuotations(mockQuotations);
-}
-
-// Mostrar cotizaciones en la tabla
+// Mostrar cotizaciones
 function displayQuotations(quotations) {
-    const tbody = document.getElementById('quotationsTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('quotations-list');
+    if (!container) return;
     
-    tbody.innerHTML = quotations.map(quotation => `
-        <tr>
-            <td>${quotation.id}</td>
-            <td>${quotation.customer}</td>
-            <td>$${quotation.total.toFixed(2)}</td>
-            <td><span class="status-badge ${quotation.status.toLowerCase()}">${quotation.status}</span></td>
-            <td>${quotation.date}</td>
-            <td>
-                <button class="btn-action" onclick="viewQuotation('${quotation.id}')">
+    container.innerHTML = quotations.map(quotation => `
+        <div class="data-item">
+            <div class="item-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="item-info">
+                <h3>${quotation.quotation_number}</h3>
+                <p>${quotation.customer_name}</p>
+                <div class="item-meta">
+                    <span class="status ${quotation.status}">${getStatusText(quotation.status)}</span>
+                    <span class="date">${formatDate(quotation.created_at)}</span>
+                </div>
+            </div>
+            <div class="item-amount">
+                $${quotation.total_amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </div>
+            <div class="item-actions">
+                <button class="btn-view" onclick="viewQuotation(${quotation.id})">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn-action" onclick="editQuotation('${quotation.id}')">
+                <button class="btn-edit" onclick="editQuotation(${quotation.id})">
                     <i class="fas fa-edit"></i>
                 </button>
-            </td>
-        </tr>
+                <button class="btn-delete" onclick="deleteQuotation(${quotation.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
     `).join('');
 }
 
 // Cargar pedidos
 async function loadOrders() {
     try {
-        const response = await fetch('api/orders.php?action=get_all');
+        const response = await fetch('api/orders.php?action=get_orders');
         const data = await response.json();
         
         if (data.success) {
-            displayOrders(data.data);
+            currentData.orders = data.data.orders;
+            displayOrders(data.data.orders);
+            updatePagination('orders', data.data.pagination);
         } else {
             console.error('Error al cargar pedidos:', data.message);
-            displayMockOrders();
+            showError('Error al cargar pedidos: ' + data.message);
         }
     } catch (error) {
         console.error('Error de conexión:', error);
-        displayMockOrders();
+        showError('Error de conexión al cargar pedidos');
     }
 }
 
-// Mostrar pedidos mock
-function displayMockOrders() {
-    const mockOrders = [
-        { id: 'ORD-001', customer: 'Juan Pérez', total: 2500.00, status: 'En Proceso', date: '2024-01-15' },
-        { id: 'ORD-002', customer: 'María García', total: 1800.00, status: 'Entregado', date: '2024-01-16' },
-        { id: 'ORD-003', customer: 'Carlos López', total: 3200.00, status: 'Pendiente', date: '2024-01-17' }
-    ];
-    
-    displayOrders(mockOrders);
-}
-
-// Mostrar pedidos en la tabla
+// Mostrar pedidos
 function displayOrders(orders) {
-    const tbody = document.getElementById('ordersTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('orders-list');
+    if (!container) return;
     
-    tbody.innerHTML = orders.map(order => `
-        <tr>
-            <td>${order.id}</td>
-            <td>${order.customer}</td>
-            <td>$${order.total.toFixed(2)}</td>
-            <td><span class="status-badge ${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span></td>
-            <td>${order.date}</td>
-            <td>
-                <button class="btn-action" onclick="viewOrder('${order.id}')">
+    container.innerHTML = orders.map(order => `
+        <div class="data-item">
+            <div class="item-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="item-info">
+                <h3>${order.order_number}</h3>
+                <p>${order.customer_name}</p>
+                <div class="item-meta">
+                    <span class="status ${order.status}">${getStatusText(order.status)}</span>
+                    <span class="date">${formatDate(order.created_at)}</span>
+                </div>
+            </div>
+            <div class="item-amount">
+                $${order.total_amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </div>
+            <div class="item-actions">
+                <button class="btn-view" onclick="viewOrder(${order.id})">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn-action" onclick="editOrder('${order.id}')">
+                <button class="btn-edit" onclick="editOrder(${order.id})">
                     <i class="fas fa-edit"></i>
                 </button>
-            </td>
-        </tr>
+                <button class="btn-delete" onclick="deleteOrder(${order.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
     `).join('');
 }
 
-// Cargar inventario
-async function loadInventory() {
+// Funciones de formularios
+async function handleProductSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
     try {
-        const response = await fetch('api/inventory.php?action=get_stock');
-        const data = await response.json();
+        const response = await fetch('api/products.php?action=create_product', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
         
-        if (data.success) {
-            displayInventory(data.data);
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('Producto creado exitosamente');
+            e.target.reset();
+            loadProducts();
         } else {
-            console.error('Error al cargar inventario:', data.message);
-            displayMockInventory();
+            showError('Error al crear producto: ' + result.message);
         }
     } catch (error) {
-        console.error('Error de conexión:', error);
-        displayMockInventory();
+        console.error('Error:', error);
+        showError('Error de conexión al crear producto');
     }
 }
 
-// Mostrar inventario mock
-function displayMockInventory() {
-    const mockInventory = [
-        { product: 'Camisetas Personalizadas', variant: 'Talla M', current: 50, minimum: 10, status: 'Normal' },
-        { product: 'Tazas Promocionales', variant: 'Blanca', current: 5, minimum: 15, status: 'Bajo' },
-        { product: 'Bolsas Ecológicas', variant: 'Algodón', current: 25, minimum: 20, status: 'Normal' },
-        { product: 'Power Banks', variant: '10000mAh', current: 15, minimum: 5, status: 'Normal' }
-    ];
+async function handleCustomerSubmit(e) {
+    e.preventDefault();
     
-    displayInventory(mockInventory);
-}
-
-// Mostrar inventario en la tabla
-function displayInventory(inventory) {
-    const tbody = document.getElementById('inventoryTableBody');
-    if (!tbody) return;
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
     
-    tbody.innerHTML = inventory.map(item => `
-        <tr>
-            <td>${item.product}</td>
-            <td>${item.variant}</td>
-            <td>${item.current}</td>
-            <td>${item.minimum}</td>
-            <td><span class="status-badge ${item.status.toLowerCase()}">${item.status}</span></td>
-            <td>
-                <button class="btn-action" onclick="adjustStock('${item.product}', '${item.variant}')">
-                    <i class="fas fa-edit"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// Cargar reportes
-function loadReports() {
-    // Configurar gráficos de reportes
-    setupReportCharts();
-}
-
-// Configurar gráficos de reportes
-function setupReportCharts() {
-    // Gráfico de ventas por período
-    const salesReportCtx = document.getElementById('salesReportChart');
-    if (salesReportCtx) {
-        charts.salesReport = new Chart(salesReportCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                datasets: [{
-                    label: 'Ventas',
-                    data: [45000, 52000, 48000, 61000],
-                    backgroundColor: '#667eea'
-                }]
+    try {
+        const response = await fetch('api/customers.php?action=create_customer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
+            body: JSON.stringify(data)
         });
-    }
-    
-    // Gráfico de top clientes
-    const clientsReportCtx = document.getElementById('clientsReportChart');
-    if (clientsReportCtx) {
-        charts.clientsReport = new Chart(clientsReportCtx, {
-            type: 'horizontalBar',
-            data: {
-                labels: ['Cliente A', 'Cliente B', 'Cliente C', 'Cliente D'],
-                datasets: [{
-                    label: 'Ventas',
-                    data: [15000, 12000, 10000, 8000],
-                    backgroundColor: '#764ba2'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('Cliente creado exitosamente');
+            e.target.reset();
+            loadCustomers();
+        } else {
+            showError('Error al crear cliente: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error de conexión al crear cliente');
     }
 }
 
-// Toggle sidebar en móvil
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('open');
+// Funciones de edición
+function editProduct(id) {
+    const product = currentData.products.find(p => p.id == id);
+    if (product) {
+        // Llenar formulario de edición
+        document.getElementById('edit-product-name').value = product.name;
+        document.getElementById('edit-product-description').value = product.description;
+        document.getElementById('edit-product-price').value = product.price;
+        document.getElementById('edit-product-category').value = product.category;
+        document.getElementById('edit-product-material').value = product.material;
+        document.getElementById('edit-product-featured').checked = product.featured;
+        
+        // Mostrar modal de edición
+        showModal('editProductModal');
+    }
 }
 
-// Mostrar modal de producto
-function showProductModal() {
-    const modal = document.getElementById('productModal');
+function editCustomer(id) {
+    const customer = currentData.customers.find(c => c.id == id);
+    if (customer) {
+        // Llenar formulario de edición
+        document.getElementById('edit-customer-name').value = customer.name;
+        document.getElementById('edit-customer-email').value = customer.email;
+        document.getElementById('edit-customer-phone').value = customer.phone;
+        document.getElementById('edit-customer-company').value = customer.company;
+        document.getElementById('edit-customer-address').value = customer.address;
+        
+        // Mostrar modal de edición
+        showModal('editCustomerModal');
+    }
+}
+
+// Funciones de eliminación
+async function deleteProduct(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        try {
+            const response = await fetch(`api/products.php?id=${id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccess('Producto eliminado exitosamente');
+                loadProducts();
+            } else {
+                showError('Error al eliminar producto: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Error de conexión al eliminar producto');
+        }
+    }
+}
+
+async function deleteCustomer(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar este cliente?')) {
+        try {
+            const response = await fetch(`api/customers.php?id=${id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccess('Cliente eliminado exitosamente');
+                loadCustomers();
+            } else {
+                showError('Error al eliminar cliente: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Error de conexión al eliminar cliente');
+        }
+    }
+}
+
+// Funciones de utilidad
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'pending': 'Pendiente',
+        'approved': 'Aprobado',
+        'rejected': 'Rechazado',
+        'completed': 'Completado',
+        'shipped': 'Enviado',
+        'cancelled': 'Cancelado'
+    };
+    return statusMap[status] || status;
+}
+
+function showSuccess(message) {
+    // Implementar notificación de éxito
+    console.log('Success:', message);
+    alert(message);
+}
+
+function showError(message) {
+    // Implementar notificación de error
+    console.error('Error:', message);
+    alert(message);
+}
+
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'block';
     }
 }
 
-// Cerrar modal
-function closeModal(modalId) {
+function hideModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'none';
     }
 }
 
-// Manejar envío de formulario de producto
-function handleProductSubmit(e) {
-    e.preventDefault();
+function updatePagination(section, pagination) {
+    const container = document.getElementById(`${section}-pagination`);
+    if (!container) return;
     
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
-    console.log('Producto guardado:', data);
-    alert('Producto guardado exitosamente');
-    closeModal('productModal');
-    e.target.reset();
+    container.innerHTML = `
+        <div class="pagination-info">
+            Página ${pagination.current_page} de ${pagination.total_pages}
+        </div>
+        <div class="pagination-controls">
+            <button ${pagination.current_page <= 1 ? 'disabled' : ''} 
+                    onclick="changePage('${section}', ${pagination.current_page - 1})">
+                Anterior
+            </button>
+            <button ${pagination.current_page >= pagination.total_pages ? 'disabled' : ''} 
+                    onclick="changePage('${section}', ${pagination.current_page + 1})">
+                Siguiente
+            </button>
+        </div>
+    `;
 }
 
-// Manejar búsqueda
+function changePage(section, page) {
+    // Implementar cambio de página
+    console.log(`Cambiar a página ${page} de ${section}`);
+}
+
+// Configurar gráficos
+function setupCharts() {
+    // Configuración básica de Chart.js
+    Chart.defaults.font.family = 'Poppins, sans-serif';
+    Chart.defaults.color = '#666';
+}
+
+// Cargar gráfico de ventas
+async function loadSalesChart() {
+    try {
+        const response = await fetch('api/dashboard.php?action=get_sales_chart&period=month');
+        const data = await response.json();
+        
+        if (data.success) {
+            createSalesChart(data.data);
+        }
+    } catch (error) {
+        console.error('Error al cargar gráfico de ventas:', error);
+    }
+}
+
+// Crear gráfico de ventas
+function createSalesChart(chartData) {
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+    
+    if (charts.sales) {
+        charts.sales.destroy();
+    }
+    
+    charts.sales = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.data.map(item => item.label),
+            datasets: [{
+                label: 'Ventas',
+                data: chartData.data.map(item => item.sales),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('es-MX');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Funciones de búsqueda
 function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
+    const searchTerm = e.target.value;
     console.log('Búsqueda:', searchTerm);
-    
-    // Implementar lógica de búsqueda según la sección actual
-    switch (currentSection) {
-        case 'products':
-            // Filtrar productos
-            break;
-        case 'customers':
-            // Filtrar clientes
-            break;
-        case 'quotations':
-            // Filtrar cotizaciones
-            break;
-        case 'orders':
-            // Filtrar pedidos
-            break;
-    }
+    // Implementar búsqueda en tiempo real
 }
 
-// Funciones de acciones
-function editProduct(id) {
-    console.log('Editar producto:', id);
-    showProductModal();
-}
-
-function deleteProduct(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-        console.log('Eliminar producto:', id);
-        alert('Producto eliminado');
-    }
-}
-
-function editCustomer(id) {
-    console.log('Editar cliente:', id);
-}
-
-function deleteCustomer(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este cliente?')) {
-        console.log('Eliminar cliente:', id);
-        alert('Cliente eliminado');
-    }
-}
-
-function viewQuotation(id) {
-    console.log('Ver cotización:', id);
-}
-
-function editQuotation(id) {
-    console.log('Editar cotización:', id);
-}
-
-function viewOrder(id) {
-    console.log('Ver pedido:', id);
-}
-
-function editOrder(id) {
-    console.log('Editar pedido:', id);
-}
-
-function adjustStock(product, variant) {
-    console.log('Ajustar stock:', product, variant);
-}
-
-function generateReport(type) {
-    console.log('Generar reporte:', type);
-    alert(`Reporte de ${type} generado exitosamente`);
-}
-
-function logout() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        console.log('Cerrando sesión...');
-        // Implementar lógica de logout
-        window.location.href = 'portal.html';
-    }
-}
-
-// Cerrar modales al hacer clic fuera
-window.onclick = function(event) {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-}
-
-// Redimensionar gráficos
-window.addEventListener('resize', function() {
-    Object.values(charts).forEach(chart => {
-        if (chart && chart.resize) {
-            chart.resize();
-        }
-    });
-});
+// Exportar funciones globales
+window.showSection = showSection;
+window.editProduct = editProduct;
+window.editCustomer = editCustomer;
+window.deleteProduct = deleteProduct;
+window.deleteCustomer = deleteCustomer;
+window.hideModal = hideModal;
+window.changePage = changePage;
