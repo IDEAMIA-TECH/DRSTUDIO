@@ -44,11 +44,35 @@
             `;
         });
         
+        // Probar acceso a test_paths.php
+        setTimeout(() => {
+            console.log('Probando acceso a test_paths.php...');
+            
+            fetch('../ajax/test_paths.php')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Datos de rutas:', data);
+                document.getElementById('result').innerHTML += `
+                    <div class="alert alert-secondary">
+                        <h5>Test de Rutas</h5>
+                        <p><strong>Project Root:</strong> ${data.project_root}</p>
+                        <p><strong>Config existe:</strong> ${data.config_exists ? '✅' : '❌'}</p>
+                        <p><strong>Auth existe:</strong> ${data.auth_exists ? '✅' : '❌'}</p>
+                        <p><strong>Functions existe:</strong> ${data.functions_exists ? '✅' : '❌'}</p>
+                        <p><strong>Server config:</strong> ${data.server_config ? '✅' : '❌'}</p>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error test_paths.php:', error);
+            });
+        }, 1000);
+        
         // Probar acceso a generate_pdf.php
         setTimeout(() => {
             console.log('Probando acceso a generate_pdf.php...');
             
-            fetch('../ajax/generate_pdf_debug.php', {
+            fetch('../ajax/generate_pdf.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
