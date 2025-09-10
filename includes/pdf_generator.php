@@ -32,6 +32,8 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
                 $item['variante'] = $variante;
             }
         }
+        // Limpiar la referencia para evitar problemas en bucles posteriores
+        unset($item);
         
         // Obtener cliente
         $cliente = getRecord('clientes', $cotizacion['cliente_id']);

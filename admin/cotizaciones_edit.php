@@ -33,6 +33,8 @@ foreach ($items as &$item) {
         $item['variante'] = $variante;
     }
 }
+// Limpiar la referencia para evitar problemas en bucles posteriores
+unset($item);
 
 // Obtener clientes y productos para los selects
 $clientes = readRecords('clientes', [], null, 'nombre ASC');
@@ -122,6 +124,8 @@ if ($_POST) {
                     $item['variante'] = $variante;
                 }
             }
+            // Limpiar la referencia para evitar problemas en bucles posteriores
+            unset($item);
         } else {
             $error = 'Error al actualizar la cotización';
         }

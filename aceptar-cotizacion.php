@@ -44,6 +44,8 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                     $item['variante'] = $variante;
                 }
             }
+            // Limpiar la referencia para evitar problemas en bucles posteriores
+            unset($item);
             
             // Procesar aceptación si se envió el formulario
             if ($_POST && isset($_POST['accept_quote'])) {
