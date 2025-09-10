@@ -35,8 +35,8 @@ if ($_POST) {
                 ];
                 
                 $uploadResult = uploadFile($imagenTemp, 'galeria');
-                if ($uploadResult['success']) {
-                    $imagen = $uploadResult['filename'];
+                if ($uploadResult !== false) {
+                    $imagen = basename($uploadResult); // Solo el nombre del archivo
                     
                     // Obtener el siguiente orden
                     $ultimoOrden = $conn->query("SELECT MAX(orden) as max_orden FROM galeria")->fetch_assoc()['max_orden'] ?? 0;
@@ -58,7 +58,7 @@ if ($_POST) {
                         $errores[] = "Error al guardar la imagen " . ($i + 1);
                     }
                 } else {
-                    $errores[] = "Error al subir la imagen " . ($i + 1) . ": " . $uploadResult['message'];
+                    $errores[] = "Error al subir la imagen " . ($i + 1) . ": Formato no válido o archivo muy grande";
                 }
             }
         }
