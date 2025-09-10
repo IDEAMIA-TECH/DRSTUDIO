@@ -67,17 +67,17 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
         $html = createCotizacionHTML($pdfData);
         
         // Crear instancia de mPDF
-        $mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'orientation' => 'P',
-            'margin_left' => 15,
-            'margin_right' => 15,
-            'margin_top' => 16,
-            'margin_bottom' => 16,
-            'margin_header' => 9,
-            'margin_footer' => 9
-        ]);
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'orientation' => 'L', // Cambiar a landscape para acomodar imágenes grandes
+        'margin_left' => 10,
+        'margin_right' => 10,
+        'margin_top' => 16,
+        'margin_bottom' => 16,
+        'margin_header' => 9,
+        'margin_footer' => 9
+    ]);
         
         // Configurar metadatos
         $mpdf->SetTitle('Cotización ' . $cotizacion['numero_cotizacion']);
@@ -180,10 +180,11 @@ function createCotizacionHTML($data) {
                 width: 100%;
                 border-collapse: collapse;
                 margin-bottom: 30px;
+                table-layout: fixed;
             }
             .items-table th, .items-table td {
                 border: 1px solid #ddd;
-                padding: 8px;
+                padding: 12px;
                 text-align: left;
                 vertical-align: middle;
             }
@@ -192,25 +193,27 @@ function createCotizacionHTML($data) {
                 color: white;
                 font-weight: bold;
             }
-            .product-image {
-                width: 50px;
-                height: 50px;
-                object-fit: cover;
-                border-radius: 4px;
-                border: 1px solid #ddd;
-            }
-            .no-image {
-                width: 50px;
-                height: 50px;
-                background: #f0f0f0;
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                color: #999;
-                border: 1px solid #ddd;
-            }
+        .product-image {
+            width: 300px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .no-image {
+            width: 300px;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+            font-weight: 500;
+        }
             .items-table tr:nth-child(even) {
                 background-color: #f9f9f9;
             }
@@ -281,16 +284,16 @@ function createCotizacionHTML($data) {
         </div>
         
         <table class="items-table">
-            <thead>
-                <tr>
-                    <th style="width: 60px;">Imagen</th>
-                    <th>Producto</th>
-                    <th>Variante</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unit.</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
+        <thead>
+            <tr>
+                <th style="width: 320px;">Imagen</th>
+                <th style="width: 200px;">Producto</th>
+                <th style="width: 150px;">Variante</th>
+                <th style="width: 80px;">Cantidad</th>
+                <th style="width: 100px;">Precio Unit.</th>
+                <th style="width: 100px;">Subtotal</th>
+            </tr>
+        </thead>
             <tbody>';
             
     foreach ($data['items'] as $item) {
