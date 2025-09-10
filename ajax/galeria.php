@@ -83,13 +83,13 @@ switch ($action) {
         // Obtener imagen para eliminar archivo
         $imagen = getRecord('galeria', $id);
         if ($imagen && $imagen['imagen']) {
-            $imagePath = PROJECT_ROOT . '/uploads/galeria/' . $imagen['imagen'];
+            $imagePath = 'uploads/galeria/' . $imagen['imagen'];
             if (file_exists($imagePath)) {
                 unlink($imagePath);
             }
         }
         
-        if (deleteRecord('galeria', $id)) {
+        if (deleteRecord('galeria', $id, false)) {
             echo json_encode(['success' => true, 'message' => 'Imagen eliminada exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al eliminar la imagen']);
@@ -100,7 +100,7 @@ switch ($action) {
         $id = (int)$_POST['id'];
         $activo = (int)$_POST['activo'];
         
-        if (updateRecord('galeria', $id, ['activo' => $activo, 'updated_at' => date('Y-m-d H:i:s')])) {
+        if (updateRecord('galeria', ['activo' => $activo, 'updated_at' => date('Y-m-d H:i:s')], $id)) {
             $message = $activo ? 'Imagen activada exitosamente' : 'Imagen desactivada exitosamente';
             echo json_encode(['success' => true, 'message' => $message]);
         } else {

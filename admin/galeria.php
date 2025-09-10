@@ -226,7 +226,11 @@ function toggleImagen(id, activo) {
 
 // Eliminar imagen
 function deleteImagen(id) {
+    console.log('Iniciando eliminación de imagen ID:', id);
+    
     if (confirm('¿Estás seguro de eliminar esta imagen? Esta acción no se puede deshacer.')) {
+        console.log('Confirmación aceptada, enviando petición...');
+        
         fetch('../ajax/galeria.php', {
             method: 'POST',
             headers: {
@@ -234,8 +238,12 @@ function deleteImagen(id) {
             },
             body: `action=delete&id=${id}`
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Respuesta recibida:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Datos recibidos:', data);
             if (data.success) {
                 showAlert(data.message, 'success');
                 location.reload();
@@ -244,9 +252,11 @@ function deleteImagen(id) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error en la petición:', error);
             showAlert('Error al eliminar la imagen', 'danger');
         });
+    } else {
+        console.log('Eliminación cancelada por el usuario');
     }
 }
 </script>
