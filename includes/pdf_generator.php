@@ -132,13 +132,7 @@ function createCotizacionHTML($data) {
                 padding-bottom: 20px;
                 border-bottom: 2px solid #7B3F9F;
             }
-            .logo {
-                width: 150px;
-                height: auto;
-                margin: 0 auto 30px auto;
-                display: block;
-            }
-            .info-table {
+            .header-table {
                 width: 100%;
                 border-collapse: collapse;
                 margin: 20px 0;
@@ -146,8 +140,21 @@ function createCotizacionHTML($data) {
                 border-radius: 8px;
                 overflow: hidden;
             }
+            .logo-column {
+                width: 200px;
+                padding: 20px;
+                vertical-align: middle;
+                text-align: center;
+                border-right: 1px solid #dee2e6;
+            }
+            .logo {
+                width: 150px;
+                height: auto;
+                margin: 0;
+                display: block;
+            }
             .info-column {
-                width: 50%;
+                width: 40%;
                 padding: 20px;
                 vertical-align: top;
                 border-right: 1px solid #dee2e6;
@@ -290,14 +297,13 @@ function createCotizacionHTML($data) {
         </style>
     </head>
     <body>
-        <div class="header">
-            ' . ($logoExists ? '<img src="' . $logoPath . '" alt="Logo DT Studio" class="logo">' : '') . '
-        </div>
-        
         <h2 class="document-title">COTIZACIÓN</h2>
         
-        <table class="info-table">
+        <table class="header-table">
             <tr>
+                <td class="logo-column">
+                    ' . ($logoExists ? '<img src="' . $logoPath . '" alt="Logo DT Studio" class="logo">' : '') . '
+                </td>
                 <td class="info-column">
                     <h3>Cliente</h3>
                     <p><strong>Nombre:</strong> ' . htmlspecialchars($data['cliente']['nombre']) . '</p>
