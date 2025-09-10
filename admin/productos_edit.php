@@ -219,7 +219,7 @@ if ($_POST) {
                                accept="image/*">
                         <?php if ($producto['imagen_principal']): ?>
                             <div class="mt-2">
-                                <img src="../<?php echo $producto['imagen_principal']; ?>" 
+                                <img src="../uploads/productos/<?php echo $producto['imagen_principal']; ?>" 
                                      alt="Imagen actual" class="img-thumbnail" style="max-width: 200px;">
                                 <p class="text-muted small mt-1">Imagen actual</p>
                             </div>

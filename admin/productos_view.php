@@ -47,7 +47,7 @@ $porcentajeMargen = $producto['costo_fabricacion'] > 0 ? ($margenGanancia / $pro
                 <div class="row">
                     <div class="col-md-4">
                         <?php if ($producto['imagen_principal']): ?>
-                            <img src="../<?php echo $producto['imagen_principal']; ?>" 
+                            <img src="../uploads/productos/<?php echo $producto['imagen_principal']; ?>" 
                                  class="img-fluid rounded" 
                                  alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
                         <?php else: ?>

@@ -128,7 +128,7 @@ $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
                         <tr>
                             <td>
                                 <?php if ($producto['imagen_principal']): ?>
-                                    <img src="../<?php echo $producto['imagen_principal']; ?>" 
+                                    <img src="../uploads/productos/<?php echo $producto['imagen_principal']; ?>" 
                                          class="img-preview" 
                                          alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
                                 <?php else: ?>

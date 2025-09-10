@@ -156,7 +156,7 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
             <div class="card-body">
                 <?php foreach ($productosDestacados as $producto): ?>
                 <div class="d-flex align-items-center mb-3">
-                    <img src="../<?php echo $producto['imagen_principal'] ?: 'images/no-image.jpg'; ?>" 
+                    <img src="../uploads/productos/<?php echo $producto['imagen_principal'] ?: 'images/no-image.jpg'; ?>" 
                          class="rounded me-3" width="50" height="50" style="object-fit: cover;">
                     <div>
                         <h6 class="mb-0"><?php echo $producto['nombre']; ?></h6>

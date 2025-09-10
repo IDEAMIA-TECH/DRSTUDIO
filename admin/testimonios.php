@@ -22,7 +22,7 @@ $testimonios = readRecords('testimonios', [], null, 'orden ASC, created_at DESC'
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-quote-left me-2"></i>Lista de Testimonios
+                    <i class="fas fa-quote-left me-2"></i>Lista de Clientes
                 </h5>
             </div>
             <div class="card-body">

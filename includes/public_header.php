@@ -61,6 +61,9 @@ $categorias = readRecords('categorias', ['activo' => 1], null, 'nombre ASC');
                         </ul>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'galeria.php' ? 'active' : ''; ?>" href="galeria.php">Galería</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'contacto.php' ? 'active' : ''; ?>" href="contacto.php">Contacto</a>
                     </li>
                 </ul>

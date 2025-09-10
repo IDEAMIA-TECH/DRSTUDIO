@@ -32,7 +32,7 @@ $productos = readRecords('productos', ["categoria_id = $id"], null, 'nombre ASC'
                 <div class="row">
                     <div class="col-md-4">
                         <?php if ($categoria['imagen']): ?>
-                            <img src="../<?php echo $categoria['imagen']; ?>" 
+                            <img src="../uploads/categorias/<?php echo $categoria['imagen']; ?>" 
                                  class="img-fluid rounded" 
                                  alt="<?php echo htmlspecialchars($categoria['nombre']); ?>">
                         <?php else: ?>
@@ -111,7 +111,7 @@ $productos = readRecords('productos', ["categoria_id = $id"], null, 'nombre ASC'
                                 <tr>
                                     <td>
                                         <?php if ($producto['imagen_principal']): ?>
-                                            <img src="../<?php echo $producto['imagen_principal']; ?>" 
+                                            <img src="../uploads/productos/<?php echo $producto['imagen_principal']; ?>" 
                                                  class="img-preview" 
                                                  alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
                                         <?php else: ?>

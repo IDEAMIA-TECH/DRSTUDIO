@@ -165,7 +165,7 @@ if ($_POST) {
             <div class="card-body text-center">
                 <?php if ($categoria['imagen']): ?>
                     <img id="imagenPreview" 
-                         src="../<?php echo $categoria['imagen']; ?>" 
+                         src="../uploads/categorias/<?php echo $categoria['imagen']; ?>" 
                          class="img-fluid rounded" 
                          style="max-height: 200px;">
                 <?php else: ?>

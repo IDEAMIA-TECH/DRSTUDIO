@@ -43,7 +43,7 @@ $categorias = readRecords('categorias', [], null, 'nombre ASC');
                             <td><?php echo $categoria['id']; ?></td>
                             <td>
                                 <?php if ($categoria['imagen']): ?>
-                                    <img src="../<?php echo $categoria['imagen']; ?>" 
+                                    <img src="../uploads/categorias/<?php echo $categoria['imagen']; ?>" 
                                          class="img-preview" 
                                          alt="<?php echo htmlspecialchars($categoria['nombre']); ?>">
                                 <?php else: ?>
