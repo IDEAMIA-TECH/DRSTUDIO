@@ -133,7 +133,7 @@ function createCotizacionHTML($data) {
                 border-bottom: 2px solid #7B3F9F;
             }
             .logo {
-                width: 250px;
+                width: 150px;
                 height: auto;
                 margin: 0 auto 30px auto;
                 display: block;
