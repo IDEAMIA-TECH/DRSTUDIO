@@ -321,10 +321,32 @@ function createCotizacionHTML($data) {
                     $imagenHtml = '<div class="no-image">Error imagen</div>';
                 }
             } else {
-                $imagenHtml = '<div class="no-image">Sin imagen</div>';
+                // Si no existe la imagen específica, usar la imagen placeholder
+                $placeholderPath = __DIR__ . '/../uploads/productos/no-image.png';
+                if (file_exists($placeholderPath)) {
+                    try {
+                        $imageData = base64_encode(file_get_contents($placeholderPath));
+                        $imagenHtml = '<img src="data:image/png;base64,' . $imageData . '" alt="' . htmlspecialchars($item['producto']['nombre']) . '" class="product-image">';
+                    } catch (Exception $e) {
+                        $imagenHtml = '<div class="no-image">Sin imagen</div>';
+                    }
+                } else {
+                    $imagenHtml = '<div class="no-image">Sin imagen</div>';
+                }
             }
         } else {
-            $imagenHtml = '<div class="no-image">Sin imagen</div>';
+            // Si no hay imagen definida, usar placeholder
+            $placeholderPath = __DIR__ . '/../uploads/productos/no-image.png';
+            if (file_exists($placeholderPath)) {
+                try {
+                    $imageData = base64_encode(file_get_contents($placeholderPath));
+                    $imagenHtml = '<img src="data:image/png;base64,' . $imageData . '" alt="' . htmlspecialchars($item['producto']['nombre']) . '" class="product-image">';
+                } catch (Exception $e) {
+                    $imagenHtml = '<div class="no-image">Sin imagen</div>';
+                }
+            } else {
+                $imagenHtml = '<div class="no-image">Sin imagen</div>';
+            }
         }
         
         $html .= '
