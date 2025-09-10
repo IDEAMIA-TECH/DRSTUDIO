@@ -39,19 +39,13 @@ foreach ($items as &$item) {
     if ($item['variante_id']) {
         $variante = getRecord('variantes_producto', $item['variante_id']);
         $item['variante'] = $variante;
-        
-        // DEBUG: Log variant information
-        error_log("DEBUG COTIZACIONES_VIEW - Item ID: " . $item['id'] . ", Variant ID: " . $item['variante_id']);
-        if ($variante) {
-            error_log("DEBUG COTIZACIONES_VIEW - Variant data: " . print_r($variante, true));
-        } else {
-            error_log("DEBUG COTIZACIONES_VIEW - Variant not found for ID: " . $item['variante_id']);
-        }
     }
     
     // Sumar al subtotal calculado
     $subtotal_calculado += $item['subtotal'];
 }
+// Limpiar la referencia para evitar problemas en bucles posteriores
+unset($item);
 
 
 // Calcular total final
@@ -148,12 +142,6 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                                                 $item['variante']['material'] ?? ''
                                             ]);
                                             $variante_display = implode(' - ', $variante_parts);
-                                            
-                                            // DEBUG: Log what's being displayed
-                                            error_log("DEBUG COTIZACIONES_VIEW DISPLAY - Item ID: " . $item['id'] . ", Variant ID: " . $item['variante_id']);
-                                            error_log("DEBUG COTIZACIONES_VIEW DISPLAY - Variant data: " . print_r($item['variante'], true));
-                                            error_log("DEBUG COTIZACIONES_VIEW DISPLAY - Display string: " . $variante_display);
-                                            
                                             echo htmlspecialchars($variante_display);
                                             ?>
                                         </span>
