@@ -1,0 +1,6 @@
+[10-Sep-2025 16:57:48 UTC] PHP Warning:  require_once(../includes/config.php): Failed to open stream: No such file or directory in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/admin/cotizaciones_view.php on line 3
+[10-Sep-2025 16:57:48 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '../includes/config.php' (include_path='.:/opt/homebrew/Cellar/php/8.4.5_1/share/php/pear') in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/admin/cotizaciones_view.php:3
+Stack trace:
+#0 /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/test_cotizacion_debug.php(17): include()
+#1 {main}
+  thrown in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/admin/cotizaciones_view.php on line 3
