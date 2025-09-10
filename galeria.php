@@ -175,6 +175,61 @@ require_once 'includes/public_header.php';
         </div>
     </section>
 
+    <!-- Galería de Imágenes -->
+    <?php if (!empty($galeria)): ?>
+    <section class="gallery-images-section py-5 bg-light">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="display-6 fw-bold mb-3 text-center">
+                        Galería de Imágenes
+                        <span class="badge bg-primary ms-2"><?php echo count($galeria); ?></span>
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="row gallery-grid">
+                <?php foreach ($galeria as $imagen): ?>
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm gallery-item">
+                        <div class="gallery-image">
+                            <img src="uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
+                                 class="card-img-top" 
+                                 alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
+                                 style="height: 200px; object-fit: cover;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria')">
+                            <div class="gallery-overlay">
+                                <button type="button" 
+                                        class="btn btn-light btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#imageModal"
+                                        onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria')">
+                                    <i class="fas fa-search-plus me-1"></i>Ver
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title"><?php echo htmlspecialchars($imagen['titulo']); ?></h6>
+                            <?php if ($imagen['descripcion']): ?>
+                                <p class="card-text text-muted small">
+                                    <?php echo htmlspecialchars(substr($imagen['descripcion'], 0, 80)); ?>
+                                    <?php if (strlen($imagen['descripcion']) > 80): ?>...<?php endif; ?>
+                                </p>
+                            <?php endif; ?>
+                            <?php if ($imagen['categoria']): ?>
+                                <span class="badge bg-secondary"><?php echo htmlspecialchars($imagen['categoria']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- Modal para ver imagen -->
     <div class="modal fade" id="imageModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -218,8 +273,15 @@ require_once 'includes/public_header.php';
     
     <script>
     // Función para abrir modal de imagen
-    function openImageModal(imageSrc, title, description) {
-        document.getElementById('imageModalImage').src = 'uploads/productos/' + imageSrc;
+    function openImageModal(imageSrc, title, description, type = 'productos') {
+        let imagePath = '';
+        if (type === 'galeria') {
+            imagePath = 'uploads/galeria/' + imageSrc;
+        } else {
+            imagePath = 'uploads/productos/' + imageSrc;
+        }
+        
+        document.getElementById('imageModalImage').src = imagePath;
         document.getElementById('imageModalTitle').textContent = title;
         document.getElementById('imageModalDescription').textContent = description;
     }
