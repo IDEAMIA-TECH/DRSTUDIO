@@ -70,13 +70,13 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
     $mpdf = new \Mpdf\Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
-        'orientation' => 'L', // Cambiar a landscape para acomodar imágenes grandes
+        'orientation' => 'P', // Cambiar a portrait (normal)
         'margin_left' => 10,
         'margin_right' => 10,
-        'margin_top' => 16,
-        'margin_bottom' => 16,
-        'margin_header' => 9,
-        'margin_footer' => 9
+        'margin_top' => 10,
+        'margin_bottom' => 10,
+        'margin_header' => 5,
+        'margin_footer' => 5
     ]);
         
         // Configurar metadatos
@@ -135,27 +135,27 @@ function createCotizacionHTML($data) {
             .header-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 20px 0;
+                margin: 10px 0;
                 background-color: #f8f9fa;
-                border-radius: 8px;
+                border-radius: 4px;
                 overflow: hidden;
             }
             .logo-column {
-                width: 200px;
-                padding: 20px;
+                width: 120px;
+                padding: 10px;
                 vertical-align: middle;
                 text-align: center;
                 border-right: 1px solid #dee2e6;
             }
             .logo {
-                width: 150px;
+                width: 100px;
                 height: auto;
                 margin: 0;
                 display: block;
             }
             .info-column {
                 width: 40%;
-                padding: 20px;
+                padding: 10px;
                 vertical-align: top;
                 border-right: 1px solid #dee2e6;
             }
@@ -164,16 +164,16 @@ function createCotizacionHTML($data) {
             }
             .info-column h3 {
                 color: #7B3F9F;
-                font-size: 16px;
-                margin: 0 0 15px 0;
+                font-size: 14px;
+                margin: 0 0 8px 0;
                 font-weight: bold;
-                border-bottom: 2px solid #7B3F9F;
-                padding-bottom: 5px;
+                border-bottom: 1px solid #7B3F9F;
+                padding-bottom: 3px;
             }
             .info-column p {
-                margin: 8px 0;
-                font-size: 12px;
-                line-height: 1.4;
+                margin: 4px 0;
+                font-size: 10px;
+                line-height: 1.2;
             }
             .company-info {
                 text-align: right;
@@ -219,14 +219,15 @@ function createCotizacionHTML($data) {
             .items-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 30px;
+                margin-bottom: 15px;
                 table-layout: fixed;
             }
             .items-table th, .items-table td {
                 border: 1px solid #ddd;
-                padding: 12px;
+                padding: 6px;
                 text-align: left;
                 vertical-align: middle;
+                font-size: 10px;
             }
             .items-table th {
                 background-color: #7B3F9F;
@@ -234,24 +235,23 @@ function createCotizacionHTML($data) {
                 font-weight: bold;
             }
         .product-image {
-            width: 300px;
-            height: 200px;
+            width: 80px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
         .no-image {
-            width: 300px;
-            height: 200px;
+            width: 80px;
+            height: 60px;
             background: #f8f9fa;
-            border-radius: 8px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 8px;
             color: #6c757d;
-            border: 2px solid #dee2e6;
+            border: 1px solid #dee2e6;
             font-weight: 500;
         }
             .items-table tr:nth-child(even) {
@@ -323,12 +323,12 @@ function createCotizacionHTML($data) {
         <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 320px;">Imagen</th>
+                <th style="width: 100px;">Imagen</th>
                 <th style="width: 200px;">Producto</th>
-                <th style="width: 150px;">Variante</th>
-                <th style="width: 80px;">Cantidad</th>
-                <th style="width: 100px;">Precio Unit.</th>
-                <th style="width: 100px;">Subtotal</th>
+                <th style="width: 120px;">Variante</th>
+                <th style="width: 60px;">Cantidad</th>
+                <th style="width: 80px;">Precio Unit.</th>
+                <th style="width: 80px;">Subtotal</th>
             </tr>
         </thead>
             <tbody>';
