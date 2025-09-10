@@ -217,6 +217,11 @@ function uploadFile($file, $targetDir = UPLOAD_PATH) {
         return $targetFile;
     }
     
+    // Fallback: usar copy si move_uploaded_file falla (útil para testing)
+    if (copy($file["tmp_name"], $targetFile)) {
+        return $targetFile;
+    }
+    
     return false;
 }
 

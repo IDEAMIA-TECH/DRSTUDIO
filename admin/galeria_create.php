@@ -34,7 +34,7 @@ if ($_POST) {
                     'size' => $_FILES['imagenes']['size'][$i]
                 ];
                 
-                $uploadResult = uploadFile($imagenTemp, 'galeria');
+                $uploadResult = uploadFile($imagenTemp, UPLOAD_PATH . 'galeria/');
                 if ($uploadResult !== false) {
                     $imagen = basename($uploadResult); // Solo el nombre del archivo
                     
@@ -43,7 +43,7 @@ if ($_POST) {
                     $orden = $ultimoOrden + 1;
                     
                     $data = [
-                        'titulo' => $titulo . ($totalImagenes > 1 ? " ($i+1)" : ''),
+                        'titulo' => $titulo . ($totalImagenes > 1 ? " (" . ($i + 1) . ")" : ''),
                         'descripcion' => $descripcion,
                         'imagen' => $imagen,
                         'categoria' => $categoria,
