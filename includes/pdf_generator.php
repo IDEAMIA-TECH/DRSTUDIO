@@ -133,7 +133,40 @@ function createCotizacionHTML($data) {
                 border-bottom: 2px solid #7B3F9F;
             }
             .logo {
-                max-height: 60px;
+                width: 450px;
+                height: auto;
+                margin: 0 auto 30px auto;
+                display: block;
+            }
+            .info-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .info-column {
+                width: 50%;
+                padding: 20px;
+                vertical-align: top;
+                border-right: 1px solid #dee2e6;
+            }
+            .info-column:last-child {
+                border-right: none;
+            }
+            .info-column h3 {
+                color: #7B3F9F;
+                font-size: 16px;
+                margin: 0 0 15px 0;
+                font-weight: bold;
+                border-bottom: 2px solid #7B3F9F;
+                padding-bottom: 5px;
+            }
+            .info-column p {
+                margin: 8px 0;
+                font-size: 12px;
+                line-height: 1.4;
             }
             .company-info {
                 text-align: right;
@@ -258,30 +291,28 @@ function createCotizacionHTML($data) {
     </head>
     <body>
         <div class="header">
-            <div class="company-info">
-                <h1 class="company-name">DT Studio</h1>
-                <p class="company-subtitle">Productos Promocionales y Merchandising</p>
-            </div>
             ' . ($logoExists ? '<img src="' . $logoPath . '" alt="Logo DT Studio" class="logo">' : '') . '
         </div>
         
         <h2 class="document-title">COTIZACIÓN</h2>
         
-        <div class="document-info">
-            <div class="client-info">
-                <h3>Cliente</h3>
-                <p><strong>Nombre:</strong> ' . htmlspecialchars($data['cliente']['nombre']) . '</p>
-                ' . ($data['cliente']['empresa'] ? '<p><strong>Empresa:</strong> ' . htmlspecialchars($data['cliente']['empresa']) . '</p>' : '') . '
-                ' . ($data['cliente']['email'] ? '<p><strong>Email:</strong> ' . htmlspecialchars($data['cliente']['email']) . '</p>' : '') . '
-                ' . ($data['cliente']['telefono'] ? '<p><strong>Teléfono:</strong> ' . htmlspecialchars($data['cliente']['telefono']) . '</p>' : '') . '
-            </div>
-            <div class="quote-info">
-                <h3>Información de Cotización</h3>
-                <p><strong>Número:</strong> ' . htmlspecialchars($data['numero']) . '</p>
-                <p><strong>Fecha:</strong> ' . htmlspecialchars($data['fecha']) . '</p>
-                <p><strong>Estado:</strong> ' . ucfirst($data['estado']) . '</p>
-            </div>
-        </div>
+        <table class="info-table">
+            <tr>
+                <td class="info-column">
+                    <h3>Cliente</h3>
+                    <p><strong>Nombre:</strong> ' . htmlspecialchars($data['cliente']['nombre']) . '</p>
+                    ' . ($data['cliente']['empresa'] ? '<p><strong>Empresa:</strong> ' . htmlspecialchars($data['cliente']['empresa']) . '</p>' : '') . '
+                    ' . ($data['cliente']['email'] ? '<p><strong>Email:</strong> ' . htmlspecialchars($data['cliente']['email']) . '</p>' : '') . '
+                    ' . ($data['cliente']['telefono'] ? '<p><strong>Teléfono:</strong> ' . htmlspecialchars($data['cliente']['telefono']) . '</p>' : '') . '
+                </td>
+                <td class="info-column">
+                    <h3>Información de Cotización</h3>
+                    <p><strong>Número:</strong> ' . htmlspecialchars($data['numero']) . '</p>
+                    <p><strong>Fecha:</strong> ' . htmlspecialchars($data['fecha']) . '</p>
+                    <p><strong>Estado:</strong> ' . ucfirst($data['estado']) . '</p>
+                </td>
+            </tr>
+        </table>
         
         <table class="items-table">
         <thead>
@@ -403,7 +434,6 @@ function createCotizacionHTML($data) {
     
     $html .= '
         <div class="footer">
-            <p>DT Studio - Productos Promocionales y Merchandising</p>
             <p>Gracias por su confianza en nuestros servicios</p>
         </div>
     </body>
