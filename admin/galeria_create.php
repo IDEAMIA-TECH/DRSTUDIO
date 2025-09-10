@@ -38,24 +38,32 @@ if ($_POST) {
                 if ($uploadResult !== false) {
                     $imagen = basename($uploadResult); // Solo el nombre del archivo
                     
-                    // Obtener el siguiente orden
-                    $ultimoOrden = $conn->query("SELECT MAX(orden) as max_orden FROM galeria")->fetch_assoc()['max_orden'] ?? 0;
-                    $orden = $ultimoOrden + 1;
-                    
-                    $data = [
-                        'titulo' => $titulo . ($totalImagenes > 1 ? " (" . ($i + 1) . ")" : ''),
-                        'descripcion' => $descripcion,
-                        'imagen' => $imagen,
-                        'categoria' => $categoria,
-                        'orden' => $orden,
-                        'activo' => $activo,
-                        'created_at' => date('Y-m-d H:i:s')
-                    ];
-                    
-                    if (createRecord('galeria', $data)) {
-                        $imagenesSubidas++;
+                    // Verificar que el archivo realmente existe
+                    $imagePath = UPLOAD_PATH . 'galeria/' . $imagen;
+                    if (file_exists($imagePath)) {
+                        // Obtener el siguiente orden
+                        $ultimoOrden = $conn->query("SELECT MAX(orden) as max_orden FROM galeria")->fetch_assoc()['max_orden'] ?? 0;
+                        $orden = $ultimoOrden + 1;
+                        
+                        $data = [
+                            'titulo' => $titulo . ($totalImagenes > 1 ? " (" . ($i + 1) . ")" : ''),
+                            'descripcion' => $descripcion,
+                            'imagen' => $imagen,
+                            'categoria' => $categoria,
+                            'orden' => $orden,
+                            'activo' => $activo,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ];
+                        
+                        if (createRecord('galeria', $data)) {
+                            $imagenesSubidas++;
+                        } else {
+                            $errores[] = "Error al guardar la imagen " . ($i + 1);
+                            // Eliminar archivo si no se pudo guardar en BD
+                            unlink($imagePath);
+                        }
                     } else {
-                        $errores[] = "Error al guardar la imagen " . ($i + 1);
+                        $errores[] = "Error al subir la imagen " . ($i + 1) . ": El archivo no se creó correctamente";
                     }
                 } else {
                     $errores[] = "Error al subir la imagen " . ($i + 1) . ": Formato no válido o archivo muy grande";
