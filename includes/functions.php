@@ -194,34 +194,49 @@ function verifyCSRFToken($token) {
 
 // Función para subir archivos
 function uploadFile($file, $targetDir = UPLOAD_PATH) {
+    // Convertir a ruta absoluta
+    $targetDir = realpath($targetDir) ?: $targetDir;
     if (!file_exists($targetDir)) {
         mkdir($targetDir, 0777, true);
     }
     
     $fileName = basename($file["name"]);
-    $targetFile = $targetDir . time() . '_' . $fileName;
+    $targetFile = $targetDir . DIRECTORY_SEPARATOR . time() . '_' . $fileName;
     $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+    
+    // Debug logging
+    error_log("UPLOADFILE DEBUG - targetDir: $targetDir");
+    error_log("UPLOADFILE DEBUG - targetFile: $targetFile");
+    error_log("UPLOADFILE DEBUG - tmp_name: " . $file["tmp_name"]);
+    error_log("UPLOADFILE DEBUG - tmp_name exists: " . (file_exists($file["tmp_name"]) ? 'Yes' : 'No'));
     
     // Verificar tipo de archivo
     $allowedTypes = array("jpg", "jpeg", "png", "gif", "webp");
     if (!in_array($fileType, $allowedTypes)) {
+        error_log("UPLOADFILE DEBUG - Invalid file type: $fileType");
         return false;
     }
     
     // Verificar tamaño
     if ($file["size"] > MAX_FILE_SIZE) {
+        error_log("UPLOADFILE DEBUG - File too large: " . $file["size"]);
         return false;
     }
     
+    // Intentar move_uploaded_file primero
     if (move_uploaded_file($file["tmp_name"], $targetFile)) {
+        error_log("UPLOADFILE DEBUG - move_uploaded_file success");
         return $targetFile;
     }
     
-    // Fallback: usar copy si move_uploaded_file falla (útil para testing)
+    // Fallback: usar copy si move_uploaded_file falla
     if (copy($file["tmp_name"], $targetFile)) {
+        error_log("UPLOADFILE DEBUG - copy success");
         return $targetFile;
     }
     
+    error_log("UPLOADFILE DEBUG - Both move_uploaded_file and copy failed");
+    error_log("UPLOADFILE DEBUG - Last error: " . print_r(error_get_last(), true));
     return false;
 }
 
