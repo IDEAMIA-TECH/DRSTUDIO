@@ -11,7 +11,7 @@ $galeria = readRecords('galeria', [], null, 'orden ASC, created_at DESC');
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
             <a href="galeria_create.php" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Nueva Imagen
+                <i class="fas fa-images me-2"></i>Agregar Imágenes
             </a>
         </div>
     </div>
@@ -32,7 +32,7 @@ $galeria = readRecords('galeria', [], null, 'orden ASC, created_at DESC');
                         <h5 class="text-muted">No hay imágenes en la galería</h5>
                         <p class="text-muted">Comienza subiendo imágenes para mostrar en el sitio web</p>
                         <a href="galeria_create.php" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Subir Primera Imagen
+                            <i class="fas fa-images me-2"></i>Subir Imágenes
                         </a>
                     </div>
                 <?php else: ?>

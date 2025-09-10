@@ -8,47 +8,77 @@ $success = '';
 if ($_POST) {
     $titulo = sanitizeInput($_POST['titulo']);
     $descripcion = sanitizeInput($_POST['descripcion']);
-    $orden = (int)$_POST['orden'];
+    $categoria = sanitizeInput($_POST['categoria']);
     $activo = isset($_POST['activo']) ? 1 : 0;
     
     // Validaciones
     if (empty($titulo)) {
         $error = 'El título es requerido';
-    } elseif (empty($orden)) {
-        $error = 'El orden es requerido';
-    } elseif (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] != 0) {
-        $error = 'La imagen es requerida';
+    } elseif (!isset($_FILES['imagenes']) || empty($_FILES['imagenes']['name'][0])) {
+        $error = 'Al menos una imagen es requerida';
     } else {
-        // Procesar imagen
-        $uploadResult = uploadFile($_FILES['imagen'], 'galeria');
-        if ($uploadResult['success']) {
-            $imagen = $uploadResult['filename'];
-            
-            $data = [
-                'titulo' => $titulo,
-                'descripcion' => $descripcion,
-                'imagen' => $imagen,
-                'orden' => $orden,
-                'activo' => $activo,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            
-            if (createRecord('galeria', $data)) {
-                $success = 'Imagen agregada exitosamente';
-                // Limpiar formulario
-                $_POST = [];
-            } else {
-                $error = 'Error al agregar la imagen';
+        $imagenesSubidas = 0;
+        $errores = [];
+        
+        // Procesar múltiples imágenes
+        $totalImagenes = count($_FILES['imagenes']['name']);
+        
+        for ($i = 0; $i < $totalImagenes; $i++) {
+            if ($_FILES['imagenes']['error'][$i] == 0) {
+                // Crear array temporal para cada imagen
+                $imagenTemp = [
+                    'name' => $_FILES['imagenes']['name'][$i],
+                    'type' => $_FILES['imagenes']['type'][$i],
+                    'tmp_name' => $_FILES['imagenes']['tmp_name'][$i],
+                    'error' => $_FILES['imagenes']['error'][$i],
+                    'size' => $_FILES['imagenes']['size'][$i]
+                ];
+                
+                $uploadResult = uploadFile($imagenTemp, 'galeria');
+                if ($uploadResult['success']) {
+                    $imagen = $uploadResult['filename'];
+                    
+                    // Obtener el siguiente orden
+                    $ultimoOrden = $conn->query("SELECT MAX(orden) as max_orden FROM galeria")->fetch_assoc()['max_orden'] ?? 0;
+                    $orden = $ultimoOrden + 1;
+                    
+                    $data = [
+                        'titulo' => $titulo . ($totalImagenes > 1 ? " ($i+1)" : ''),
+                        'descripcion' => $descripcion,
+                        'imagen' => $imagen,
+                        'categoria' => $categoria,
+                        'orden' => $orden,
+                        'activo' => $activo,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if (createRecord('galeria', $data)) {
+                        $imagenesSubidas++;
+                    } else {
+                        $errores[] = "Error al guardar la imagen " . ($i + 1);
+                    }
+                } else {
+                    $errores[] = "Error al subir la imagen " . ($i + 1) . ": " . $uploadResult['message'];
+                }
             }
+        }
+        
+        if ($imagenesSubidas > 0) {
+            $success = "Se subieron exitosamente $imagenesSubidas imagen(es)";
+            if (!empty($errores)) {
+                $success .= ". Errores: " . implode(', ', $errores);
+            }
+            // Limpiar formulario
+            $_POST = [];
         } else {
-            $error = $uploadResult['message'];
+            $error = "No se pudo subir ninguna imagen. Errores: " . implode(', ', $errores);
         }
     }
 }
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Agregar Imagen a Galería</h1>
+    <h1 class="h2">Agregar Imágenes a Galería</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
             <a href="galeria.php" class="btn btn-outline-secondary">
@@ -63,7 +93,7 @@ if ($_POST) {
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-plus me-2"></i>Información de la Imagen
+                    <i class="fas fa-images me-2"></i>Información de las Imágenes
                 </h5>
             </div>
             <div class="card-body">
@@ -83,16 +113,18 @@ if ($_POST) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="titulo" class="form-label">Título <span class="text-danger">*</span></label>
+                                <label for="titulo" class="form-label">Título Base <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="titulo" name="titulo" 
                                        value="<?php echo htmlspecialchars($_POST['titulo'] ?? ''); ?>" required>
+                                <div class="form-text">Se agregará un número automáticamente si subes múltiples imágenes</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="orden" class="form-label">Orden <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="orden" name="orden" 
-                                       value="<?php echo $_POST['orden'] ?? '1'; ?>" min="1" required>
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <input type="text" class="form-control" id="categoria" name="categoria" 
+                                       value="<?php echo htmlspecialchars($_POST['categoria'] ?? ''); ?>" 
+                                       placeholder="Ej: Productos, Eventos, etc.">
                             </div>
                         </div>
                     </div>
@@ -103,9 +135,16 @@ if ($_POST) {
                     </div>
                     
                     <div class="mb-3">
-                        <label for="imagen" class="form-label">Imagen <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" required>
-                        <div class="form-text">Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB</div>
+                        <label for="imagenes" class="form-label">Imágenes <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="imagenes" name="imagenes[]" 
+                               accept="image/*" multiple required>
+                        <div class="form-text">
+                            <strong>Puedes seleccionar múltiples imágenes:</strong><br>
+                            • Formatos permitidos: JPG, PNG, GIF<br>
+                            • Tamaño máximo por imagen: 5MB<br>
+                            • Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples archivos
+                        </div>
+                        <div id="imagenPreview" class="mt-3"></div>
                     </div>
                     
                     <div class="mb-3">
@@ -121,7 +160,7 @@ if ($_POST) {
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="galeria.php" class="btn btn-secondary me-md-2">Cancelar</a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Agregar Imagen
+                            <i class="fas fa-images me-2"></i>Agregar Imágenes
                         </button>
                     </div>
                 </form>
@@ -135,10 +174,16 @@ if ($_POST) {
                 <h6 class="card-title mb-0">Información</h6>
             </div>
             <div class="card-body">
+                <h6>Subida Múltiple</h6>
+                <p class="text-muted small">
+                    Puedes seleccionar múltiples imágenes a la vez. 
+                    Cada imagen se guardará con un número secuencial automático.
+                </p>
+                
                 <h6>Orden de Imágenes</h6>
                 <p class="text-muted small">
-                    Las imágenes se mostrarán en el orden especificado. 
-                    Un número menor aparece primero.
+                    Las imágenes se ordenarán automáticamente. 
+                    Puedes cambiar el orden después desde la lista de galería.
                 </p>
                 
                 <h6>Formatos Recomendados</h6>
@@ -159,26 +204,40 @@ if ($_POST) {
 </div>
 
 <script>
-// Preview de imagen
-document.getElementById('imagen').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Crear preview si no existe
-            let preview = document.getElementById('imagePreview');
-            if (!preview) {
-                preview = document.createElement('div');
-                preview.id = 'imagePreview';
-                preview.className = 'mt-2';
-                document.getElementById('imagen').parentNode.appendChild(preview);
+// Preview de múltiples imágenes
+document.getElementById('imagenes').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const preview = document.getElementById('imagenPreview');
+    
+    // Limpiar preview anterior
+    preview.innerHTML = '';
+    
+    if (files.length > 0) {
+        preview.innerHTML = `<h6>Vista previa de las imágenes seleccionadas (${files.length}):</h6>`;
+        
+        Array.from(files).forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'd-inline-block me-2 mb-2';
+                    imageContainer.innerHTML = `
+                        <div class="position-relative">
+                            <img src="${e.target.result}" 
+                                 class="img-thumbnail" 
+                                 style="width: 100px; height: 100px; object-fit: cover;">
+                            <div class="position-absolute top-0 start-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 20px; height: 20px; font-size: 12px;">
+                                ${index + 1}
+                            </div>
+                        </div>
+                        <div class="small text-muted text-center">${file.name}</div>
+                    `;
+                    preview.appendChild(imageContainer);
+                };
+                reader.readAsDataURL(file);
             }
-            
-            preview.innerHTML = `
-                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 300px; max-height: 200px;">
-            `;
-        };
-        reader.readAsDataURL(file);
+        });
     }
 });
 </script>
