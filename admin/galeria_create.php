@@ -6,10 +6,17 @@ $error = '';
 $success = '';
 
 if ($_POST) {
+    // Debug: Log de datos recibidos
+    error_log("=== GALERIA CREATE DEBUG ===");
+    error_log("POST data: " . print_r($_POST, true));
+    error_log("FILES data: " . print_r($_FILES, true));
+    
     $titulo = sanitizeInput($_POST['titulo']);
     $descripcion = sanitizeInput($_POST['descripcion']);
     $categoria = sanitizeInput($_POST['categoria']);
     $activo = isset($_POST['activo']) ? 1 : 0;
+    
+    error_log("Datos sanitizados - Título: $titulo, Descripción: $descripcion, Categoría: $categoria, Activo: $activo");
     
     // Validaciones
     if (empty($titulo)) {
@@ -24,6 +31,8 @@ if ($_POST) {
         $totalImagenes = count($_FILES['imagenes']['name']);
         
         for ($i = 0; $i < $totalImagenes; $i++) {
+            error_log("Procesando imagen " . ($i + 1) . " de $totalImagenes");
+            
             if ($_FILES['imagenes']['error'][$i] == 0) {
                 // Crear array temporal para cada imagen
                 $imagenTemp = [
@@ -34,7 +43,11 @@ if ($_POST) {
                     'size' => $_FILES['imagenes']['size'][$i]
                 ];
                 
+                error_log("Imagen $i - Nombre: {$imagenTemp['name']}, Tipo: {$imagenTemp['type']}, Tamaño: {$imagenTemp['size']}, Error: {$imagenTemp['error']}");
+                error_log("Archivo temporal existe: " . (file_exists($imagenTemp['tmp_name']) ? 'Sí' : 'No'));
+                
                 $uploadResult = uploadFile($imagenTemp, UPLOAD_PATH . 'galeria/');
+                error_log("Resultado uploadFile: " . ($uploadResult === false ? 'false' : $uploadResult));
                 if ($uploadResult !== false) {
                     $imagen = basename($uploadResult); // Solo el nombre del archivo
                     
@@ -262,14 +275,29 @@ document.getElementById('imagenes').addEventListener('change', function(e) {
 
 // Agregar debugging al formulario
 document.getElementById('galeriaForm').addEventListener('submit', function(e) {
+    console.log('=== FORM SUBMIT DEBUG ===');
+    
     const files = document.getElementById('imagenes').files;
-    console.log('Enviando formulario con', files.length, 'archivos');
+    console.log('Archivos seleccionados:', files.length);
+    
+    // Mostrar información de cada archivo
+    for (let i = 0; i < files.length; i++) {
+        console.log(`Archivo ${i + 1}:`, {
+            name: files[i].name,
+            type: files[i].type,
+            size: files[i].size,
+            lastModified: files[i].lastModified
+        });
+    }
     
     if (files.length === 0) {
+        console.log('ERROR: No hay archivos seleccionados');
         e.preventDefault();
         alert('Por favor selecciona al menos una imagen');
         return false;
     }
+    
+    console.log('Formulario válido, enviando...');
     
     // Mostrar indicador de carga
     const submitBtn = this.querySelector('button[type="submit"]');
@@ -277,11 +305,14 @@ document.getElementById('galeriaForm').addEventListener('submit', function(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
     submitBtn.disabled = true;
     
-    // Restaurar botón después de 5 segundos (por si hay algún problema)
+    console.log('Botón de envío deshabilitado');
+    
+    // Restaurar botón después de 10 segundos (por si hay algún problema)
     setTimeout(() => {
+        console.log('Restaurando botón de envío');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
-    }, 5000);
+    }, 10000);
 });
 </script>
 
