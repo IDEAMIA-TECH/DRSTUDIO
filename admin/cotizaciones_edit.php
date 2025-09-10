@@ -44,6 +44,7 @@ if ($_POST) {
     $cliente_id = (int)$_POST['cliente_id'];
     $fecha_vencimiento = $_POST['fecha_vencimiento'];
     $observaciones = sanitizeInput($_POST['observaciones']);
+    $notas = sanitizeInput($_POST['notas']);
     $descuento = (float)$_POST['descuento'];
     
     // Validar datos
@@ -96,7 +97,8 @@ if ($_POST) {
             'descuento' => $descuento,
             'total' => $total,
             'fecha_vencimiento' => $fecha_vencimiento ?: null,
-            'observaciones' => $observaciones
+            'observaciones' => $observaciones,
+            'notas' => $notas
         ];
         
         if (updateRecord('cotizaciones', $cotizacion_data, $id)) {
@@ -177,9 +179,19 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="observaciones" class="form-label">Observaciones</label>
-                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?php echo htmlspecialchars($cotizacion['observaciones']); ?></textarea>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?php echo htmlspecialchars($cotizacion['observaciones']); ?></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="notas" class="form-label">Notas</label>
+                                <textarea class="form-control" id="notas" name="notas" rows="3"><?php echo htmlspecialchars($cotizacion['notas'] ?? ''); ?></textarea>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Items de la cotización -->

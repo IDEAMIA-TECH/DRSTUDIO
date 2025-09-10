@@ -180,6 +180,16 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                     <p class="text-muted"><?php echo nl2br(htmlspecialchars($cotizacion['observaciones'])); ?></p>
                 </div>
                 <?php endif; ?>
+                
+                <?php if ($cotizacion['notas']): ?>
+                <div class="mt-3">
+                    <h6>Notas</h6>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-sticky-note me-2"></i>
+                        <?php echo nl2br(htmlspecialchars($cotizacion['notas'])); ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

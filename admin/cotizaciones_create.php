@@ -17,6 +17,7 @@ if ($_POST) {
     $cliente_id = (int)$_POST['cliente_id'];
     $fecha_vencimiento = $_POST['fecha_vencimiento'];
     $observaciones = sanitizeInput($_POST['observaciones']);
+    $notas = sanitizeInput($_POST['notas']);
     $descuento = (float)$_POST['descuento'];
     
     // Validar datos
@@ -83,7 +84,8 @@ if ($_POST) {
                 'total' => $total,
                 'estado' => 'pendiente',
                 'fecha_vencimiento' => $fecha_vencimiento ?: null,
-                'observaciones' => $observaciones
+                'observaciones' => $observaciones,
+                'notas' => $notas
             ];
             
             if (createRecord('cotizaciones', $data)) {
@@ -157,13 +159,27 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="observaciones" class="form-label">Observaciones</label>
-                        <textarea class="form-control" 
-                                  id="observaciones" 
-                                  name="observaciones" 
-                                  rows="3" 
-                                  placeholder="Observaciones adicionales para la cotización"><?php echo $_POST['observaciones'] ?? ''; ?></textarea>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" 
+                                          id="observaciones" 
+                                          name="observaciones" 
+                                          rows="3" 
+                                          placeholder="Observaciones adicionales para la cotización"><?php echo $_POST['observaciones'] ?? ''; ?></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="notas" class="form-label">Notas</label>
+                                <textarea class="form-control" 
+                                          id="notas" 
+                                          name="notas" 
+                                          rows="3" 
+                                          placeholder="Notas internas para la cotización"><?php echo $_POST['notas'] ?? ''; ?></textarea>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Productos -->
@@ -298,6 +314,7 @@ require_once 'includes/header.php';
                     <li><i class="fas fa-calendar text-warning me-2"></i>La fecha de vencimiento es opcional</li>
                     <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar múltiples productos</li>
                     <li><i class="fas fa-percentage text-primary me-2"></i>El descuento se aplica al total</li>
+                    <li><i class="fas fa-sticky-note text-secondary me-2"></i>Las notas aparecerán en el PDF generado</li>
                 </ul>
             </div>
         </div>

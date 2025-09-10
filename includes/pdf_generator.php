@@ -62,6 +62,7 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
             'descuento' => $cotizacion['descuento'] ?? 0,
             'total' => $subtotal - ($cotizacion['descuento'] ?? 0),
             'observaciones' => $cotizacion['observaciones'] ?? '',
+            'notas' => $cotizacion['notas'] ?? '',
             'estado' => $cotizacion['estado']
         ];
         
@@ -437,6 +438,14 @@ function createCotizacionHTML($data) {
         <div class="observations">
             <h4>Observaciones</h4>
             <p>' . nl2br(htmlspecialchars($data['observaciones'])) . '</p>
+        </div>';
+    }
+    
+    if ($data['notas']) {
+        $html .= '
+        <div class="observations" style="background-color: #fff3cd; border-left-color: #ffc107;">
+            <h4 style="color: #856404;">Notas</h4>
+            <p style="color: #856404;">' . nl2br(htmlspecialchars($data['notas'])) . '</p>
         </div>';
     }
     
