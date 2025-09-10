@@ -41,7 +41,7 @@ $galeria = readRecords('galeria', [], null, 'orden ASC, created_at DESC');
                         <div class="col-md-4 col-lg-3 mb-4" data-id="<?php echo $imagen['id']; ?>">
                             <div class="card h-100">
                                 <div class="position-relative">
-                                    <img src="../uploads/galeria/<?php echo $imagen['imagen']; ?>" 
+                                    <img src="../admin/uploads/galeria/<?php echo $imagen['imagen']; ?>" 
                                          class="card-img-top" 
                                          alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
                                          style="height: 200px; object-fit: cover;">
