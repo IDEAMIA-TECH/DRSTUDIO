@@ -307,9 +307,19 @@ function createCotizacionHTML($data) {
         // Obtener imagen del producto
         $imagenHtml = '';
         if (!empty($item['producto']['imagen_principal'])) {
-            $imagenPath = '../uploads/productos/' . $item['producto']['imagen_principal'];
+            // Usar ruta absoluta para el PDF
+            $imagenPath = __DIR__ . '/../uploads/productos/' . $item['producto']['imagen_principal'];
+            
             if (file_exists($imagenPath)) {
-                $imagenHtml = '<img src="' . $imagenPath . '" alt="' . htmlspecialchars($item['producto']['nombre']) . '" class="product-image">';
+                try {
+                    // Convertir imagen a base64 para incluirla en el PDF
+                    $imageData = base64_encode(file_get_contents($imagenPath));
+                    $imageType = pathinfo($imagenPath, PATHINFO_EXTENSION);
+                    $imagenHtml = '<img src="data:image/' . $imageType . ';base64,' . $imageData . '" alt="' . htmlspecialchars($item['producto']['nombre']) . '" class="product-image">';
+                } catch (Exception $e) {
+                    error_log("Error convirtiendo imagen: " . $e->getMessage());
+                    $imagenHtml = '<div class="no-image">Error imagen</div>';
+                }
             } else {
                 $imagenHtml = '<div class="no-image">Sin imagen</div>';
             }
