@@ -114,6 +114,11 @@ if ($_POST) {
                 <?php if ($success): ?>
                     <div class="alert alert-success" role="alert">
                         <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
+                        <div class="mt-2">
+                            <a href="galeria.php" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-eye me-1"></i>Ver Galería
+                            </a>
+                        </div>
                     </div>
                 <?php endif; ?>
                 
@@ -217,6 +222,8 @@ document.getElementById('imagenes').addEventListener('change', function(e) {
     const files = e.target.files;
     const preview = document.getElementById('imagenPreview');
     
+    console.log('Archivos seleccionados:', files.length);
+    
     // Limpiar preview anterior
     preview.innerHTML = '';
     
@@ -224,6 +231,8 @@ document.getElementById('imagenes').addEventListener('change', function(e) {
         preview.innerHTML = `<h6>Vista previa de las imágenes seleccionadas (${files.length}):</h6>`;
         
         Array.from(files).forEach((file, index) => {
+            console.log(`Archivo ${index + 1}:`, file.name, file.type, file.size);
+            
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -244,9 +253,35 @@ document.getElementById('imagenes').addEventListener('change', function(e) {
                     preview.appendChild(imageContainer);
                 };
                 reader.readAsDataURL(file);
+            } else {
+                console.warn(`Archivo ${index + 1} no es una imagen:`, file.name);
             }
         });
     }
+});
+
+// Agregar debugging al formulario
+document.getElementById('galeriaForm').addEventListener('submit', function(e) {
+    const files = document.getElementById('imagenes').files;
+    console.log('Enviando formulario con', files.length, 'archivos');
+    
+    if (files.length === 0) {
+        e.preventDefault();
+        alert('Por favor selecciona al menos una imagen');
+        return false;
+    }
+    
+    // Mostrar indicador de carga
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
+    submitBtn.disabled = true;
+    
+    // Restaurar botón después de 5 segundos (por si hay algún problema)
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 5000);
 });
 </script>
 
