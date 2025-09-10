@@ -45,6 +45,7 @@ foreach ($items as &$item) {
     $subtotal_calculado += $item['subtotal'];
 }
 
+
 // Calcular total final
 $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
 ?>
