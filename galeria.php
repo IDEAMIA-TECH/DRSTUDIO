@@ -193,7 +193,7 @@ require_once 'includes/public_header.php';
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                     <div class="card h-100 shadow-sm gallery-item">
                         <div class="gallery-image">
-                            <img src="uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
+                            <img src="admin/uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
                                  class="card-img-top" 
                                  alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
                                  style="height: 200px; object-fit: cover;"
@@ -276,7 +276,7 @@ require_once 'includes/public_header.php';
     function openImageModal(imageSrc, title, description, type = 'productos') {
         let imagePath = '';
         if (type === 'galeria') {
-            imagePath = 'uploads/galeria/' + imageSrc;
+            imagePath = 'admin/uploads/galeria/' + imageSrc;
         } else {
             imagePath = 'uploads/productos/' + imageSrc;
         }

@@ -46,13 +46,13 @@ if ($_POST) {
                 error_log("Imagen $i - Nombre: {$imagenTemp['name']}, Tipo: {$imagenTemp['type']}, Tamaño: {$imagenTemp['size']}, Error: {$imagenTemp['error']}");
                 error_log("Archivo temporal existe: " . (file_exists($imagenTemp['tmp_name']) ? 'Sí' : 'No'));
                 
-                $uploadResult = uploadFile($imagenTemp, UPLOAD_PATH . 'galeria/');
+                $uploadResult = uploadFile($imagenTemp, 'admin/uploads/galeria/');
                 error_log("Resultado uploadFile: " . ($uploadResult === false ? 'false' : $uploadResult));
                 if ($uploadResult !== false) {
                     $imagen = basename($uploadResult); // Solo el nombre del archivo
                     
                     // Verificar que el archivo realmente existe
-                    $imagePath = UPLOAD_PATH . 'galeria/' . $imagen;
+                    $imagePath = 'admin/uploads/galeria/' . $imagen;
                     if (file_exists($imagePath)) {
                         // Obtener el siguiente orden
                         $ultimoOrden = $conn->query("SELECT MAX(orden) as max_orden FROM galeria")->fetch_assoc()['max_orden'] ?? 0;
