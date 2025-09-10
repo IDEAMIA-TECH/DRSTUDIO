@@ -235,7 +235,7 @@ function createCotizacionHTML($data) {
                 font-weight: bold;
             }
         .product-image {
-            width: 150px;
+            width: 250px;
             height: auto;
             object-fit: cover;
             border-radius: 4px;
