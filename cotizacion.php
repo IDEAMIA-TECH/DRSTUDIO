@@ -181,7 +181,7 @@ require_once 'includes/public_header.php';
                                 </div>
                             <?php endif; ?>
                             
-                            <form method="POST" id="quoteForm" class="needs-validation" novalidate onsubmit="return handleFormSubmit(event)">
+                            <form method="POST" id="quoteForm">
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
                                     <i class="fas fa-user me-2"></i>Información Personal
@@ -313,67 +313,21 @@ require_once 'includes/public_header.php';
 <?php require_once 'includes/public_footer.php'; ?>
 
 <script>
-// Función para manejar el envío del formulario con logging
-function handleFormSubmit(event) {
-    console.log("=== FORMULARIO COTIZACIÓN - INICIO ===");
-    console.log("Timestamp:", new Date().toISOString());
-    
-    // Obtener datos del formulario
-    const formData = new FormData(event.target);
-    const formObject = {};
-    
-    console.log("Datos del formulario:");
-    for (let [key, value] of formData.entries()) {
-        formObject[key] = value;
-        console.log(`  ${key}: ${value}`);
-    }
-    
-    // Validar campos requeridos
-    const nombre = formData.get('nombre');
-    const email = formData.get('email');
-    const mensaje = formData.get('mensaje');
-    
-    console.log("Validación de campos requeridos:");
-    console.log(`  Nombre: "${nombre}" (${nombre ? 'OK' : 'FALTA'})`);
-    console.log(`  Email: "${email}" (${email ? 'OK' : 'FALTA'})`);
-    console.log(`  Mensaje: "${mensaje}" (${mensaje ? 'OK' : 'FALTA'})`);
-    
-    if (!nombre || !email || !mensaje) {
-        console.error("✗ ERROR: Campos requeridos faltantes");
-        return true; // Dejar que el navegador maneje la validación
-    }
-    
-    console.log("✓ Validación de campos pasada");
-    console.log("Enviando formulario...");
-    
-    // Mostrar indicador de carga
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
-    submitBtn.disabled = true;
-    
-    // Log cuando se complete el envío
-    setTimeout(() => {
-        console.log("Formulario enviado, esperando respuesta...");
-    }, 100);
-    
-    return true; // Permitir el envío del formulario
-}
-
 // Log cuando se carga la página
 console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
 console.log("Timestamp:", new Date().toISOString());
 console.log("URL:", window.location.href);
-console.log("User Agent:", navigator.userAgent);
 
-// Log de errores de JavaScript
-window.addEventListener('error', function(e) {
-    console.error("JavaScript Error:", e.error);
-    console.error("File:", e.filename, "Line:", e.lineno);
-});
-
-// Log de errores de red
-window.addEventListener('unhandledrejection', function(e) {
-    console.error("Unhandled Promise Rejection:", e.reason);
+// Agregar indicador de carga al formulario
+document.getElementById('quoteForm').addEventListener('submit', function() {
+    console.log("=== FORMULARIO ENVIADO ===");
+    console.log("Timestamp:", new Date().toISOString());
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    submitBtn.disabled = true;
+    
+    console.log("Formulario enviado, esperando respuesta...");
 });
 </script>
