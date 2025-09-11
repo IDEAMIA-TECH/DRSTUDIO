@@ -102,7 +102,7 @@ require_once 'includes/public_header.php';
                                     <div class="col-lg-8 col-md-10">
                                         <div class="card shadow-lg">
                                             <div class="gallery-image position-relative">
-                                                <img src="uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
+                                                <img src="/admin/uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
                                                      class="card-img-top" 
                                                      alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
                                                      style="height: 400px; object-fit: cover;"
