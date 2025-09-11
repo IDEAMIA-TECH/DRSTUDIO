@@ -3,15 +3,25 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
-ini_set('error_log', 'debug_cotizacion_no_header.log');
+ini_set('error_log', 'debug_cotizacion_detallado.log');
 
 // Debugging inmediato
-error_log("=== COTIZACION DEBUG NO HEADER - INICIO ===");
+error_log("=== COTIZACION DEBUG DETALLADO - INICIO ===");
 error_log("Timestamp: " . date('Y-m-d H:i:s'));
+error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
 error_log("POST data: " . print_r($_POST, true));
+error_log("GET data: " . print_r($_GET, true));
+error_log("SERVER info: " . print_r($_SERVER, true));
 
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
+
+// Función para verificar si una tabla existe
+function tableExists($tableName) {
+    global $conn;
+    $result = $conn->query("SHOW TABLES LIKE '$tableName'");
+    return $result && $result->num_rows > 0;
+}
 
 $pageTitle = 'Solicitar Cotización - DT Studio';
 $pageDescription = 'Solicita una cotización personalizada para tus productos promocionales. Respuesta rápida y precios competitivos.';
@@ -21,27 +31,37 @@ $success = '';
 
 if ($_POST) {
     error_log("=== PROCESANDO POST ===");
+    error_log("POST array completo: " . print_r($_POST, true));
+    error_log("POST count: " . count($_POST));
+    error_log("POST keys: " . implode(', ', array_keys($_POST)));
     
-    $nombre = sanitizeInput($_POST['nombre']);
-    $email = sanitizeInput($_POST['email']);
-    $telefono = sanitizeInput($_POST['telefono']);
-    $empresa = sanitizeInput($_POST['empresa']);
-    $mensaje = sanitizeInput($_POST['mensaje']);
-    $productos_interes = sanitizeInput($_POST['productos_interes']);
-    $cantidad_estimada = sanitizeInput($_POST['cantidad_estimada']);
-    $fecha_entrega = sanitizeInput($_POST['fecha_entrega']);
+    $nombre = sanitizeInput($_POST['nombre'] ?? '');
+    $email = sanitizeInput($_POST['email'] ?? '');
+    $telefono = sanitizeInput($_POST['telefono'] ?? '');
+    $empresa = sanitizeInput($_POST['empresa'] ?? '');
+    $mensaje = sanitizeInput($_POST['mensaje'] ?? '');
+    $productos_interes = sanitizeInput($_POST['productos_interes'] ?? '');
+    $cantidad_estimada = sanitizeInput($_POST['cantidad_estimada'] ?? '');
+    $fecha_entrega = sanitizeInput($_POST['fecha_entrega'] ?? '');
     
-    error_log("Datos sanitizados - Nombre: $nombre, Email: $email, Mensaje: $mensaje");
+    error_log("Datos sanitizados - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
+    error_log("Datos sanitizados - Teléfono: '$telefono', Empresa: '$empresa'");
+    error_log("Datos sanitizados - Productos: '$productos_interes', Cantidad: '$cantidad_estimada', Fecha: '$fecha_entrega'");
     
     // Validar datos
+    error_log("=== VALIDACIÓN ===");
+    error_log("Nombre vacío: " . (empty($nombre) ? 'SÍ' : 'NO') . " - Valor: '$nombre'");
+    error_log("Email vacío: " . (empty($email) ? 'SÍ' : 'NO') . " - Valor: '$email'");
+    error_log("Mensaje vacío: " . (empty($mensaje) ? 'SÍ' : 'NO') . " - Valor: '$mensaje'");
+    
     if (empty($nombre) || empty($email) || empty($mensaje)) {
         $error = 'Los campos nombre, email y mensaje son requeridos';
-        error_log("ERROR: Campos requeridos faltantes");
+        error_log("ERROR: Campos requeridos faltantes - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
-        error_log("ERROR: Email inválido");
+        error_log("ERROR: Email inválido - '$email'");
     } else {
-        error_log("✓ Validación pasada");
+        error_log("✓ Validación pasada correctamente");
         
         // Crear registro de solicitud de cotización en la base de datos
         $solicitud_data = [
@@ -56,10 +76,16 @@ if ($_POST) {
             'estado' => 'pendiente'
         ];
         
-        error_log("Intentando insertar: " . print_r($solicitud_data, true));
+        error_log("=== INSERCIÓN EN BD ===");
+        error_log("Datos a insertar: " . print_r($solicitud_data, true));
+        error_log("Conexión BD disponible: " . ($conn ? 'SÍ' : 'NO'));
+        error_log("Tabla existe: " . (tableExists('solicitudes_cotizacion') ? 'SÍ' : 'NO'));
         
         // Insertar solicitud en la base de datos
-        if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
+        $resultado_insert = createRecord('solicitudes_cotizacion', $solicitud_data);
+        error_log("Resultado createRecord: " . ($resultado_insert ? 'TRUE' : 'FALSE'));
+        
+        if ($resultado_insert) {
             $cotizacion_id = $conn->insert_id;
             error_log("✓ INSERCIÓN EXITOSA - ID: $cotizacion_id");
             
@@ -127,6 +153,9 @@ if ($_POST) {
 }
 
 error_log("=== FIN PROCESAMIENTO ===");
+error_log("Error: '$error'");
+error_log("Success: '$success'");
+error_log("POST después del procesamiento: " . print_r($_POST, true));
 
 // Incluir header compartido
 require_once 'includes/public_header.php';
