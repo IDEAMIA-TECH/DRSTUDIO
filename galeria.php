@@ -91,79 +91,41 @@ require_once 'includes/public_header.php';
                         <span class="badge bg-secondary ms-2"><?php echo count($imagenes_categoria); ?> imágenes</span>
                     </h3>
                     
-                    <!-- Carrusel para esta categoría -->
-                    <div id="carousel-<?php echo preg_replace('/[^a-zA-Z0-9]/', '', $categoria_nombre); ?>" 
-                         class="carousel slide" 
-                         data-bs-ride="carousel">
-                        <div class="carousel-inner">
-                            <?php foreach ($imagenes_categoria as $index => $imagen): ?>
-                            <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-8 col-md-10">
-                                        <div class="card shadow-lg">
-                                            <div class="gallery-image position-relative">
-                                                <img src="/admin/uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
-                                                     class="card-img-top" 
-                                                     alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
-                                                     style="height: 400px; object-fit: cover;"
-                                                     data-bs-toggle="modal" 
-                                                     data-bs-target="#imageModal"
-                                                     onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria')">
-                                                <div class="gallery-overlay">
-                                                    <button type="button" 
-                                                            class="btn btn-light btn-lg" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#imageModal"
-                                                            onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria')">
-                                                        <i class="fas fa-search-plus me-2"></i>Ver en Grande
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="card-body text-center">
-                                                <h5 class="card-title"><?php echo htmlspecialchars($imagen['titulo']); ?></h5>
-                                                <?php if ($imagen['descripcion']): ?>
-                                                    <p class="card-text text-muted">
-                                                        <?php echo htmlspecialchars($imagen['descripcion']); ?>
-                                                    </p>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
+                    <!-- Grid de imágenes para esta categoría -->
+                    <div class="row gallery-grid">
+                        <?php foreach ($imagenes_categoria as $imagen): ?>
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <div class="card h-100 shadow-sm gallery-item">
+                                <div class="gallery-image">
+                                    <img src="/admin/uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
+                                         class="card-img-top" 
+                                         alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
+                                         style="height: 200px; object-fit: cover;"
+                                         data-bs-toggle="modal" 
+                                         data-bs-target="#imageModal"
+                                         onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
+                                    <div class="gallery-overlay">
+                                        <button type="button" 
+                                                class="btn btn-light btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#imageModal"
+                                                onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
+                                            <i class="fas fa-search-plus me-1"></i>Ver
+                                        </button>
                                     </div>
                                 </div>
+                                <div class="card-body">
+                                    <h6 class="card-title"><?php echo htmlspecialchars($imagen['titulo']); ?></h6>
+                                    <?php if ($imagen['descripcion']): ?>
+                                        <p class="card-text text-muted small">
+                                            <?php echo htmlspecialchars(substr($imagen['descripcion'], 0, 80)); ?>
+                                            <?php if (strlen($imagen['descripcion']) > 80): ?>...<?php endif; ?>
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <?php endforeach; ?>
                         </div>
-                        
-                        <!-- Controles del carrusel -->
-                        <?php if (count($imagenes_categoria) > 1): ?>
-                        <button class="carousel-control-prev" 
-                                type="button" 
-                                data-bs-target="#carousel-<?php echo preg_replace('/[^a-zA-Z0-9]/', '', $categoria_nombre); ?>" 
-                                data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Anterior</span>
-                        </button>
-                        <button class="carousel-control-next" 
-                                type="button" 
-                                data-bs-target="#carousel-<?php echo preg_replace('/[^a-zA-Z0-9]/', '', $categoria_nombre); ?>" 
-                                data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Siguiente</span>
-                        </button>
-                        
-                        <!-- Indicadores del carrusel -->
-                        <div class="carousel-indicators">
-                            <?php foreach ($imagenes_categoria as $index => $imagen): ?>
-                            <button type="button" 
-                                    data-bs-target="#carousel-<?php echo preg_replace('/[^a-zA-Z0-9]/', '', $categoria_nombre); ?>" 
-                                    data-bs-slide-to="<?php echo $index; ?>" 
-                                    class="<?php echo $index === 0 ? 'active' : ''; ?>" 
-                                    aria-current="<?php echo $index === 0 ? 'true' : 'false'; ?>" 
-                                    aria-label="Imagen <?php echo $index + 1; ?>">
-                            </button>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -172,17 +134,36 @@ require_once 'includes/public_header.php';
     </section>
     <?php endif; ?>
 
-    <!-- Modal para ver imagen -->
+    <!-- Modal para ver imagen con carrusel -->
     <div class="modal fade" id="imageModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalTitle">Imagen</h5>
+                    <h5 class="modal-title" id="imageModalTitle">Galería de Imágenes</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="imageModalImage" src="" class="img-fluid rounded" alt="">
-                    <p id="imageModalDescription" class="mt-3 text-muted"></p>
+                <div class="modal-body">
+                    <!-- Carrusel dentro del modal -->
+                    <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="modalCarouselInner">
+                            <!-- Las imágenes se cargarán dinámicamente aquí -->
+                        </div>
+                        
+                        <!-- Controles del carrusel -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        
+                        <!-- Indicadores del carrusel -->
+                        <div class="carousel-indicators" id="modalCarouselIndicators">
+                            <!-- Los indicadores se cargarán dinámicamente aquí -->
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -279,8 +260,81 @@ require_once 'includes/public_header.php';
     </style>
     
     <script>
-    // Función para abrir modal de imagen
-    function openImageModal(imageSrc, title, description, type = 'productos') {
+    // Datos de la galería para JavaScript
+    const galeriaData = <?php echo json_encode($galeria_por_categoria); ?>;
+    
+    // Función para abrir modal de imagen con carrusel
+    function openImageModal(imageSrc, title, description, type = 'productos', categoria = '') {
+        if (type === 'galeria' && categoria && galeriaData[categoria]) {
+            // Crear carrusel con todas las imágenes de la categoría
+            createModalCarousel(galeriaData[categoria], imageSrc);
+            document.getElementById('imageModalTitle').textContent = categoria;
+        } else {
+            // Mostrar imagen individual
+            showSingleImage(imageSrc, title, description, type);
+        }
+    }
+    
+    // Función para crear carrusel en el modal
+    function createModalCarousel(imagenes, currentImageSrc) {
+        const carouselInner = document.getElementById('modalCarouselInner');
+        const carouselIndicators = document.getElementById('modalCarouselIndicators');
+        
+        // Limpiar contenido anterior
+        carouselInner.innerHTML = '';
+        carouselIndicators.innerHTML = '';
+        
+        // Encontrar el índice de la imagen actual
+        let currentIndex = 0;
+        imagenes.forEach((imagen, index) => {
+            if (imagen.imagen === currentImageSrc) {
+                currentIndex = index;
+            }
+        });
+        
+        // Crear slides del carrusel
+        imagenes.forEach((imagen, index) => {
+            const isActive = index === currentIndex ? 'active' : '';
+            
+            const slide = document.createElement('div');
+            slide.className = `carousel-item ${isActive}`;
+            slide.innerHTML = `
+                <div class="text-center">
+                    <img src="/admin/uploads/galeria/${imagen.imagen}" 
+                         class="img-fluid rounded" 
+                         alt="${imagen.titulo}"
+                         style="max-height: 70vh; object-fit: contain;">
+                    <div class="mt-3">
+                        <h5>${imagen.titulo}</h5>
+                        ${imagen.descripcion ? `<p class="text-muted">${imagen.descripcion}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            carouselInner.appendChild(slide);
+            
+            // Crear indicador
+            const indicator = document.createElement('button');
+            indicator.type = 'button';
+            indicator.setAttribute('data-bs-target', '#modalCarousel');
+            indicator.setAttribute('data-bs-slide-to', index);
+            indicator.className = isActive ? 'active' : '';
+            indicator.setAttribute('aria-current', isActive ? 'true' : 'false');
+            indicator.setAttribute('aria-label', `Imagen ${index + 1}`);
+            carouselIndicators.appendChild(indicator);
+        });
+        
+        // Reinicializar el carrusel
+        const carousel = new bootstrap.Carousel(document.getElementById('modalCarousel'), {
+            interval: false, // Desactivar auto-play
+            wrap: true
+        });
+        
+        // Ir a la imagen actual
+        carousel.to(currentIndex);
+    }
+    
+    // Función para mostrar imagen individual
+    function showSingleImage(imageSrc, title, description, type) {
         let imagePath = '';
         if (type === 'galeria') {
             imagePath = '/admin/uploads/galeria/' + imageSrc;
@@ -288,14 +342,29 @@ require_once 'includes/public_header.php';
             imagePath = '/admin/uploads/productos/' + imageSrc;
         }
         
-        document.getElementById('imageModalImage').src = imagePath;
+        const carouselInner = document.getElementById('modalCarouselInner');
+        carouselInner.innerHTML = `
+            <div class="carousel-item active">
+                <div class="text-center">
+                    <img src="${imagePath}" 
+                         class="img-fluid rounded" 
+                         alt="${title}"
+                         style="max-height: 70vh; object-fit: contain;">
+                    <div class="mt-3">
+                        <h5>${title}</h5>
+                        ${description ? `<p class="text-muted">${description}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        
         document.getElementById('imageModalTitle').textContent = title;
-        document.getElementById('imageModalDescription').textContent = description;
     }
     
     // Función para compartir imagen
     function shareImage() {
-        const imageSrc = document.getElementById('imageModalImage').src;
+        const activeSlide = document.querySelector('#modalCarousel .carousel-item.active img');
+        const imageSrc = activeSlide ? activeSlide.src : '';
         const title = document.getElementById('imageModalTitle').textContent;
         
         if (navigator.share) {
@@ -306,53 +375,27 @@ require_once 'includes/public_header.php';
             });
         } else {
             // Fallback para navegadores que no soportan Web Share API
-            copyToClipboard(window.location.href);
+            if (imageSrc) {
+                copyToClipboard(imageSrc);
+            } else {
+                copyToClipboard(window.location.href);
+            }
         }
     }
     
-    // Inicializar carruseles con configuración personalizada
+    // Función auxiliar para copiar al portapapeles
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('Enlace copiado al portapapeles');
+        }, function(err) {
+            console.error('Error al copiar: ', err);
+        });
+    }
+    
+    // Inicializar funcionalidades
     document.addEventListener('DOMContentLoaded', function() {
-        // Configurar todos los carruseles
-        const carousels = document.querySelectorAll('.carousel');
-        carousels.forEach(function(carousel) {
-            // Pausar carrusel al hacer hover
-            carousel.addEventListener('mouseenter', function() {
-                const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-                if (bsCarousel) {
-                    bsCarousel.pause();
-                }
-            });
-            
-            // Reanudar carrusel al quitar hover
-            carousel.addEventListener('mouseleave', function() {
-                const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-                if (bsCarousel) {
-                    bsCarousel.cycle();
-                }
-            });
-            
-            // Configurar intervalo de cambio automático (5 segundos)
-            const bsCarousel = new bootstrap.Carousel(carousel, {
-                interval: 5000,
-                wrap: true
-            });
-        });
-        
-        // Agregar animación suave a los indicadores
-        const indicators = document.querySelectorAll('.carousel-indicators button');
-        indicators.forEach(function(indicator) {
-            indicator.addEventListener('click', function() {
-                // Remover clase active de todos los indicadores
-                indicators.forEach(function(ind) {
-                    ind.classList.remove('active');
-                    ind.setAttribute('aria-current', 'false');
-                });
-                
-                // Agregar clase active al indicador clickeado
-                this.classList.add('active');
-                this.setAttribute('aria-current', 'true');
-            });
-        });
+        console.log('Galería cargada correctamente');
+        console.log('Datos de galería:', galeriaData);
     });
     </script>
 </body>
