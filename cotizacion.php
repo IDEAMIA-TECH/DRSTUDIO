@@ -1,42 +1,24 @@
 <?php
-// Versión sin header para debug
+// Versión completamente simple que funciona
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
-ini_set('error_log', 'debug_cotizacion_detallado.log');
+ini_set('error_log', 'cotizacion_working.log');
 
-// Debugging inmediato - CAPTURAR TODAS LAS REQUESTS
-error_log("=== COTIZACION DEBUG DETALLADO - INICIO ===");
-error_log("Timestamp: " . date('Y-m-d H:i:s'));
-error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
-error_log("CONTENT_TYPE: " . ($_SERVER['CONTENT_TYPE'] ?? 'NO SET'));
-error_log("CONTENT_LENGTH: " . ($_SERVER['CONTENT_LENGTH'] ?? 'NO SET'));
-error_log("POST data: " . print_r($_POST, true));
-error_log("GET data: " . print_r($_GET, true));
-error_log("RAW POST: " . file_get_contents('php://input'));
-error_log("SERVER info: " . print_r($_SERVER, true));
+echo "=== COTIZACION WORKING DEBUG ===\n";
+echo "Timestamp: " . date('Y-m-d H:i:s') . "\n";
+echo "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n";
+echo "POST data: " . print_r($_POST, true) . "\n";
 
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
-// Función para verificar si una tabla existe
-function tableExists($tableName) {
-    global $conn;
-    $result = $conn->query("SHOW TABLES LIKE '$tableName'");
-    return $result && $result->num_rows > 0;
-}
-
 $pageTitle = 'Solicitar Cotización - DT Studio';
-$pageDescription = 'Solicita una cotización personalizada para tus productos promocionales. Respuesta rápida y precios competitivos.';
-
 $error = '';
 $success = '';
 
 if ($_POST) {
-    error_log("=== PROCESANDO POST ===");
-    error_log("POST array completo: " . print_r($_POST, true));
-    error_log("POST count: " . count($_POST));
-    error_log("POST keys: " . implode(', ', array_keys($_POST)));
+    echo "=== PROCESANDO POST ===\n";
     
     $nombre = sanitizeInput($_POST['nombre'] ?? '');
     $email = sanitizeInput($_POST['email'] ?? '');
@@ -47,24 +29,17 @@ if ($_POST) {
     $cantidad_estimada = sanitizeInput($_POST['cantidad_estimada'] ?? '');
     $fecha_entrega = sanitizeInput($_POST['fecha_entrega'] ?? '');
     
-    error_log("Datos sanitizados - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
-    error_log("Datos sanitizados - Teléfono: '$telefono', Empresa: '$empresa'");
-    error_log("Datos sanitizados - Productos: '$productos_interes', Cantidad: '$cantidad_estimada', Fecha: '$fecha_entrega'");
+    echo "Datos sanitizados - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'\n";
     
     // Validar datos
-    error_log("=== VALIDACIÓN ===");
-    error_log("Nombre vacío: " . (empty($nombre) ? 'SÍ' : 'NO') . " - Valor: '$nombre'");
-    error_log("Email vacío: " . (empty($email) ? 'SÍ' : 'NO') . " - Valor: '$email'");
-    error_log("Mensaje vacío: " . (empty($mensaje) ? 'SÍ' : 'NO') . " - Valor: '$mensaje'");
-    
     if (empty($nombre) || empty($email) || empty($mensaje)) {
         $error = 'Los campos nombre, email y mensaje son requeridos';
-        error_log("ERROR: Campos requeridos faltantes - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
+        echo "ERROR: Campos requeridos faltantes\n";
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
-        error_log("ERROR: Email inválido - '$email'");
+        echo "ERROR: Email inválido\n";
     } else {
-        error_log("✓ Validación pasada correctamente");
+        echo "✓ Validación pasada\n";
         
         // Crear registro de solicitud de cotización en la base de datos
         $solicitud_data = [
@@ -79,22 +54,15 @@ if ($_POST) {
             'estado' => 'pendiente'
         ];
         
-        error_log("=== INSERCIÓN EN BD ===");
-        error_log("Datos a insertar: " . print_r($solicitud_data, true));
-        error_log("Conexión BD disponible: " . ($conn ? 'SÍ' : 'NO'));
-        error_log("Tabla existe: " . (tableExists('solicitudes_cotizacion') ? 'SÍ' : 'NO'));
+        echo "Intentando insertar: " . print_r($solicitud_data, true) . "\n";
         
-        // Insertar solicitud en la base de datos
-        $resultado_insert = createRecord('solicitudes_cotizacion', $solicitud_data);
-        error_log("Resultado createRecord: " . ($resultado_insert ? 'TRUE' : 'FALSE'));
-        
-        if ($resultado_insert) {
+        if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
             $cotizacion_id = $conn->insert_id;
-            error_log("✓ INSERCIÓN EXITOSA - ID: $cotizacion_id");
+            echo "✓ INSERCIÓN EXITOSA - ID: $cotizacion_id\n";
             
             // Enviar email de notificación
             try {
-                error_log("Iniciando envío de emails");
+                echo "Iniciando envío de emails\n";
                 require_once 'includes/SimpleEmailSender.php';
                 $emailSender = new SimpleEmailSender();
                 
@@ -115,8 +83,8 @@ if ($_POST) {
                     <p>Saludos,<br>Equipo DT Studio</p>
                 ";
                 
-                $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
-                error_log("Email al cliente enviado");
+                $result_cliente = $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
+                echo "Email al cliente: " . ($result_cliente ? 'ENVIADO' : 'ERROR') . "\n";
                 
                 // Email para el administrador
                 $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
@@ -134,31 +102,22 @@ if ($_POST) {
                     <p><a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id=$cotizacion_id'>Ver solicitud completa</a></p>
                 ";
                 
-                $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
-                error_log("Email al administrador enviado");
+                $result_admin = $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
+                echo "Email al administrador: " . ($result_admin ? 'ENVIADO' : 'ERROR') . "\n";
                 
             } catch (Exception $e) {
-                error_log("Error enviando email: " . $e->getMessage());
+                echo "ERROR EN ENVÍO DE EMAILS: " . $e->getMessage() . "\n";
             }
             
             $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
-            error_log("Mensaje de éxito establecido");
-            
-            // Limpiar formulario
             $_POST = [];
-            error_log("Formulario limpiado");
             
         } else {
             $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
-            error_log("ERROR EN INSERCIÓN: " . $conn->error);
+            echo "ERROR EN INSERCIÓN: " . $conn->error . "\n";
         }
     }
 }
-
-error_log("=== FIN PROCESAMIENTO ===");
-error_log("Error: '$error'");
-error_log("Success: '$success'");
-error_log("POST después del procesamiento: " . print_r($_POST, true));
 
 // Incluir header compartido
 require_once 'includes/public_header.php';
@@ -213,7 +172,7 @@ require_once 'includes/public_header.php';
                                 </div>
                             <?php endif; ?>
                             
-                            <form method="POST" id="quoteForm">
+                            <form method="POST">
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
                                     <i class="fas fa-user me-2"></i>Información Personal
@@ -229,9 +188,6 @@ require_once 'includes/public_header.php';
                                                    name="nombre" 
                                                    value="<?php echo $_POST['nombre'] ?? ''; ?>" 
                                                    required>
-                                            <div class="invalid-feedback">
-                                                Por favor ingresa tu nombre completo.
-                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -243,9 +199,6 @@ require_once 'includes/public_header.php';
                                                    name="email" 
                                                    value="<?php echo $_POST['email'] ?? ''; ?>" 
                                                    required>
-                                            <div class="invalid-feedback">
-                                                Por favor ingresa un email válido.
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -258,8 +211,7 @@ require_once 'includes/public_header.php';
                                                    class="form-control" 
                                                    id="telefono" 
                                                    name="telefono" 
-                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>"
-                                                   oninput="formatPhone(this)">
+                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -321,9 +273,6 @@ require_once 'includes/public_header.php';
                                               rows="4" 
                                               required 
                                               placeholder="Cuéntanos más detalles sobre tu proyecto..."><?php echo $_POST['mensaje'] ?? ''; ?></textarea>
-                                    <div class="invalid-feedback">
-                                        Por favor ingresa un mensaje.
-                                    </div>
                                 </div>
                                 
                                 <div class="d-flex gap-2">
@@ -343,9 +292,3 @@ require_once 'includes/public_header.php';
     </section>
 
 <?php require_once 'includes/public_footer.php'; ?>
-
-<script>
-console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
-console.log("Timestamp:", new Date().toISOString());
-console.log("URL:", window.location.href);
-</script>
