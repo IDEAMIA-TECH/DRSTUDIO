@@ -83,53 +83,45 @@ require_once 'includes/public_header.php';
                 </div>
             </div>
             
-            <?php foreach ($galeria_por_categoria as $categoria_nombre => $imagenes_categoria): ?>
-            <div class="row mb-5">
-                <div class="col-12">
-                    <h3 class="h4 mb-4 text-center">
-                        <i class="fas fa-folder me-2"></i><?php echo htmlspecialchars($categoria_nombre); ?>
-                        <span class="badge bg-secondary ms-2"><?php echo count($imagenes_categoria); ?> imágenes</span>
-                    </h3>
-                    
-                    <!-- Grid de imágenes para esta categoría -->
-                    <div class="row gallery-grid">
-                        <?php foreach ($imagenes_categoria as $imagen): ?>
-                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <div class="card h-100 shadow-sm gallery-item">
-                                <div class="gallery-image">
-                                    <img src="/admin/uploads/galeria/<?php echo htmlspecialchars($imagen['imagen']); ?>" 
-                                         class="card-img-top" 
-                                         alt="<?php echo htmlspecialchars($imagen['titulo']); ?>"
-                                         style="height: 200px; object-fit: cover;"
-                                         data-bs-toggle="modal" 
-                                         data-bs-target="#imageModal"
-                                         onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
-                                    <div class="gallery-overlay">
-                                        <button type="button" 
-                                                class="btn btn-light btn-sm" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#imageModal"
-                                                onclick="openImageModal('<?php echo htmlspecialchars($imagen['imagen']); ?>', '<?php echo htmlspecialchars($imagen['titulo']); ?>', '<?php echo htmlspecialchars($imagen['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
-                                            <i class="fas fa-search-plus me-1"></i>Ver
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <h6 class="card-title"><?php echo htmlspecialchars($imagen['titulo']); ?></h6>
-                                    <?php if ($imagen['descripcion']): ?>
-                                        <p class="card-text text-muted small">
-                                            <?php echo htmlspecialchars(substr($imagen['descripcion'], 0, 80)); ?>
-                                            <?php if (strlen($imagen['descripcion']) > 80): ?>...<?php endif; ?>
-                                        </p>
-                                    <?php endif; ?>
-                                </div>
+            <!-- Grid de categorías con una imagen representativa cada una -->
+            <div class="row gallery-grid">
+                <?php foreach ($galeria_por_categoria as $categoria_nombre => $imagenes_categoria): ?>
+                <?php $imagen_representativa = $imagenes_categoria[0]; // Primera imagen de la categoría ?>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm gallery-item">
+                        <div class="gallery-image">
+                            <img src="/admin/uploads/galeria/<?php echo htmlspecialchars($imagen_representativa['imagen']); ?>" 
+                                 class="card-img-top" 
+                                 alt="<?php echo htmlspecialchars($categoria_nombre); ?>"
+                                 style="height: 250px; object-fit: cover;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#imageModal"
+                                 onclick="openImageModal('<?php echo htmlspecialchars($imagen_representativa['imagen']); ?>', '<?php echo htmlspecialchars($imagen_representativa['titulo']); ?>', '<?php echo htmlspecialchars($imagen_representativa['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
+                            <div class="gallery-overlay">
+                                <button type="button" 
+                                        class="btn btn-light btn-lg" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#imageModal"
+                                        onclick="openImageModal('<?php echo htmlspecialchars($imagen_representativa['imagen']); ?>', '<?php echo htmlspecialchars($imagen_representativa['titulo']); ?>', '<?php echo htmlspecialchars($imagen_representativa['descripcion']); ?>', 'galeria', '<?php echo htmlspecialchars($categoria_nombre); ?>')">
+                                    <i class="fas fa-images me-2"></i>Ver Galería
+                                </button>
                             </div>
                         </div>
-                        <?php endforeach; ?>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">
+                                <i class="fas fa-folder me-2"></i><?php echo htmlspecialchars($categoria_nombre); ?>
+                            </h5>
+                            <p class="card-text text-muted">
+                                <span class="badge bg-primary"><?php echo count($imagenes_categoria); ?> imágenes</span>
+                            </p>
+                            <p class="card-text small text-muted">
+                                Haz clic para ver todas las imágenes de esta categoría
+                            </p>
+                        </div>
                     </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
         </div>
     </section>
     <?php endif; ?>
@@ -144,7 +136,7 @@ require_once 'includes/public_header.php';
                 </div>
                 <div class="modal-body">
                     <!-- Carrusel dentro del modal -->
-                    <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div id="modalCarousel" class="carousel slide" data-bs-ride="false">
                         <div class="carousel-inner" id="modalCarouselInner">
                             <!-- Las imágenes se cargarán dinámicamente aquí -->
                         </div>
@@ -257,6 +249,30 @@ require_once 'includes/public_header.php';
     .card:hover {
         transform: translateY(-5px);
     }
+    
+    /* Estilos específicos para las tarjetas de categoría */
+    .gallery-item .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--bs-primary);
+    }
+    
+    .gallery-item .gallery-overlay button {
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 2rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .gallery-item .gallery-overlay button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .gallery-item .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
     </style>
     
     <script>
@@ -326,7 +342,9 @@ require_once 'includes/public_header.php';
         // Reinicializar el carrusel
         const carousel = new bootstrap.Carousel(document.getElementById('modalCarousel'), {
             interval: false, // Desactivar auto-play
-            wrap: true
+            wrap: true,
+            touch: true, // Habilitar navegación táctil
+            keyboard: true // Habilitar navegación por teclado
         });
         
         // Ir a la imagen actual
