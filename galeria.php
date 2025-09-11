@@ -283,9 +283,9 @@ require_once 'includes/public_header.php';
     function openImageModal(imageSrc, title, description, type = 'productos') {
         let imagePath = '';
         if (type === 'galeria') {
-            imagePath = 'uploads/galeria/' + imageSrc;
+            imagePath = '/admin/uploads/galeria/' + imageSrc;
         } else {
-            imagePath = 'uploads/productos/' + imageSrc;
+            imagePath = '/admin/uploads/productos/' + imageSrc;
         }
         
         document.getElementById('imageModalImage').src = imagePath;
