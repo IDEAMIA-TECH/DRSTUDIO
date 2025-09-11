@@ -5,13 +5,26 @@ require_once 'includes/functions.php';
 $pageTitle = 'Solicitar Cotización - DT Studio';
 $pageDescription = 'Solicita una cotización personalizada para tus productos promocionales. Respuesta rápida y precios competitivos.';
 
+// Obtener producto preseleccionado si viene por GET
+$producto_preseleccionado = $_GET['producto'] ?? '';
+$producto_info = null;
+
+if ($producto_preseleccionado) {
+    $producto_info = getRecord('productos', $producto_preseleccionado);
+    if (!$producto_info || !$producto_info['activo']) {
+        $producto_info = null;
+        $producto_preseleccionado = '';
+    }
+}
+
 $error = '';
 $success = '';
 
 if ($_POST) {
-    error_log("=== COTIZACION FORM DEBUG ===");
+    // Log detallado del proceso
+    error_log("=== COTIZACION FORM DEBUG (WEB) ===");
     error_log("Timestamp: " . date('Y-m-d H:i:s'));
-    error_log("POST data: " . print_r($_POST, true));
+    error_log("POST data recibido: " . print_r($_POST, true));
     
     $nombre = sanitizeInput($_POST['nombre']);
     $email = sanitizeInput($_POST['email']);
@@ -27,13 +40,12 @@ if ($_POST) {
     // Validar datos
     if (empty($nombre) || empty($email) || empty($mensaje)) {
         $error = 'Los campos nombre, email y mensaje son requeridos';
-        error_log("ERROR: Campos requeridos faltantes");
+        error_log("ERROR: Campos requeridos faltantes - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
-        error_log("ERROR: Email inválido");
+        error_log("ERROR: Email inválido - '$email'");
     } else {
-        error_log("✓ Validación pasada");
-        
+        error_log("✓ Validación pasada correctamente");
         // Crear registro de solicitud de cotización en la base de datos
         $solicitud_data = [
             'cliente_nombre' => $nombre,
@@ -47,9 +59,12 @@ if ($_POST) {
             'estado' => 'pendiente'
         ];
         
-        error_log("Intentando insertar: " . print_r($solicitud_data, true));
+        // Insertar solicitud en la base de datos
+        error_log("Intentando insertar en BD - Datos: " . print_r($solicitud_data, true));
+        error_log("Conexión BD: " . ($conn ? 'OK' : 'ERROR'));
         
         if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
+            // Obtener el ID de la cotización recién creada
             $cotizacion_id = $conn->insert_id;
             error_log("✓ INSERCIÓN EXITOSA - ID: $cotizacion_id");
             
@@ -104,15 +119,19 @@ if ($_POST) {
                 error_log("=== FIN ENVÍO DE EMAILS ===");
                 
             } catch (Exception $e) {
+                // Si falla el email, aún así mostrar éxito pero logear el error
                 error_log("ERROR EN ENVÍO DE EMAILS: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
             }
             
             $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
-            $_POST = [];
             
+            // Limpiar formulario
+            $_POST = [];
         } else {
             $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
             error_log("✗ ERROR EN INSERCIÓN - MySQL Error: " . $conn->error);
+            error_log("✗ ERROR EN INSERCIÓN - MySQL Errno: " . $conn->errno);
         }
     }
 }
@@ -170,7 +189,32 @@ require_once 'includes/public_header.php';
                                 </div>
                             <?php endif; ?>
                             
-                            <form method="POST" id="quoteForm">
+                            <?php if ($producto_info): ?>
+                            <!-- Producto Preseleccionado -->
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <h5 class="mb-0">Producto de Interés</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-2"><?php echo htmlspecialchars($producto_info['nombre']); ?></h6>
+                                        <p class="text-muted mb-2"><?php echo htmlspecialchars(substr($producto_info['descripcion'], 0, 150)); ?>...</p>
+                                        <div class="d-flex align-items-center">
+                                            <span class="h6 text-primary mb-0 me-3">$<?php echo number_format($producto_info['precio_venta'], 2); ?></span>
+                                            <small class="text-muted">SKU: <?php echo htmlspecialchars($producto_info['sku']); ?></small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <a href="producto.php?id=<?php echo $producto_info['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Ver Detalles
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <form method="POST" id="quoteForm" class="needs-validation" novalidate onsubmit="return handleFormSubmit(event)">
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
                                     <i class="fas fa-user me-2"></i>Información Personal
@@ -186,6 +230,9 @@ require_once 'includes/public_header.php';
                                                    name="nombre" 
                                                    value="<?php echo $_POST['nombre'] ?? ''; ?>" 
                                                    required>
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa tu nombre completo.
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -197,6 +244,9 @@ require_once 'includes/public_header.php';
                                                    name="email" 
                                                    value="<?php echo $_POST['email'] ?? ''; ?>" 
                                                    required>
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa un email válido.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +259,8 @@ require_once 'includes/public_header.php';
                                                    class="form-control" 
                                                    id="telefono" 
                                                    name="telefono" 
-                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>">
+                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>"
+                                                   oninput="formatPhone(this)">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -236,7 +287,15 @@ require_once 'includes/public_header.php';
                                               id="productos_interes" 
                                               name="productos_interes" 
                                               rows="3" 
-                                              placeholder="Describe los productos que te interesan..."><?php echo $_POST['productos_interes'] ?? ''; ?></textarea>
+                                              placeholder="Describe los productos que te interesan..."><?php 
+                                              if ($_POST['productos_interes'] ?? '') {
+                                                  echo $_POST['productos_interes'];
+                                              } elseif ($producto_info) {
+                                                  echo "Interesado en: " . htmlspecialchars($producto_info['nombre']) . " (SKU: " . htmlspecialchars($producto_info['sku']) . ")\n";
+                                                  echo "Precio: $" . number_format($producto_info['precio_venta'], 2) . "\n";
+                                                  echo "Descripción: " . htmlspecialchars(substr($producto_info['descripcion'], 0, 200));
+                                              }
+                                              ?></textarea>
                                 </div>
                                 
                                 <div class="row">
@@ -271,6 +330,9 @@ require_once 'includes/public_header.php';
                                               rows="4" 
                                               required 
                                               placeholder="Cuéntanos más detalles sobre tu proyecto..."><?php echo $_POST['mensaje'] ?? ''; ?></textarea>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa un mensaje.
+                                    </div>
                                 </div>
                                 
                                 <div class="d-flex gap-2">
@@ -345,10 +407,138 @@ require_once 'includes/public_header.php';
         </div>
     </section>
 
+    <!-- Process Section -->
+    <section class="process-section py-5 bg-light">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <h3 class="display-6 fw-bold mb-3">Nuestro Proceso</h3>
+                    <p class="lead text-muted">Así es como trabajamos contigo</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="text-center">
+                        <div class="process-step bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <span class="h4 mb-0">1</span>
+                        </div>
+                        <h5>Solicita Cotización</h5>
+                        <p class="text-muted">Completa nuestro formulario con los detalles de tu proyecto</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="text-center">
+                        <div class="process-step bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <span class="h4 mb-0">2</span>
+                        </div>
+                        <h5>Revisión y Análisis</h5>
+                        <p class="text-muted">Nuestro equipo revisa tu solicitud y analiza los requerimientos</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="text-center">
+                        <div class="process-step bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <span class="h4 mb-0">3</span>
+                        </div>
+                        <h5>Cotización Personalizada</h5>
+                        <p class="text-muted">Te enviamos una cotización detallada con precios y tiempos</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="text-center">
+                        <div class="process-step bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <span class="h4 mb-0">4</span>
+                        </div>
+                        <h5>Producción y Entrega</h5>
+                        <p class="text-muted">Producimos tus productos y los entregamos a tiempo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="display-6 fw-bold mb-3">¿Tienes Preguntas?</h2>
+                    <p class="lead mb-0">Nuestro equipo está listo para ayudarte. Contáctanos directamente.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="contacto.php" class="btn btn-light btn-lg">
+                        <i class="fas fa-envelope me-2"></i>Contactar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
 <?php require_once 'includes/public_footer.php'; ?>
 
 <script>
+// Función para manejar el envío del formulario con logging
+function handleFormSubmit(event) {
+    console.log("=== FORMULARIO COTIZACIÓN - INICIO ===");
+    console.log("Timestamp:", new Date().toISOString());
+    
+    // Obtener datos del formulario
+    const formData = new FormData(event.target);
+    const formObject = {};
+    
+    console.log("Datos del formulario:");
+    for (let [key, value] of formData.entries()) {
+        formObject[key] = value;
+        console.log(`  ${key}: ${value}`);
+    }
+    
+    // Validar campos requeridos
+    const nombre = formData.get('nombre');
+    const email = formData.get('email');
+    const mensaje = formData.get('mensaje');
+    
+    console.log("Validación de campos requeridos:");
+    console.log(`  Nombre: "${nombre}" (${nombre ? 'OK' : 'FALTA'})`);
+    console.log(`  Email: "${email}" (${email ? 'OK' : 'FALTA'})`);
+    console.log(`  Mensaje: "${mensaje}" (${mensaje ? 'OK' : 'FALTA'})`);
+    
+    if (!nombre || !email || !mensaje) {
+        console.error("✗ ERROR: Campos requeridos faltantes");
+        return true; // Dejar que el navegador maneje la validación
+    }
+    
+    console.log("✓ Validación de campos pasada");
+    console.log("Enviando formulario...");
+    
+    // Mostrar indicador de carga
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    submitBtn.disabled = true;
+    
+    // Log cuando se complete el envío
+    setTimeout(() => {
+        console.log("Formulario enviado, esperando respuesta...");
+    }, 100);
+    
+    return true; // Permitir el envío del formulario
+}
+
+// Log cuando se carga la página
 console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
 console.log("Timestamp:", new Date().toISOString());
 console.log("URL:", window.location.href);
+console.log("User Agent:", navigator.userAgent);
+
+// Log de errores de JavaScript
+window.addEventListener('error', function(e) {
+    console.error("JavaScript Error:", e.error);
+    console.error("File:", e.filename, "Line:", e.lineno);
+});
+
+// Log de errores de red
+window.addEventListener('unhandledrejection', function(e) {
+    console.error("Unhandled Promise Rejection:", e.reason);
+});
 </script>
