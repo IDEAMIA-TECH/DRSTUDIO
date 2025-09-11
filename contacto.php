@@ -48,15 +48,12 @@ require_once 'includes/public_header.php';
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section bg-primary text-white py-5">
+    <section class="hero-section bg-primary text-white py-4" style="background: linear-gradient(rgba(0, 123, 255, 0.8), rgba(0, 123, 255, 0.8)), url('https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center/cover;">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-color);">Contáctanos</h1>
-                    <p class="lead mb-4">¿Tienes alguna pregunta? ¿Necesitas una cotización personalizada? Estamos aquí para ayudarte.</p>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <i class="fas fa-envelope fa-8x opacity-75"></i>
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3">Contáctanos</h1>
+                    <p class="lead mb-0">¿Tienes alguna pregunta? ¿Necesitas una cotización personalizada? Estamos aquí para ayudarte.</p>
                 </div>
             </div>
         </div>
@@ -231,21 +228,6 @@ require_once 'includes/public_header.php';
         </div>
     </section>
 
-    <!-- Map Section -->
-    <section class="map-section py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h3 class="text-center mb-4">Nuestra Ubicación</h3>
-                    <div class="map-placeholder bg-primary text-white text-center py-5 rounded">
-                        <i class="fas fa-map fa-3x mb-3"></i>
-                        <h5>Mapa Interactivo</h5>
-                        <p class="mb-0">Aquí se mostraría un mapa de Google Maps</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- CTA Section -->
     <section class="cta-section py-5 bg-primary text-white">
