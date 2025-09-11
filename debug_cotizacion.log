@@ -1,0 +1,109 @@
+[2025-09-11 18:26:05] === INICIANDO VERIFICACIÓN DE LOGS ===
+[2025-09-11 18:26:05] PHP Error Log: 
+[2025-09-11 18:26:05] Log Errors: ON
+[2025-09-11 18:26:05] Display Errors: ON
+[2025-09-11 18:26:05] Verificando rutas de log:
+[2025-09-11 18:26:05] ✗ Log no encontrado: 
+[2025-09-11 18:26:05] ✗ Log no encontrado: /var/log/apache2/error.log
+[2025-09-11 18:26:05] ✗ Log no encontrado: /var/log/nginx/error.log
+[2025-09-11 18:26:05] ✗ Log no encontrado: /home/dtstudio/public_html/error.log
+[2025-09-11 18:26:05] ✗ Log no encontrado: error.log
+[2025-09-11 18:26:05] === FIN VERIFICACIÓN DE LOGS ===
+[11-Sep-2025 18:26:20 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/test_form_with_logs.php:6) in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/cotizacion.php on line 3
+[11-Sep-2025 18:26:20 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/includes/config.php on line 17
+[11-Sep-2025 18:26:20 UTC] === COTIZACION FORM DEBUG (WEB) ===
+[11-Sep-2025 18:26:20 UTC] Timestamp: 2025-09-11 18:26:20
+[11-Sep-2025 18:26:20 UTC] POST data recibido: Array
+(
+    [nombre] => Test Logs Form
+    [email] => testlogs@example.com
+    [telefono] => 1234567890
+    [empresa] => Test Logs Company
+    [mensaje] => Mensaje de prueba con logs
+    [productos_interes] => Productos de prueba con logs
+    [cantidad_estimada] => 100 unidades
+    [fecha_entrega] => 2024-12-31
+)
+
+[11-Sep-2025 18:26:20 UTC] Server info: Array
+(
+    [MallocNanoZone] => 0
+    [USER] => gorila
+    [SECURITYSESSIONID] => 186b5
+    [COMMAND_MODE] => unix2003
+    [__CFBundleIdentifier] => com.todesktop.230313mzl4w4u92
+    [PATH] => /opt/homebrew/opt/ruby/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/opt/ruby/bin
+    [HOME] => /Users/gorila
+    [SHELL] => /bin/zsh
+    [LaunchInstanceID] => 7E150172-A714-4744-A20F-D1ACE7B56E41
+    [__CF_USER_TEXT_ENCODING] => 0x1F5:0x0:0x0
+    [XPC_SERVICE_NAME] => 0
+    [SSH_AUTH_SOCK] => /private/tmp/com.apple.launchd.TAMMQ23RCj/Listeners
+    [XPC_FLAGS] => 0x0
+    [LOGNAME] => gorila
+    [TMPDIR] => /var/folders/ft/w53nfp8962zbbytbhd8d9j4w0000gn/T/
+    [ORIGINAL_XDG_CURRENT_DESKTOP] => undefined
+    [CURSOR_TRACE_ID] => 27d6bc5501cf4cf880dd679f788cf59f
+    [SHLVL] => 1
+    [PWD] => /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO
+    [OLDPWD] => /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO
+    [HOMEBREW_PREFIX] => /opt/homebrew
+    [HOMEBREW_CELLAR] => /opt/homebrew/Cellar
+    [HOMEBREW_REPOSITORY] => /opt/homebrew
+    [INFOPATH] => /opt/homebrew/share/info:/opt/homebrew/share/info:
+    [PAGER] => sh -c "head -n 10000 | cat"
+    [npm_config_yes] => true
+    [DISABLE_AUTO_UPDATE] => true
+    [PIP_NO_INPUT] => true
+    [COMPOSER_NO_INTERACTION] => 1
+    [CURSOR_AGENT] => 1
+    [TERM_PROGRAM] => vscode
+    [TERM_PROGRAM_VERSION] => 1.5.11
+    [LANG] => en_US.UTF-8
+    [COLORTERM] => truecolor
+    [GIT_ASKPASS] => /Applications/Cursor.app/Contents/Resources/app/extensions/git/dist/askpass.sh
+    [VSCODE_GIT_ASKPASS_NODE] => /Applications/Cursor.app/Contents/Frameworks/Cursor Helper (Plugin).app/Contents/MacOS/Cursor Helper (Plugin)
+    [VSCODE_GIT_ASKPASS_EXTRA_ARGS] => 
+    [VSCODE_GIT_ASKPASS_MAIN] => /Applications/Cursor.app/Contents/Resources/app/extensions/git/dist/askpass-main.js
+    [VSCODE_GIT_IPC_HANDLE] => /var/folders/ft/w53nfp8962zbbytbhd8d9j4w0000gn/T/vscode-git-d8358197a6.sock
+    [VSCODE_INJECTION] => 1
+    [ZDOTDIR] => /Users/gorila
+    [USER_ZDOTDIR] => /Users/gorila
+    [TERM] => xterm-256color
+    [VSCODE_PROFILE_INITIALIZED] => 1
+    [_] => /opt/homebrew/bin/php
+    [PHP_SELF] => test_form_with_logs.php
+    [SCRIPT_NAME] => test_form_with_logs.php
+    [SCRIPT_FILENAME] => test_form_with_logs.php
+    [PATH_TRANSLATED] => test_form_with_logs.php
+    [DOCUMENT_ROOT] => 
+    [REQUEST_TIME_FLOAT] => 1757615180.6384
+    [REQUEST_TIME] => 1757615180
+    [argv] => Array
+        (
+            [0] => test_form_with_logs.php
+        )
+
+    [argc] => 1
+)
+
+[11-Sep-2025 18:26:20 UTC] Datos sanitizados - Nombre: Test Logs Form, Email: testlogs@example.com, Mensaje: Mensaje de prueba con logs
+[11-Sep-2025 18:26:20 UTC] ✓ Validación pasada correctamente
+[11-Sep-2025 18:26:20 UTC] Intentando insertar en BD - Datos: Array
+(
+    [cliente_nombre] => Test Logs Form
+    [cliente_email] => testlogs@example.com
+    [cliente_telefono] => 1234567890
+    [cliente_empresa] => Test Logs Company
+    [productos_interes] => Productos de prueba con logs
+    [cantidad_estimada] => 100 unidades
+    [fecha_entrega_deseada] => 2024-12-31
+    [mensaje] => Mensaje de prueba con logs
+    [estado] => pendiente
+)
+
+[11-Sep-2025 18:26:20 UTC] Conexión BD: OK
+[11-Sep-2025 18:26:21 UTC] ✓ INSERCIÓN EXITOSA - ID: 8
+[11-Sep-2025 18:26:21 UTC] Configuración de email no disponible - usando configuración por defecto
+[11-Sep-2025 18:26:21 UTC] Email enviado exitosamente a: testlogs@example.com
+[11-Sep-2025 18:26:21 UTC] Email enviado exitosamente a: cotizaciones@dtstudio.com.mx

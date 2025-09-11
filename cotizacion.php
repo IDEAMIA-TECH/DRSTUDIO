@@ -24,6 +24,12 @@ $error = '';
 $success = '';
 
 if ($_POST) {
+    // Log detallado del proceso
+    error_log("=== COTIZACION FORM DEBUG (WEB) ===");
+    error_log("Timestamp: " . date('Y-m-d H:i:s'));
+    error_log("POST data recibido: " . print_r($_POST, true));
+    error_log("Server info: " . print_r($_SERVER, true));
+    
     $nombre = sanitizeInput($_POST['nombre']);
     $email = sanitizeInput($_POST['email']);
     $telefono = sanitizeInput($_POST['telefono']);
@@ -33,12 +39,17 @@ if ($_POST) {
     $cantidad_estimada = sanitizeInput($_POST['cantidad_estimada']);
     $fecha_entrega = sanitizeInput($_POST['fecha_entrega']);
     
+    error_log("Datos sanitizados - Nombre: $nombre, Email: $email, Mensaje: $mensaje");
+    
     // Validar datos
     if (empty($nombre) || empty($email) || empty($mensaje)) {
         $error = 'Los campos nombre, email y mensaje son requeridos';
+        error_log("ERROR: Campos requeridos faltantes - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'");
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
+        error_log("ERROR: Email inválido - '$email'");
     } else {
+        error_log("✓ Validación pasada correctamente");
         // Crear registro de solicitud de cotización en la base de datos
         $solicitud_data = [
             'cliente_nombre' => $nombre,
@@ -53,9 +64,13 @@ if ($_POST) {
         ];
         
         // Insertar solicitud en la base de datos
+        error_log("Intentando insertar en BD - Datos: " . print_r($solicitud_data, true));
+        error_log("Conexión BD: " . ($conn ? 'OK' : 'ERROR'));
+        
         if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
             // Obtener el ID de la cotización recién creada
             $cotizacion_id = $conn->insert_id;
+            error_log("✓ INSERCIÓN EXITOSA - ID: $cotizacion_id");
             
             // Enviar email de notificación
             try {
@@ -110,6 +125,8 @@ if ($_POST) {
             $_POST = [];
         } else {
             $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
+            error_log("✗ ERROR EN INSERCIÓN - MySQL Error: " . $conn->error);
+            error_log("✗ ERROR EN INSERCIÓN - MySQL Errno: " . $conn->errno);
         }
     }
 }
@@ -192,7 +209,7 @@ require_once 'includes/public_header.php';
                             </div>
                             <?php endif; ?>
                             
-                            <form method="POST" id="quoteForm" class="needs-validation" novalidate>
+                            <form method="POST" id="quoteForm" class="needs-validation" novalidate onsubmit="return handleFormSubmit(event)">
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
                                     <i class="fas fa-user me-2"></i>Información Personal
@@ -454,3 +471,69 @@ require_once 'includes/public_header.php';
     </section>
 
 <?php require_once 'includes/public_footer.php'; ?>
+
+<script>
+// Función para manejar el envío del formulario con logging
+function handleFormSubmit(event) {
+    console.log("=== FORMULARIO COTIZACIÓN - INICIO ===");
+    console.log("Timestamp:", new Date().toISOString());
+    
+    // Obtener datos del formulario
+    const formData = new FormData(event.target);
+    const formObject = {};
+    
+    console.log("Datos del formulario:");
+    for (let [key, value] of formData.entries()) {
+        formObject[key] = value;
+        console.log(`  ${key}: ${value}`);
+    }
+    
+    // Validar campos requeridos
+    const nombre = formData.get('nombre');
+    const email = formData.get('email');
+    const mensaje = formData.get('mensaje');
+    
+    console.log("Validación de campos requeridos:");
+    console.log(`  Nombre: "${nombre}" (${nombre ? 'OK' : 'FALTA'})`);
+    console.log(`  Email: "${email}" (${email ? 'OK' : 'FALTA'})`);
+    console.log(`  Mensaje: "${mensaje}" (${mensaje ? 'OK' : 'FALTA'})`);
+    
+    if (!nombre || !email || !mensaje) {
+        console.error("✗ ERROR: Campos requeridos faltantes");
+        return true; // Dejar que el navegador maneje la validación
+    }
+    
+    console.log("✓ Validación de campos pasada");
+    console.log("Enviando formulario...");
+    
+    // Mostrar indicador de carga
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    submitBtn.disabled = true;
+    
+    // Log cuando se complete el envío
+    setTimeout(() => {
+        console.log("Formulario enviado, esperando respuesta...");
+    }, 100);
+    
+    return true; // Permitir el envío del formulario
+}
+
+// Log cuando se carga la página
+console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
+console.log("Timestamp:", new Date().toISOString());
+console.log("URL:", window.location.href);
+console.log("User Agent:", navigator.userAgent);
+
+// Log de errores de JavaScript
+window.addEventListener('error', function(e) {
+    console.error("JavaScript Error:", e.error);
+    console.error("File:", e.filename, "Line:", e.lineno);
+});
+
+// Log de errores de red
+window.addEventListener('unhandledrejection', function(e) {
+    console.error("Unhandled Promise Rejection:", e.reason);
+});
+</script>
