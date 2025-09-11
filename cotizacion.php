@@ -302,11 +302,11 @@ require_once 'includes/public_header.php';
                         <div class="card-body">
                             <p class="mb-2">
                                 <i class="fas fa-phone text-primary me-2"></i>
-                                <a href="tel:+15551234567" class="text-decoration-none">+1 (555) 123-4567</a>
+                                <a href="tel:+524462129198" class="text-decoration-none">+52 (446) 212-9198</a>
                             </p>
                             <p class="mb-2">
                                 <i class="fas fa-envelope text-primary me-2"></i>
-                                <a href="mailto:info@drstudio.com" class="text-decoration-none">info@drstudio.com</a>
+                                <a href="mailto:cotizaciones@dtstudio.com.mx" class="text-decoration-none">cotizaciones@dtstudio.com.mx</a>
                             </p>
                             <p class="mb-0">
                                 <i class="fas fa-clock text-primary me-2"></i>

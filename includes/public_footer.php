@@ -14,10 +14,18 @@ $categorias = readRecords('categorias', ['activo' => 1], null, 'nombre ASC');
                     </div>
                     <p class="text-light">Especialistas en productos promocionales de alta calidad. Transformamos tus ideas en realidad.</p>
                     <div class="social-links">
-                        <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-light me-3"><i class="fab fa-linkedin fa-lg"></i></a>
-                        <a href="#" class="text-light"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61580553625636" target="_blank" class="text-light me-3" title="Síguenos en Facebook">
+                            <i class="fab fa-facebook fa-lg"></i>
+                        </a>
+                        <a href="https://www.instagram.com/dt_studio_2025/" target="_blank" class="text-light me-3" title="Síguenos en Instagram">
+                            <i class="fab fa-instagram fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-light me-3" title="Próximamente en LinkedIn">
+                            <i class="fab fa-linkedin fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-light" title="Próximamente en Twitter">
+                            <i class="fab fa-twitter fa-lg"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="col-lg-2 mb-4">
