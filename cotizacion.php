@@ -13,6 +13,195 @@ echo "POST data: " . print_r($_POST, true) . "\n";
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
+// Función para obtener usuarios admin
+function getAdminUsers() {
+    global $conn;
+    $sql = "SELECT email, username FROM usuarios WHERE rol = 'admin' AND activo = 1";
+    $result = $conn->query($sql);
+    $admins = [];
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $admins[] = $row;
+        }
+    }
+    return $admins;
+}
+
+// Función para generar email elegante
+function generateElegantEmail($tipo, $data) {
+    $primaryColor = '#007bff';
+    $secondaryColor = '#6c757d';
+    $successColor = '#28a745';
+    $lightColor = '#f8f9fa';
+    $darkColor = '#343a40';
+    
+    if ($tipo === 'cliente') {
+        return "
+        <!DOCTYPE html>
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Cotización Solicitada - DT Studio</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 600px; margin: 0 auto; background-color: white; }
+                .header { background: linear-gradient(135deg, $primaryColor, #0056b3); color: white; padding: 30px; text-align: center; }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
+                .content { padding: 30px; }
+                .highlight { background-color: $lightColor; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid $primaryColor; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+                .info-item { padding: 15px; background-color: $lightColor; border-radius: 6px; }
+                .info-label { font-weight: 600; color: $darkColor; margin-bottom: 5px; }
+                .info-value { color: $secondaryColor; }
+                .footer { background-color: $darkColor; color: white; padding: 20px; text-align: center; }
+                .btn { display: inline-block; background-color: $primaryColor; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+                .contact-info { background-color: $lightColor; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>¡Gracias por tu solicitud!</h1>
+                    <p style='margin: 10px 0 0 0; opacity: 0.9;'>DT Studio - Productos Promocionales</p>
+                </div>
+                <div class='content'>
+                    <p>Hola <strong>{$data['nombre']}</strong>,</p>
+                    <p>Hemos recibido tu solicitud de cotización y la estamos procesando. Nuestro equipo revisará los detalles y te contactaremos en las próximas 24 horas.</p>
+                    
+                    <div class='highlight'>
+                        <h3 style='margin-top: 0; color: $primaryColor;'>Detalles de tu solicitud</h3>
+                        <div class='info-grid'>
+                            <div class='info-item'>
+                                <div class='info-label'>Productos de interés</div>
+                                <div class='info-value'>{$data['productos_interes']}</div>
+                            </div>
+                            <div class='info-item'>
+                                <div class='info-label'>Cantidad estimada</div>
+                                <div class='info-value'>{$data['cantidad_estimada']}</div>
+                            </div>
+                            <div class='info-item'>
+                                <div class='info-label'>Fecha de entrega</div>
+                                <div class='info-value'>" . ($data['fecha_entrega'] ? date('d/m/Y', strtotime($data['fecha_entrega'])) : 'No especificada') . "</div>
+                            </div>
+                            <div class='info-item'>
+                                <div class='info-label'>Empresa</div>
+                                <div class='info-value'>" . ($data['empresa'] ?: 'No especificada') . "</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class='contact-info'>
+                        <h4 style='margin-top: 0; color: $primaryColor;'>¿Tienes preguntas?</h4>
+                        <p>Nuestro equipo está disponible para ayudarte:</p>
+                        <p><strong>📞 Teléfono:</strong> +52 (446) 212-9198</p>
+                        <p><strong>📧 Email:</strong> cotizaciones@dtstudio.com.mx</p>
+                        <p><strong>🕒 Horario:</strong> Lunes - Viernes: 9:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+                <div class='footer'>
+                    <p style='margin: 0;'>© 2024 DT Studio. Todos los derechos reservados.</p>
+                    <p style='margin: 5px 0 0 0; opacity: 0.8;'>Productos promocionales de alta calidad</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    } else { // admin
+        return "
+        <!DOCTYPE html>
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Nueva Solicitud de Cotización - DT Studio</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 700px; margin: 0 auto; background-color: white; }
+                .header { background: linear-gradient(135deg, $primaryColor, #0056b3); color: white; padding: 30px; text-align: center; }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
+                .alert { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 6px; margin: 20px 0; }
+                .content { padding: 30px; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+                .info-item { padding: 15px; background-color: $lightColor; border-radius: 6px; }
+                .info-label { font-weight: 600; color: $darkColor; margin-bottom: 5px; }
+                .info-value { color: $secondaryColor; }
+                .message-box { background-color: $lightColor; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid $primaryColor; }
+                .btn { display: inline-block; background-color: $successColor; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+                .footer { background-color: $darkColor; color: white; padding: 20px; text-align: center; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Nueva Solicitud de Cotización</h1>
+                    <p style='margin: 10px 0 0 0; opacity: 0.9;'>ID: #{$data['cotizacion_id']}</p>
+                </div>
+                <div class='content'>
+                    <div class='alert'>
+                        <strong>⚠️ Acción Requerida:</strong> Se ha recibido una nueva solicitud de cotización que requiere tu atención.
+                    </div>
+                    
+                    <h3 style='color: $primaryColor; margin-top: 0;'>Información del Cliente</h3>
+                    <div class='info-grid'>
+                        <div class='info-item'>
+                            <div class='info-label'>Nombre Completo</div>
+                            <div class='info-value'>{$data['nombre']}</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Email</div>
+                            <div class='info-value'>{$data['email']}</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Teléfono</div>
+                            <div class='info-value'>" . ($data['telefono'] ?: 'No proporcionado') . "</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Empresa</div>
+                            <div class='info-value'>" . ($data['empresa'] ?: 'No especificada') . "</div>
+                        </div>
+                    </div>
+                    
+                    <h3 style='color: $primaryColor;'>Detalles del Proyecto</h3>
+                    <div class='info-grid'>
+                        <div class='info-item'>
+                            <div class='info-label'>Productos de Interés</div>
+                            <div class='info-value'>{$data['productos_interes']}</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Cantidad Estimada</div>
+                            <div class='info-value'>{$data['cantidad_estimada']}</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Fecha de Entrega Deseada</div>
+                            <div class='info-value'>" . ($data['fecha_entrega'] ? date('d/m/Y', strtotime($data['fecha_entrega'])) : 'No especificada') . "</div>
+                        </div>
+                        <div class='info-item'>
+                            <div class='info-label'>Estado</div>
+                            <div class='info-value'><span style='background-color: #ffc107; color: #212529; padding: 4px 8px; border-radius: 4px; font-size: 12px;'>PENDIENTE</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class='message-box'>
+                        <h4 style='margin-top: 0; color: $primaryColor;'>Mensaje del Cliente</h4>
+                        <p style='white-space: pre-wrap; margin: 0;'>{$data['mensaje']}</p>
+                    </div>
+                    
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id={$data['cotizacion_id']}' class='btn'>
+                            📋 Ver Solicitud Completa
+                        </a>
+                    </div>
+                </div>
+                <div class='footer'>
+                    <p style='margin: 0;'>© 2024 DT Studio - Sistema de Administración</p>
+                    <p style='margin: 5px 0 0 0; opacity: 0.8;'>Recibido el " . date('d/m/Y H:i') . "</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+}
+
 $pageTitle = 'Solicitar Cotización - DT Studio';
 $error = '';
 $success = '';
@@ -66,44 +255,45 @@ if ($_POST) {
                 require_once 'includes/SimpleEmailSender.php';
                 $emailSender = new SimpleEmailSender();
                 
-                // Email para el cliente
+                // Preparar datos para los emails
+                $email_data = [
+                    'cotizacion_id' => $cotizacion_id,
+                    'nombre' => $nombre,
+                    'email' => $email,
+                    'telefono' => $telefono,
+                    'empresa' => $empresa,
+                    'productos_interes' => $productos_interes,
+                    'cantidad_estimada' => $cantidad_estimada,
+                    'fecha_entrega' => $fecha_entrega,
+                    'mensaje' => $mensaje
+                ];
+                
+                // Email para el cliente (elegante)
                 $cliente_subject = "Cotización Solicitada - DT Studio";
-                $cliente_message = "
-                    <h2>¡Gracias por tu solicitud de cotización!</h2>
-                    <p>Hola <strong>$nombre</strong>,</p>
-                    <p>Hemos recibido tu solicitud de cotización y la estamos procesando.</p>
-                    <p><strong>Detalles de tu solicitud:</strong></p>
-                    <ul>
-                        <li><strong>Productos de interés:</strong> $productos_interes</li>
-                        <li><strong>Cantidad estimada:</strong> $cantidad_estimada</li>
-                        <li><strong>Fecha de entrega deseada:</strong> " . ($fecha_entrega ? date('d/m/Y', strtotime($fecha_entrega)) : 'No especificada') . "</li>
-                    </ul>
-                    <p>Nuestro equipo revisará tu solicitud y te contactaremos en las próximas 24 horas.</p>
-                    <p>Si tienes alguna pregunta, no dudes en contactarnos al +52 (446) 212-9198</p>
-                    <p>Saludos,<br>Equipo DT Studio</p>
-                ";
+                $cliente_message = generateElegantEmail('cliente', $email_data);
                 
                 $result_cliente = $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
                 echo "Email al cliente: " . ($result_cliente ? 'ENVIADO' : 'ERROR') . "\n";
                 
-                // Email para el administrador
-                $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
-                $admin_message = "
-                    <h2>Nueva Solicitud de Cotización</h2>
-                    <p><strong>ID de Cotización:</strong> $cotizacion_id</p>
-                    <p><strong>Cliente:</strong> $nombre</p>
-                    <p><strong>Email:</strong> $email</p>
-                    <p><strong>Teléfono:</strong> $telefono</p>
-                    <p><strong>Empresa:</strong> $empresa</p>
-                    <p><strong>Productos de interés:</strong> $productos_interes</p>
-                    <p><strong>Cantidad estimada:</strong> $cantidad_estimada</p>
-                    <p><strong>Fecha de entrega deseada:</strong> " . ($fecha_entrega ? date('d/m/Y', strtotime($fecha_entrega)) : 'No especificada') . "</p>
-                    <p><strong>Mensaje:</strong> $mensaje</p>
-                    <p><a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id=$cotizacion_id'>Ver solicitud completa</a></p>
-                ";
+                // Emails para todos los administradores
+                $admin_users = getAdminUsers();
+                echo "Enviando emails a " . count($admin_users) . " administradores\n";
                 
-                $result_admin = $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
-                echo "Email al administrador: " . ($result_admin ? 'ENVIADO' : 'ERROR') . "\n";
+                $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
+                $admin_message = generateElegantEmail('admin', $email_data);
+                
+                $admin_success = 0;
+                foreach ($admin_users as $admin) {
+                    $result_admin = $emailSender->sendEmail($admin['email'], $admin_subject, $admin_message);
+                    if ($result_admin) {
+                        $admin_success++;
+                        echo "Email enviado a admin: " . $admin['username'] . " (" . $admin['email'] . ")\n";
+                    } else {
+                        echo "ERROR enviando email a admin: " . $admin['username'] . " (" . $admin['email'] . ")\n";
+                    }
+                }
+                
+                echo "Emails a administradores: $admin_success/" . count($admin_users) . " enviados\n";
                 
             } catch (Exception $e) {
                 echo "ERROR EN ENVÍO DE EMAILS: " . $e->getMessage() . "\n";
