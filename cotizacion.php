@@ -1,14 +1,4 @@
 <?php
-// Versión completamente simple que funciona
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('log_errors', 1);
-ini_set('error_log', 'cotizacion_working.log');
-
-echo "=== COTIZACION WORKING DEBUG ===\n";
-echo "Timestamp: " . date('Y-m-d H:i:s') . "\n";
-echo "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n";
-echo "POST data: " . print_r($_POST, true) . "\n";
 
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
@@ -207,8 +197,6 @@ $error = '';
 $success = '';
 
 if ($_POST) {
-    echo "=== PROCESANDO POST ===\n";
-    
     $nombre = sanitizeInput($_POST['nombre'] ?? '');
     $email = sanitizeInput($_POST['email'] ?? '');
     $telefono = sanitizeInput($_POST['telefono'] ?? '');
@@ -218,18 +206,12 @@ if ($_POST) {
     $cantidad_estimada = sanitizeInput($_POST['cantidad_estimada'] ?? '');
     $fecha_entrega = sanitizeInput($_POST['fecha_entrega'] ?? '');
     
-    echo "Datos sanitizados - Nombre: '$nombre', Email: '$email', Mensaje: '$mensaje'\n";
-    
     // Validar datos
     if (empty($nombre) || empty($email) || empty($mensaje)) {
         $error = 'Los campos nombre, email y mensaje son requeridos';
-        echo "ERROR: Campos requeridos faltantes\n";
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
-        echo "ERROR: Email inválido\n";
     } else {
-        echo "✓ Validación pasada\n";
-        
         // Crear registro de solicitud de cotización en la base de datos
         $solicitud_data = [
             'cliente_nombre' => $nombre,
@@ -243,15 +225,11 @@ if ($_POST) {
             'estado' => 'pendiente'
         ];
         
-        echo "Intentando insertar: " . print_r($solicitud_data, true) . "\n";
-        
         if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
             $cotizacion_id = $conn->insert_id;
-            echo "✓ INSERCIÓN EXITOSA - ID: $cotizacion_id\n";
             
             // Enviar email de notificación
             try {
-                echo "Iniciando envío de emails\n";
                 require_once 'includes/SimpleEmailSender.php';
                 $emailSender = new SimpleEmailSender();
                 
@@ -272,31 +250,19 @@ if ($_POST) {
                 $cliente_subject = "Cotización Solicitada - DT Studio";
                 $cliente_message = generateElegantEmail('cliente', $email_data);
                 
-                $result_cliente = $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
-                echo "Email al cliente: " . ($result_cliente ? 'ENVIADO' : 'ERROR') . "\n";
+                $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
                 
                 // Emails para todos los administradores
                 $admin_users = getAdminUsers();
-                echo "Enviando emails a " . count($admin_users) . " administradores\n";
-                
                 $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
                 $admin_message = generateElegantEmail('admin', $email_data);
                 
-                $admin_success = 0;
                 foreach ($admin_users as $admin) {
-                    $result_admin = $emailSender->sendEmail($admin['email'], $admin_subject, $admin_message);
-                    if ($result_admin) {
-                        $admin_success++;
-                        echo "Email enviado a admin: " . $admin['username'] . " (" . $admin['email'] . ")\n";
-                    } else {
-                        echo "ERROR enviando email a admin: " . $admin['username'] . " (" . $admin['email'] . ")\n";
-                    }
+                    $emailSender->sendEmail($admin['email'], $admin_subject, $admin_message);
                 }
                 
-                echo "Emails a administradores: $admin_success/" . count($admin_users) . " enviados\n";
-                
             } catch (Exception $e) {
-                echo "ERROR EN ENVÍO DE EMAILS: " . $e->getMessage() . "\n";
+                // Error silencioso en emails
             }
             
             $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
@@ -304,7 +270,6 @@ if ($_POST) {
             
         } else {
             $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
-            echo "ERROR EN INSERCIÓN: " . $conn->error . "\n";
         }
     }
 }
