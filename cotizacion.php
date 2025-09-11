@@ -5,12 +5,15 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', 'debug_cotizacion_detallado.log');
 
-// Debugging inmediato
+// Debugging inmediato - CAPTURAR TODAS LAS REQUESTS
 error_log("=== COTIZACION DEBUG DETALLADO - INICIO ===");
 error_log("Timestamp: " . date('Y-m-d H:i:s'));
 error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+error_log("CONTENT_TYPE: " . ($_SERVER['CONTENT_TYPE'] ?? 'NO SET'));
+error_log("CONTENT_LENGTH: " . ($_SERVER['CONTENT_LENGTH'] ?? 'NO SET'));
 error_log("POST data: " . print_r($_POST, true));
 error_log("GET data: " . print_r($_GET, true));
+error_log("RAW POST: " . file_get_contents('php://input'));
 error_log("SERVER info: " . print_r($_SERVER, true));
 
 require_once 'includes/config.php';
@@ -342,21 +345,7 @@ require_once 'includes/public_header.php';
 <?php require_once 'includes/public_footer.php'; ?>
 
 <script>
-// Log cuando se carga la página
 console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
 console.log("Timestamp:", new Date().toISOString());
 console.log("URL:", window.location.href);
-
-// Agregar indicador de carga al formulario
-document.getElementById('quoteForm').addEventListener('submit', function() {
-    console.log("=== FORMULARIO ENVIADO ===");
-    console.log("Timestamp:", new Date().toISOString());
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
-    submitBtn.disabled = true;
-    
-    console.log("Formulario enviado, esperando respuesta...");
-});
 </script>
