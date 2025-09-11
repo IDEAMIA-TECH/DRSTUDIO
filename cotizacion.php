@@ -39,12 +39,78 @@ if ($_POST) {
     } elseif (!validateEmail($email)) {
         $error = 'El email no tiene un formato válido';
     } else {
-        // Aquí iría la lógica para crear la cotización
-        // Por ahora simulamos el envío exitoso
-        $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
+        // Crear registro de solicitud de cotización en la base de datos
+        $solicitud_data = [
+            'cliente_nombre' => $nombre,
+            'cliente_email' => $email,
+            'cliente_telefono' => $telefono,
+            'cliente_empresa' => $empresa,
+            'productos_interes' => $productos_interes,
+            'cantidad_estimada' => $cantidad_estimada,
+            'fecha_entrega_deseada' => $fecha_entrega,
+            'mensaje' => $mensaje,
+            'estado' => 'pendiente'
+        ];
         
-        // Limpiar formulario
-        $_POST = [];
+        // Insertar solicitud en la base de datos
+        if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
+            // Obtener el ID de la cotización recién creada
+            $cotizacion_id = $conn->insert_id;
+            
+            // Enviar email de notificación
+            try {
+                require_once 'includes/EmailSender.php';
+                $emailSender = new EmailSender();
+                
+                // Email para el cliente
+                $cliente_subject = "Cotización Solicitada - DT Studio";
+                $cliente_message = "
+                    <h2>¡Gracias por tu solicitud de cotización!</h2>
+                    <p>Hola <strong>$nombre</strong>,</p>
+                    <p>Hemos recibido tu solicitud de cotización y la estamos procesando.</p>
+                    <p><strong>Detalles de tu solicitud:</strong></p>
+                    <ul>
+                        <li><strong>Productos de interés:</strong> $productos_interes</li>
+                        <li><strong>Cantidad estimada:</strong> $cantidad_estimada</li>
+                        <li><strong>Fecha de entrega deseada:</strong> " . ($fecha_entrega ? date('d/m/Y', strtotime($fecha_entrega)) : 'No especificada') . "</li>
+                    </ul>
+                    <p>Nuestro equipo revisará tu solicitud y te contactaremos en las próximas 24 horas.</p>
+                    <p>Si tienes alguna pregunta, no dudes en contactarnos al +52 (446) 212-9198</p>
+                    <p>Saludos,<br>Equipo DT Studio</p>
+                ";
+                
+                $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
+                
+                // Email para el administrador
+                $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
+                $admin_message = "
+                    <h2>Nueva Solicitud de Cotización</h2>
+                    <p><strong>ID de Cotización:</strong> $cotizacion_id</p>
+                    <p><strong>Cliente:</strong> $nombre</p>
+                    <p><strong>Email:</strong> $email</p>
+                    <p><strong>Teléfono:</strong> $telefono</p>
+                    <p><strong>Empresa:</strong> $empresa</p>
+                    <p><strong>Productos de interés:</strong> $productos_interes</p>
+                    <p><strong>Cantidad estimada:</strong> $cantidad_estimada</p>
+                    <p><strong>Fecha de entrega deseada:</strong> " . ($fecha_entrega ? date('d/m/Y', strtotime($fecha_entrega)) : 'No especificada') . "</p>
+                    <p><strong>Mensaje:</strong> $mensaje</p>
+                    <p><a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id=$cotizacion_id'>Ver solicitud completa</a></p>
+                ";
+                
+                $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
+                
+            } catch (Exception $e) {
+                // Si falla el email, aún así mostrar éxito pero logear el error
+                error_log("Error enviando email de cotización: " . $e->getMessage());
+            }
+            
+            $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
+            
+            // Limpiar formulario
+            $_POST = [];
+        } else {
+            $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
+        }
     }
 }
 
