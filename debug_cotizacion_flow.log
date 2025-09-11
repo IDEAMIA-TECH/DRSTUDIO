@@ -1,0 +1,35 @@
+[11-Sep-2025 18:30:10 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/includes/config.php on line 17
+[11-Sep-2025 18:30:10 UTC] === COTIZACION FORM DEBUG (WEB) ===
+[11-Sep-2025 18:30:10 UTC] Timestamp: 2025-09-11 18:30:10
+[11-Sep-2025 18:30:10 UTC] POST data recibido: Array
+(
+    [nombre] => Debug Flow
+    [email] => debugflow@test.com
+    [telefono] => 1234567890
+    [empresa] => Debug Flow Company
+    [mensaje] => Mensaje de debug flow
+    [productos_interes] => Productos de debug flow
+    [cantidad_estimada] => 100 unidades
+    [fecha_entrega] => 2024-12-31
+)
+
+[11-Sep-2025 18:30:10 UTC] Datos sanitizados - Nombre: Debug Flow, Email: debugflow@test.com, Mensaje: Mensaje de debug flow
+[11-Sep-2025 18:30:10 UTC] ✓ Validación pasada correctamente
+[11-Sep-2025 18:30:10 UTC] Intentando insertar en BD - Datos: Array
+(
+    [cliente_nombre] => Debug Flow
+    [cliente_email] => debugflow@test.com
+    [cliente_telefono] => 1234567890
+    [cliente_empresa] => Debug Flow Company
+    [productos_interes] => Productos de debug flow
+    [cantidad_estimada] => 100 unidades
+    [fecha_entrega_deseada] => 2024-12-31
+    [mensaje] => Mensaje de debug flow
+    [estado] => pendiente
+)
+
+[11-Sep-2025 18:30:10 UTC] Conexión BD: OK
+[11-Sep-2025 18:30:11 UTC] ✓ INSERCIÓN EXITOSA - ID: 10
+[11-Sep-2025 18:30:11 UTC] Configuración de email no disponible - usando configuración por defecto
+[11-Sep-2025 18:30:11 UTC] Email enviado exitosamente a: debugflow@test.com
+[11-Sep-2025 18:30:11 UTC] Email enviado exitosamente a: cotizaciones@dtstudio.com.mx
