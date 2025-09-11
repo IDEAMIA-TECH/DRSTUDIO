@@ -288,20 +288,7 @@ require_once 'includes/public_header.php';
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section bg-primary text-white py-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-color);">Solicitar Cotización</h1>
-                    <p class="lead mb-4">Obtén una cotización personalizada para tus productos promocionales. Respuesta rápida y precios competitivos.</p>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <i class="fas fa-calculator fa-8x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </section>
+ 
 
     <!-- Quote Form -->
     <section class="quote-section py-5">
