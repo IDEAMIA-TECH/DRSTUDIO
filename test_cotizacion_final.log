@@ -1,0 +1,2 @@
+[11-Sep-2025 20:23:43 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /Users/gorila/Desktop/CLONE/GIT/DRSTUDIO/includes/config.php on line 17
+[11-Sep-2025 20:23:47 UTC] Error enviando email: SMTP Error: Could not authenticate.

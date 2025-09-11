@@ -1,4 +1,15 @@
 <?php
+// Versión sin header para debug
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', 'debug_cotizacion_no_header.log');
+
+// Debugging inmediato
+error_log("=== COTIZACION DEBUG NO HEADER - INICIO ===");
+error_log("Timestamp: " . date('Y-m-d H:i:s'));
+error_log("POST data: " . print_r($_POST, true));
+
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
@@ -9,9 +20,7 @@ $error = '';
 $success = '';
 
 if ($_POST) {
-    error_log("=== COTIZACION FORM DEBUG ===");
-    error_log("Timestamp: " . date('Y-m-d H:i:s'));
-    error_log("POST data: " . print_r($_POST, true));
+    error_log("=== PROCESANDO POST ===");
     
     $nombre = sanitizeInput($_POST['nombre']);
     $email = sanitizeInput($_POST['email']);
@@ -49,16 +58,16 @@ if ($_POST) {
         
         error_log("Intentando insertar: " . print_r($solicitud_data, true));
         
+        // Insertar solicitud en la base de datos
         if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
             $cotizacion_id = $conn->insert_id;
             error_log("✓ INSERCIÓN EXITOSA - ID: $cotizacion_id");
             
             // Enviar email de notificación
             try {
-                error_log("=== INICIANDO ENVÍO DE EMAILS ===");
+                error_log("Iniciando envío de emails");
                 require_once 'includes/SimpleEmailSender.php';
                 $emailSender = new SimpleEmailSender();
-                error_log("✓ SimpleEmailSender instanciado correctamente");
                 
                 // Email para el cliente
                 $cliente_subject = "Cotización Solicitada - DT Studio";
@@ -77,9 +86,8 @@ if ($_POST) {
                     <p>Saludos,<br>Equipo DT Studio</p>
                 ";
                 
-                error_log("Enviando email al cliente: $email");
-                $cliente_result = $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
-                error_log("Resultado email cliente: " . ($cliente_result ? 'ÉXITO' : 'ERROR'));
+                $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
+                error_log("Email al cliente enviado");
                 
                 // Email para el administrador
                 $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
@@ -97,25 +105,28 @@ if ($_POST) {
                     <p><a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id=$cotizacion_id'>Ver solicitud completa</a></p>
                 ";
                 
-                error_log("Enviando email al administrador: cotizaciones@dtstudio.com.mx");
-                $admin_result = $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
-                error_log("Resultado email administrador: " . ($admin_result ? 'ÉXITO' : 'ERROR'));
-                
-                error_log("=== FIN ENVÍO DE EMAILS ===");
+                $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
+                error_log("Email al administrador enviado");
                 
             } catch (Exception $e) {
-                error_log("ERROR EN ENVÍO DE EMAILS: " . $e->getMessage());
+                error_log("Error enviando email: " . $e->getMessage());
             }
             
             $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
+            error_log("Mensaje de éxito establecido");
+            
+            // Limpiar formulario
             $_POST = [];
+            error_log("Formulario limpiado");
             
         } else {
             $error = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
-            error_log("✗ ERROR EN INSERCIÓN - MySQL Error: " . $conn->error);
+            error_log("ERROR EN INSERCIÓN: " . $conn->error);
         }
     }
 }
+
+error_log("=== FIN PROCESAMIENTO ===");
 
 // Incluir header compartido
 require_once 'includes/public_header.php';
@@ -170,7 +181,7 @@ require_once 'includes/public_header.php';
                                 </div>
                             <?php endif; ?>
                             
-                            <form method="POST" id="quoteForm">
+                            <form method="POST" id="quoteForm" class="needs-validation" novalidate onsubmit="return handleFormSubmit(event)">
                                 <!-- Información Personal -->
                                 <h6 class="text-primary mb-3">
                                     <i class="fas fa-user me-2"></i>Información Personal
@@ -186,6 +197,9 @@ require_once 'includes/public_header.php';
                                                    name="nombre" 
                                                    value="<?php echo $_POST['nombre'] ?? ''; ?>" 
                                                    required>
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa tu nombre completo.
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -197,6 +211,9 @@ require_once 'includes/public_header.php';
                                                    name="email" 
                                                    value="<?php echo $_POST['email'] ?? ''; ?>" 
                                                    required>
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa un email válido.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +226,8 @@ require_once 'includes/public_header.php';
                                                    class="form-control" 
                                                    id="telefono" 
                                                    name="telefono" 
-                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>">
+                                                   value="<?php echo $_POST['telefono'] ?? ''; ?>"
+                                                   oninput="formatPhone(this)">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -271,6 +289,9 @@ require_once 'includes/public_header.php';
                                               rows="4" 
                                               required 
                                               placeholder="Cuéntanos más detalles sobre tu proyecto..."><?php echo $_POST['mensaje'] ?? ''; ?></textarea>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa un mensaje.
+                                    </div>
                                 </div>
                                 
                                 <div class="d-flex gap-2">
@@ -285,62 +306,6 @@ require_once 'includes/public_header.php';
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-lg-4">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2"></i>¿Por qué elegirnos?
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                <li class="mb-3">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <strong>Respuesta Rápida</strong><br>
-                                    <small class="text-muted">Cotizaciones en 24 horas</small>
-                                </li>
-                                <li class="mb-3">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <strong>Precios Competitivos</strong><br>
-                                    <small class="text-muted">Mejores precios del mercado</small>
-                                </li>
-                                <li class="mb-3">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <strong>Calidad Garantizada</strong><br>
-                                    <small class="text-muted">Productos de alta calidad</small>
-                                </li>
-                                <li class="mb-3">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <strong>Entrega Puntual</strong><br>
-                                    <small class="text-muted">Cumplimos con los tiempos</small>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">
-                                <i class="fas fa-phone me-2"></i>Contacto Directo
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <p class="mb-2">
-                                <i class="fas fa-phone text-primary me-2"></i>
-                                <a href="tel:+524462129198" class="text-decoration-none">+52 (446) 212-9198</a>
-                            </p>
-                            <p class="mb-2">
-                                <i class="fas fa-envelope text-primary me-2"></i>
-                                <a href="mailto:cotizaciones@dtstudio.com.mx" class="text-decoration-none">cotizaciones@dtstudio.com.mx</a>
-                            </p>
-                            <p class="mb-0">
-                                <i class="fas fa-clock text-primary me-2"></i>
-                                Lunes - Viernes: 9:00 AM - 6:00 PM
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
@@ -348,7 +313,67 @@ require_once 'includes/public_header.php';
 <?php require_once 'includes/public_footer.php'; ?>
 
 <script>
+// Función para manejar el envío del formulario con logging
+function handleFormSubmit(event) {
+    console.log("=== FORMULARIO COTIZACIÓN - INICIO ===");
+    console.log("Timestamp:", new Date().toISOString());
+    
+    // Obtener datos del formulario
+    const formData = new FormData(event.target);
+    const formObject = {};
+    
+    console.log("Datos del formulario:");
+    for (let [key, value] of formData.entries()) {
+        formObject[key] = value;
+        console.log(`  ${key}: ${value}`);
+    }
+    
+    // Validar campos requeridos
+    const nombre = formData.get('nombre');
+    const email = formData.get('email');
+    const mensaje = formData.get('mensaje');
+    
+    console.log("Validación de campos requeridos:");
+    console.log(`  Nombre: "${nombre}" (${nombre ? 'OK' : 'FALTA'})`);
+    console.log(`  Email: "${email}" (${email ? 'OK' : 'FALTA'})`);
+    console.log(`  Mensaje: "${mensaje}" (${mensaje ? 'OK' : 'FALTA'})`);
+    
+    if (!nombre || !email || !mensaje) {
+        console.error("✗ ERROR: Campos requeridos faltantes");
+        return true; // Dejar que el navegador maneje la validación
+    }
+    
+    console.log("✓ Validación de campos pasada");
+    console.log("Enviando formulario...");
+    
+    // Mostrar indicador de carga
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    submitBtn.disabled = true;
+    
+    // Log cuando se complete el envío
+    setTimeout(() => {
+        console.log("Formulario enviado, esperando respuesta...");
+    }, 100);
+    
+    return true; // Permitir el envío del formulario
+}
+
+// Log cuando se carga la página
 console.log("=== PÁGINA COTIZACIÓN CARGADA ===");
 console.log("Timestamp:", new Date().toISOString());
 console.log("URL:", window.location.href);
+console.log("User Agent:", navigator.userAgent);
+
+// Log de errores de JavaScript
+window.addEventListener('error', function(e) {
+    console.error("JavaScript Error:", e.error);
+    console.error("File:", e.filename, "Line:", e.lineno);
+});
+
+// Log de errores de red
+window.addEventListener('unhandledrejection', function(e) {
+    console.error("Unhandled Promise Rejection:", e.reason);
+});
 </script>
