@@ -1,7 +1,4 @@
 <?php
-// Configurar headers UTF-8
-header('Content-Type: text/html; charset=UTF-8');
-
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
@@ -74,8 +71,10 @@ if ($_POST) {
             
             // Enviar email de notificación
             try {
-                require_once 'includes/EmailSender.php';
-                $emailSender = new EmailSender();
+                error_log("=== INICIANDO ENVÍO DE EMAILS ===");
+                require_once 'includes/SimpleEmailSender.php';
+                $emailSender = new SimpleEmailSender();
+                error_log("✓ SimpleEmailSender instanciado correctamente");
                 
                 // Email para el cliente
                 $cliente_subject = "Cotización Solicitada - DT Studio";
@@ -94,7 +93,9 @@ if ($_POST) {
                     <p>Saludos,<br>Equipo DT Studio</p>
                 ";
                 
-                $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
+                error_log("Enviando email al cliente: $email");
+                $cliente_result = $emailSender->sendEmail($email, $cliente_subject, $cliente_message);
+                error_log("Resultado email cliente: " . ($cliente_result ? 'ÉXITO' : 'ERROR'));
                 
                 // Email para el administrador
                 $admin_subject = "Nueva Solicitud de Cotización - DT Studio";
@@ -112,11 +113,16 @@ if ($_POST) {
                     <p><a href='https://dtstudio.com.mx/admin/solicitudes_cotizacion.php?id=$cotizacion_id'>Ver solicitud completa</a></p>
                 ";
                 
-                $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
+                error_log("Enviando email al administrador: cotizaciones@dtstudio.com.mx");
+                $admin_result = $emailSender->sendEmail('cotizaciones@dtstudio.com.mx', $admin_subject, $admin_message);
+                error_log("Resultado email administrador: " . ($admin_result ? 'ÉXITO' : 'ERROR'));
+                
+                error_log("=== FIN ENVÍO DE EMAILS ===");
                 
             } catch (Exception $e) {
                 // Si falla el email, aún así mostrar éxito pero logear el error
-                error_log("Error enviando email de cotización: " . $e->getMessage());
+                error_log("ERROR EN ENVÍO DE EMAILS: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
             }
             
             $success = 'Cotización solicitada exitosamente. Te contactaremos en 24 horas.';
