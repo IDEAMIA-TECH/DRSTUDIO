@@ -41,6 +41,43 @@ class EmailSender {
         }
     }
     
+    public function sendEmail($to, $subject, $message, $isHTML = true) {
+        try {
+            // Limpiar destinatarios anteriores
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+            
+            // Verificar que el destinatario tenga email
+            if (empty($to)) {
+                error_log("EmailSender - Error: No se especificó destinatario");
+                return false;
+            }
+            
+            // Agregar destinatario
+            $this->mailer->addAddress($to);
+            
+            // Configurar asunto y mensaje
+            $this->mailer->Subject = $subject;
+            $this->mailer->isHTML($isHTML);
+            $this->mailer->Body = $message;
+            
+            // Enviar correo
+            $result = $this->mailer->send();
+            
+            if ($result) {
+                error_log("Email enviado exitosamente a: $to");
+                return true;
+            } else {
+                error_log("Error enviando email a: $to");
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error enviando email: " . $e->getMessage());
+            return false;
+        }
+    }
+    
     public function sendQuoteEmail($cotizacion, $cliente, $pdfPath = null) {
         try {
             // Limpiar destinatarios anteriores
