@@ -146,7 +146,7 @@ body {
 /* Hero Section */
 .hero-section {
     background: var(--accent-gradient);
-    min-height: 600px;
+    min-height: 300px;
     display: flex;
     align-items: center;
     color: white;
