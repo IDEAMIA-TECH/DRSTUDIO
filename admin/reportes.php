@@ -98,13 +98,13 @@ $cotizaciones_mensuales = $cotizaciones_mensuales_result->fetch_all(MYSQLI_ASSOC
 
 $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'];
 
-// Obtener datos de ganancias del período
+// Obtener datos de ganancias del período (usando la misma lógica que reportes_ganancias.php)
 $ganancias_sql = "SELECT 
     SUM(cd.subtotal) as total_ventas,
     SUM(cd.costo_total) as total_costos,
     SUM(cd.ganancia) as total_ganancia
 FROM cotizacion_detalles cd
-LEFT JOIN cotizaciones c ON cd.cotizacion_id = c.id
+LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
 WHERE c.created_at BETWEEN ? AND ?";
 $ganancias_stmt = $conn->prepare($ganancias_sql);
 $ganancias_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
@@ -123,14 +123,14 @@ $gastos_operacionales = $gastos_operacionales_result->fetch_assoc();
 // Calcular ganancia neta
 $ganancia_neta = ($ganancias['total_ganancia'] ?? 0) - ($gastos_operacionales['total'] ?? 0);
 
-// Obtener ganancias de los últimos 6 meses para gráfico
+// Obtener ganancias de los últimos 6 meses para gráfico (usando la misma lógica que reportes_ganancias.php)
 $ganancias_mensuales_sql = "SELECT 
     DATE_FORMAT(c.created_at, '%Y-%m') as mes,
     SUM(cd.subtotal) as total_ventas,
     SUM(cd.costo_total) as total_costos,
     SUM(cd.ganancia) as total_ganancia
 FROM cotizacion_detalles cd
-LEFT JOIN cotizaciones c ON cd.cotizacion_id = c.id
+LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
 WHERE c.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 GROUP BY DATE_FORMAT(c.created_at, '%Y-%m')
 ORDER BY mes ASC";
