@@ -41,7 +41,8 @@ if ($_POST) {
                 if ($item['producto_id'] && $item['cantidad'] > 0) {
                     $producto = getRecord('productos', $item['producto_id']);
                     if ($producto) {
-                        $precio_unitario = $producto['precio_venta'];
+                        // Usar el precio personalizado ingresado por el usuario
+                        $precio_unitario = (float)$item['precio_unitario'];
                         $precio_extra = 0;
                         
                         // Si hay variante, obtener precio extra
@@ -201,7 +202,7 @@ require_once 'includes/header.php';
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Variante</label>
-                                        <select class="form-select variante-select" name="items[0][variante_id]" onchange="calcularPrecio(this, 0)">
+                                        <select class="form-select variante-select" name="items[0][variante_id]" onchange="actualizarPrecioConVariante(this, 0)">
                                             <option value="">Sin variante</option>
                                         </select>
                                     </div>
@@ -210,11 +211,19 @@ require_once 'includes/header.php';
                                         <input type="number" class="form-control cantidad-input" name="items[0][cantidad]" min="1" value="1" onchange="calcularPrecio(this, 0)">
                                     </div>
                                     <div class="col-md-2">
-                                        <label class="form-label">Precio</label>
+                                        <label class="form-label">Precio Unitario</label>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control precio-display" readonly>
+                                            <input type="number" 
+                                                   class="form-control precio-input" 
+                                                   name="items[0][precio_unitario]"
+                                                   step="0.01" 
+                                                   min="0" 
+                                                   value="0" 
+                                                   onchange="calcularPrecio(this, 0)"
+                                                   placeholder="0.00">
                                         </div>
+                                        <small class="text-muted">Precio personalizable según diseño</small>
                                     </div>
                                 </div>
                                 <div class="row mt-2">
@@ -313,6 +322,7 @@ require_once 'includes/header.php';
                     <li><i class="fas fa-info-circle text-info me-2"></i>El número de cotización se genera automáticamente</li>
                     <li><i class="fas fa-calendar text-warning me-2"></i>La fecha de vencimiento es opcional</li>
                     <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar múltiples productos</li>
+                    <li><i class="fas fa-dollar-sign text-primary me-2"></i>El precio es personalizable según el diseño</li>
                     <li><i class="fas fa-percentage text-primary me-2"></i>El descuento se aplica al total</li>
                     <li><i class="fas fa-sticky-note text-secondary me-2"></i>Las notas aparecerán en el PDF generado</li>
                 </ul>
@@ -330,9 +340,9 @@ function cargarVariantes(select, index) {
     const varianteSelect = select.closest('.producto-item').querySelector('.variante-select');
     const precioBase = select.selectedOptions[0]?.dataset.precio || 0;
     
-    // Actualizar precio base
-    const precioDisplay = select.closest('.producto-item').querySelector('.precio-display');
-    precioDisplay.value = parseFloat(precioBase).toFixed(2);
+    // Actualizar precio base en el input editable
+    const precioInput = select.closest('.producto-item').querySelector('.precio-input');
+    precioInput.value = parseFloat(precioBase).toFixed(2);
     
     // Limpiar variantes
     varianteSelect.innerHTML = '<option value="">Sin variante</option>';
@@ -369,23 +379,37 @@ function cargarVariantes(select, index) {
     calcularPrecio(select, index);
 }
 
+// Actualizar precio cuando se selecciona una variante
+function actualizarPrecioConVariante(select, index) {
+    const productoItem = select.closest('.producto-item');
+    const precioInput = productoItem.querySelector('.precio-input');
+    const productoSelect = productoItem.querySelector('.producto-select');
+    
+    const precioBase = parseFloat(productoSelect.selectedOptions[0]?.dataset.precio || 0);
+    const precioExtra = parseFloat(select.selectedOptions[0]?.dataset.precio_extra || 0);
+    
+    // Actualizar el precio base con el extra de la variante
+    precioInput.value = (precioBase + precioExtra).toFixed(2);
+    
+    calcularPrecio(select, index);
+}
+
 // Calcular precio de un producto
 function calcularPrecio(element, index) {
     const productoItem = element.closest('.producto-item');
     const productoSelect = productoItem.querySelector('.producto-select');
     const varianteSelect = productoItem.querySelector('.variante-select');
     const cantidadInput = productoItem.querySelector('.cantidad-input');
-    const precioDisplay = productoItem.querySelector('.precio-display');
+    const precioInput = productoItem.querySelector('.precio-input');
     const subtotalDisplay = productoItem.querySelector('.subtotal-display');
     
-    const precioBase = parseFloat(productoSelect.selectedOptions[0]?.dataset.precio || 0);
+    const precioBase = parseFloat(precioInput.value || 0);
     const precioExtra = parseFloat(varianteSelect.selectedOptions[0]?.dataset.precio_extra || 0);
     const cantidad = parseFloat(cantidadInput.value || 0);
     
     const precioFinal = precioBase + precioExtra;
     const subtotal = precioFinal * cantidad;
     
-    precioDisplay.value = precioFinal.toFixed(2);
     subtotalDisplay.value = subtotal.toFixed(2);
     
     calcularTotales();
@@ -456,7 +480,7 @@ function addProducto() {
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Variante</label>
-                    <select class="form-select variante-select" name="items[${productoCount}][variante_id]" onchange="calcularPrecio(this, ${productoCount})">
+                    <select class="form-select variante-select" name="items[${productoCount}][variante_id]" onchange="actualizarPrecioConVariante(this, ${productoCount})">
                         <option value="">Sin variante</option>
                     </select>
                 </div>
@@ -465,11 +489,19 @@ function addProducto() {
                     <input type="number" class="form-control cantidad-input" name="items[${productoCount}][cantidad]" min="1" value="1" onchange="calcularPrecio(this, ${productoCount})">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Precio</label>
+                    <label class="form-label">Precio Unitario</label>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        <input type="text" class="form-control precio-display" readonly>
+                        <input type="number" 
+                               class="form-control precio-input" 
+                               name="items[${productoCount}][precio_unitario]"
+                               step="0.01" 
+                               min="0" 
+                               value="0" 
+                               onchange="calcularPrecio(this, ${productoCount})"
+                               placeholder="0.00">
                     </div>
+                    <small class="text-muted">Precio personalizable según diseño</small>
                 </div>
             </div>
             <div class="row mt-2">
