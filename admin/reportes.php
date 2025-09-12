@@ -22,7 +22,7 @@ $gastos_result = $gastos_stmt->get_result();
 $gastos = $gastos_result->fetch_all(MYSQLI_ASSOC);
 
 // Obtener datos de cotizaciones del período
-$cotizaciones_sql = "SELECT * FROM solicitudes_cotizacion WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
+$cotizaciones_sql = "SELECT * FROM cotizaciones WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
 $cotizaciones_stmt = $conn->prepare($cotizaciones_sql);
 $cotizaciones_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $cotizaciones_stmt->execute();
@@ -49,7 +49,16 @@ foreach ($gastos as $gasto) {
 
 // Calcular métricas de cotizaciones
 $total_cotizaciones = count($cotizaciones);
-$cotizaciones_por_estado = ['pendiente' => 0, 'en_proceso' => 0, 'respondida' => 0, 'cerrada' => 0];
+$cotizaciones_por_estado = [
+    'pendiente' => 0, 
+    'enviada' => 0, 
+    'aceptada' => 0, 
+    'rechazada' => 0, 
+    'cancelada' => 0, 
+    'en_espera_deposito' => 0, 
+    'pagada' => 0, 
+    'entregada' => 0
+];
 
 foreach ($cotizaciones as $cotizacion) {
     $estado = $cotizacion['estado'];
@@ -61,8 +70,8 @@ foreach ($cotizaciones as $cotizacion) {
     }
 }
 
-// Calcular conversión (cotizaciones cerradas / total cotizaciones)
-$tasa_conversion = $total_cotizaciones > 0 ? (($cotizaciones_por_estado['cerrada'] ?? 0) / $total_cotizaciones) * 100 : 0;
+// Calcular conversión (cotizaciones entregadas / total cotizaciones)
+$tasa_conversion = $total_cotizaciones > 0 ? (($cotizaciones_por_estado['entregada'] ?? 0) / $total_cotizaciones) * 100 : 0;
 
 // Obtener gastos de los últimos 6 meses para gráfico
 $gastos_mensuales_sql = "SELECT 
@@ -80,7 +89,7 @@ $gastos_mensuales = $gastos_mensuales_result->fetch_all(MYSQLI_ASSOC);
 $cotizaciones_mensuales_sql = "SELECT 
     DATE_FORMAT(created_at, '%Y-%m') as mes,
     COUNT(*) as total
-    FROM solicitudes_cotizacion 
+    FROM cotizaciones 
     WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
     GROUP BY DATE_FORMAT(created_at, '%Y-%m')
     ORDER BY mes ASC";
@@ -95,7 +104,7 @@ $ganancias_sql = "SELECT
     SUM(cd.costo_total) as total_costos,
     SUM(cd.ganancia) as total_ganancia
 FROM cotizacion_detalles cd
-LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+LEFT JOIN cotizaciones c ON cd.cotizacion_id = c.id
 WHERE c.created_at BETWEEN ? AND ?";
 $ganancias_stmt = $conn->prepare($ganancias_sql);
 $ganancias_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
@@ -121,7 +130,7 @@ $ganancias_mensuales_sql = "SELECT
     SUM(cd.costo_total) as total_costos,
     SUM(cd.ganancia) as total_ganancia
 FROM cotizacion_detalles cd
-LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+LEFT JOIN cotizaciones c ON cd.cotizacion_id = c.id
 WHERE c.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 GROUP BY DATE_FORMAT(c.created_at, '%Y-%m')
 ORDER BY mes ASC";
@@ -403,10 +412,10 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Email</th>
-                            <th>Productos</th>
-                            <th>Cantidad</th>
+                            <th>Número</th>
+                            <th>Cliente ID</th>
+                            <th>Subtotal</th>
+                            <th>Total</th>
                             <th>Fecha</th>
                             <th>Estado</th>
                         </tr>
@@ -415,10 +424,10 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                         <?php foreach ($cotizaciones as $cotizacion): ?>
                         <tr>
                             <td>#<?php echo $cotizacion['id']; ?></td>
-                            <td><?php echo htmlspecialchars($cotizacion['cliente_nombre']); ?></td>
-                            <td><?php echo htmlspecialchars($cotizacion['cliente_email']); ?></td>
-                            <td><?php echo htmlspecialchars($cotizacion['productos_interes']); ?></td>
-                            <td><?php echo $cotizacion['cantidad_estimada']; ?></td>
+                            <td><?php echo htmlspecialchars($cotizacion['numero_cotizacion']); ?></td>
+                            <td><?php echo $cotizacion['cliente_id']; ?></td>
+                            <td>$<?php echo number_format($cotizacion['subtotal'], 2); ?></td>
+                            <td class="fw-bold">$<?php echo number_format($cotizacion['total'], 2); ?></td>
                             <td><?php echo date('d/m/Y', strtotime($cotizacion['created_at'])); ?></td>
                             <td>
                                 <?php
@@ -428,9 +437,14 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                                     case 'enviada': $estado_class = 'bg-info'; break;
                                     case 'aceptada': $estado_class = 'bg-success'; break;
                                     case 'rechazada': $estado_class = 'bg-danger'; break;
+                                    case 'cancelada': $estado_class = 'bg-secondary'; break;
+                                    case 'en_espera_deposito': $estado_class = 'bg-warning'; break;
+                                    case 'pagada': $estado_class = 'bg-success'; break;
+                                    case 'entregada': $estado_class = 'bg-primary'; break;
+                                    default: $estado_class = 'bg-light text-dark'; break;
                                 }
                                 ?>
-                                <span class="badge <?php echo $estado_class; ?>"><?php echo ucfirst($cotizacion['estado']); ?></span>
+                                <span class="badge <?php echo $estado_class; ?>"><?php echo ucfirst(str_replace('_', ' ', $cotizacion['estado'])); ?></span>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -491,11 +505,13 @@ new Chart(cotizacionesEstadoCtx, {
             data: Object.values(cotizacionesEstadoData),
             backgroundColor: [
                 '#FFC107',  // pendiente - amarillo
-                '#17A2B8',  // en_proceso - azul
-                '#28A745',  // respondida - verde
-                '#DC3545',  // cerrada - rojo
-                '#6C757D',  // otros - gris
-                '#E83E8C'   // adicional - rosa
+                '#17A2B8',  // enviada - azul
+                '#28A745',  // aceptada - verde
+                '#DC3545',  // rechazada - rojo
+                '#6C757D',  // cancelada - gris
+                '#FF6B35',  // en_espera_deposito - naranja
+                '#20C997',  // pagada - verde claro
+                '#6F42C1'   // entregada - morado
             ]
         }]
     },
