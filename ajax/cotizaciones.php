@@ -87,13 +87,59 @@ if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
                 error_log("AJAX Cotizaciones - Enviando correo para cotización enviada");
                 
                 try {
-                    require_once $projectRoot . '/includes/EmailSender.php';
+                    require_once $projectRoot . '/includes/SimpleEmailSender.php';
                     
                     // Obtener datos completos de la cotización
                     $cotizacion = getRecord('cotizaciones', $id);
                     $cliente = getRecord('clientes', $cotizacion['cliente_id']);
                     
                     error_log("AJAX Cotizaciones - Cliente obtenido: " . $cliente['nombre']);
+                    
+                    // Obtener items de la cotización (productos del catálogo)
+                    $items = readRecords('cotizacion_items', ["cotizacion_id = $id"], null, 'id ASC');
+                    
+                    foreach ($items as &$item) {
+                        $producto = getRecord('productos', $item['producto_id']);
+                        $item['producto'] = $producto;
+                        
+                        if ($item['variante_id']) {
+                            $variante = getRecord('variantes_producto', $item['variante_id']);
+                            $item['variante'] = $variante;
+                        }
+                    }
+                    unset($item);
+                    
+                    // Obtener productos personalizados
+                    $productos_personalizados = readRecords('cotizacion_productos_personalizados', ["cotizacion_id = $id"], null, 'id ASC');
+                    
+                    // Calcular subtotal
+                    $subtotal = 0;
+                    foreach ($items as $item) {
+                        $subtotal += $item['subtotal'];
+                    }
+                    foreach ($productos_personalizados as $producto) {
+                        $subtotal += $producto['subtotal'];
+                    }
+                    
+                    // Preparar datos para el correo
+                    $cotizacionData = [
+                        'numero' => $cotizacion['numero_cotizacion'],
+                        'fecha' => date('d/m/Y H:i', strtotime($cotizacion['created_at'])),
+                        'cliente' => [
+                            'nombre' => $cliente['nombre'],
+                            'empresa' => $cliente['empresa'] ?? '',
+                            'email' => $cliente['email'] ?? '',
+                            'telefono' => $cliente['telefono'] ?? ''
+                        ],
+                        'items' => $items,
+                        'productos_personalizados' => $productos_personalizados,
+                        'subtotal' => $subtotal,
+                        'descuento' => $cotizacion['descuento'] ?? 0,
+                        'total' => $subtotal - ($cotizacion['descuento'] ?? 0),
+                        'observaciones' => $cotizacion['observaciones'] ?? '',
+                        'notas' => $cotizacion['notas'] ?? '',
+                        'estado' => $cotizacion['estado']
+                    ];
                     
                     // Generar PDF temporal
                     error_log("AJAX Cotizaciones - Generando PDF temporal");
@@ -104,9 +150,9 @@ if (basename($_SERVER['PHP_SELF']) === 'cotizaciones.php') {
                         error_log("AJAX Cotizaciones - Error generando PDF");
                     }
                     
-                    // Enviar correo
-                    $emailSender = new EmailSender();
-                    $emailResult = $emailSender->sendQuoteEmail($cotizacion, $cliente, $pdfPath);
+                    // Enviar correo usando SimpleEmailSender
+                    $emailSender = new SimpleEmailSender();
+                    $emailResult = $emailSender->sendQuoteEmail($cotizacionData, $pdfPath);
                     
                     if ($emailResult) {
                         error_log("AJAX Cotizaciones - Correo enviado exitosamente");
