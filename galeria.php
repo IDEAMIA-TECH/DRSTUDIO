@@ -52,15 +52,12 @@ require_once 'includes/public_header.php';
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section bg-primary text-white py-5">
+    <section class="hero-section bg-primary text-white py-4" style="background: linear-gradient(rgba(0, 123, 255, 0.8), rgba(0, 123, 255, 0.8)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center/cover;">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4" style="color: var(--primary-color);">Galería de Productos</h1>
-                    <p class="lead mb-4">Descubre la calidad y creatividad de nuestros productos promocionales. Cada proyecto es único.</p>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <i class="fas fa-images fa-8x opacity-75"></i>
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3">Galería de Productos</h1>
+                    <p class="lead mb-0">Descubre la calidad y creatividad de nuestros productos promocionales. Cada proyecto es único.</p>
                 </div>
             </div>
         </div>
