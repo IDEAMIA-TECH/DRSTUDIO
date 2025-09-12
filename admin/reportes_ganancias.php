@@ -30,27 +30,65 @@ if ($categoria_id) {
 
 $whereClause = 'WHERE ' . implode(' AND ', $conditions);
 
-// Consulta principal para obtener detalles de ganancias
+// Consulta principal para obtener detalles de ganancias (productos del catálogo)
 $sql = "SELECT 
-    cd.*,
-    c.cliente_nombre,
-    c.cliente_email,
+    cd.id,
+    cd.cotizacion_id,
+    cd.producto_id,
+    cd.cantidad,
+    cd.precio_unitario,
+    cd.costo_unitario,
+    cd.subtotal,
+    cd.costo_total,
+    cd.ganancia,
+    cd.margen_ganancia,
+    cl.nombre as cliente_nombre,
+    cl.email as cliente_email,
     c.estado as cotizacion_estado,
     c.created_at as fecha_cotizacion,
     p.nombre as producto_nombre,
     p.sku,
-    cat.nombre as categoria_nombre
+    cat.nombre as categoria_nombre,
+    'catalogo' as tipo_producto
 FROM cotizacion_detalles cd
-LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+LEFT JOIN cotizaciones c ON cd.cotizacion_id = c.id
+LEFT JOIN clientes cl ON c.cliente_id = cl.id
 LEFT JOIN productos p ON cd.producto_id = p.id
 LEFT JOIN categorias cat ON p.categoria_id = cat.id
 $whereClause
-ORDER BY c.created_at DESC";
+
+UNION ALL
+
+SELECT 
+    cpp.id,
+    cpp.cotizacion_id,
+    NULL as producto_id,
+    cpp.cantidad,
+    cpp.precio_venta as precio_unitario,
+    cpp.costo_fabricacion as costo_unitario,
+    cpp.subtotal,
+    cpp.costo_total,
+    cpp.ganancia,
+    cpp.margen_ganancia,
+    cl.nombre as cliente_nombre,
+    cl.email as cliente_email,
+    c.estado as cotizacion_estado,
+    c.created_at as fecha_cotizacion,
+    cpp.nombre_producto as producto_nombre,
+    'PERSONALIZADO' as sku,
+    'Personalizado' as categoria_nombre,
+    'personalizado' as tipo_producto
+FROM cotizacion_productos_personalizados cpp
+LEFT JOIN cotizaciones c ON cpp.cotizacion_id = c.id
+LEFT JOIN clientes cl ON c.cliente_id = cl.id
+WHERE c.created_at BETWEEN ? AND ?
+ORDER BY fecha_cotizacion DESC";
 
 $stmt = $conn->prepare($sql);
-if (!empty($params)) {
-    $stmt->bind_param(str_repeat('s', count($params)), ...$params);
-}
+// Agregar parámetros para la segunda parte de la consulta UNION
+$params[] = $fecha_desde;
+$params[] = $fecha_hasta;
+$stmt->bind_param(str_repeat('s', count($params)), ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 $detalles = $result->fetch_all(MYSQLI_ASSOC);
@@ -365,6 +403,7 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
                             <tr>
                                 <th>Cotización</th>
                                 <th>Cliente</th>
+                                <th>Tipo</th>
                                 <th>Producto</th>
                                 <th>Cantidad</th>
                                 <th>Precio Unit.</th>
@@ -380,6 +419,13 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
                             <tr>
                                 <td>#<?php echo $detalle['cotizacion_id']; ?></td>
                                 <td><?php echo htmlspecialchars($detalle['cliente_nombre']); ?></td>
+                                <td>
+                                    <?php if ($detalle['tipo_producto'] == 'personalizado'): ?>
+                                        <span class="badge bg-success">Personalizado</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-primary">Catálogo</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <strong><?php echo htmlspecialchars($detalle['producto_nombre']); ?></strong>
                                     <br><small class="text-muted"><?php echo htmlspecialchars($detalle['sku']); ?></small>
