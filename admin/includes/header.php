@@ -67,6 +67,11 @@ $currentUser = getCurrentUser();
                             <i class="fas fa-receipt me-1"></i>Gastos
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reportes.php">
+                            <i class="fas fa-chart-bar me-1"></i>Reportes
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="contenidoDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-images me-1"></i>Contenido
