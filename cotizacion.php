@@ -228,6 +228,10 @@ if ($_POST) {
         if (createRecord('solicitudes_cotizacion', $solicitud_data)) {
             $cotizacion_id = $conn->insert_id;
             
+            // Crear detalles de cotización para análisis de ganancias
+            require_once 'includes/cotizacion_detalles_helper.php';
+            $detalles_creados = crearDetallesCotizacion($cotizacion_id, $productos_interes, $cantidad_estimada);
+            
             // Enviar email de notificación
             try {
                 require_once 'includes/SimpleEmailSender.php';

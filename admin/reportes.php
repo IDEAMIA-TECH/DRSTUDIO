@@ -127,6 +127,11 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
+                    <a href="reportes_ganancias.php" class="btn btn-success">
+                        <i class="fas fa-chart-line me-2"></i>Reporte de Ganancias
+                    </a>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="fas fa-search me-2"></i>Generar
                     </button>
