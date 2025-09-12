@@ -569,29 +569,53 @@ new Chart(flujoCajaCtx, {
     data: {
         labels: ['Ventas', 'Costos Productos', 'Gastos Operacionales', 'Ganancia Bruta', 'Ganancia Neta'],
         datasets: [{
-            label: 'Ingresos',
-            data: [<?php echo $total_ventas; ?>, 0, 0, 0, 0],
-            backgroundColor: '#28A745'
-        }, {
-            label: 'Costos',
-            data: [0, <?php echo $total_costos; ?>, <?php echo $total_gastos_operacionales; ?>, 0, 0],
-            backgroundColor: '#DC3545'
-        }, {
-            label: 'Ganancias',
-            data: [0, 0, 0, <?php echo $total_ganancia; ?>, <?php echo $ganancia_neta; ?>],
-            backgroundColor: ['#007BFF', <?php echo $ganancia_neta >= 0 ? "'#28A745'" : "'#DC3545'"; ?>]
+            label: 'Monto ($)',
+            data: [
+                <?php echo $total_ventas; ?>, 
+                <?php echo $total_costos; ?>, 
+                <?php echo $total_gastos_operacionales; ?>, 
+                <?php echo $total_ganancia; ?>, 
+                <?php echo $ganancia_neta; ?>
+            ],
+            backgroundColor: [
+                '#28A745',  // Ventas - Verde
+                '#DC3545',  // Costos Productos - Rojo
+                '#FFC107',  // Gastos Operacionales - Amarillo
+                '#007BFF',  // Ganancia Bruta - Azul
+                <?php echo $ganancia_neta >= 0 ? "'#28A745'" : "'#DC3545'"; ?>  // Ganancia Neta - Verde o Rojo
+            ],
+            borderColor: [
+                '#1E7E34',
+                '#C82333', 
+                '#E0A800',
+                '#0056B3',
+                <?php echo $ganancia_neta >= 0 ? "'#1E7E34'" : "'#C82333'"; ?>
+            ],
+            borderWidth: 1
         }]
     },
     options: {
         responsive: true,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
             }
         },
         plugins: {
             legend: {
-                position: 'top'
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': $' + context.parsed.y.toLocaleString();
+                    }
+                }
             }
         }
     }
