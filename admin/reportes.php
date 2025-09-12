@@ -49,14 +49,20 @@ foreach ($gastos as $gasto) {
 
 // Calcular métricas de cotizaciones
 $total_cotizaciones = count($cotizaciones);
-$cotizaciones_por_estado = ['pendiente' => 0, 'enviada' => 0, 'aceptada' => 0, 'rechazada' => 0];
+$cotizaciones_por_estado = ['pendiente' => 0, 'en_proceso' => 0, 'respondida' => 0, 'cerrada' => 0];
 
 foreach ($cotizaciones as $cotizacion) {
-    $cotizaciones_por_estado[$cotizacion['estado']]++;
+    $estado = $cotizacion['estado'];
+    if (isset($cotizaciones_por_estado[$estado])) {
+        $cotizaciones_por_estado[$estado]++;
+    } else {
+        // Si el estado no está en nuestro array, lo agregamos
+        $cotizaciones_por_estado[$estado] = 1;
+    }
 }
 
-// Calcular conversión (cotizaciones aceptadas / total cotizaciones)
-$tasa_conversion = $total_cotizaciones > 0 ? ($cotizaciones_por_estado['aceptada'] / $total_cotizaciones) * 100 : 0;
+// Calcular conversión (cotizaciones cerradas / total cotizaciones)
+$tasa_conversion = $total_cotizaciones > 0 ? (($cotizaciones_por_estado['cerrada'] ?? 0) / $total_cotizaciones) * 100 : 0;
 
 // Obtener gastos de los últimos 6 meses para gráfico
 $gastos_mensuales_sql = "SELECT 
@@ -82,6 +88,45 @@ $cotizaciones_mensuales_result = $conn->query($cotizaciones_mensuales_sql);
 $cotizaciones_mensuales = $cotizaciones_mensuales_result->fetch_all(MYSQLI_ASSOC);
 
 $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'];
+
+// Obtener datos de ganancias del período
+$ganancias_sql = "SELECT 
+    SUM(cd.subtotal) as total_ventas,
+    SUM(cd.costo_total) as total_costos,
+    SUM(cd.ganancia) as total_ganancia
+FROM cotizacion_detalles cd
+LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+WHERE c.created_at BETWEEN ? AND ?";
+$ganancias_stmt = $conn->prepare($ganancias_sql);
+$ganancias_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
+$ganancias_stmt->execute();
+$ganancias_result = $ganancias_stmt->get_result();
+$ganancias = $ganancias_result->fetch_assoc();
+
+// Obtener gastos operacionales del período
+$gastos_operacionales_sql = "SELECT SUM(monto) as total FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado IN ('aprobado', 'pendiente')";
+$gastos_operacionales_stmt = $conn->prepare($gastos_operacionales_sql);
+$gastos_operacionales_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
+$gastos_operacionales_stmt->execute();
+$gastos_operacionales_result = $gastos_operacionales_stmt->get_result();
+$gastos_operacionales = $gastos_operacionales_result->fetch_assoc();
+
+// Calcular ganancia neta
+$ganancia_neta = ($ganancias['total_ganancia'] ?? 0) - ($gastos_operacionales['total'] ?? 0);
+
+// Obtener ganancias de los últimos 6 meses para gráfico
+$ganancias_mensuales_sql = "SELECT 
+    DATE_FORMAT(c.created_at, '%Y-%m') as mes,
+    SUM(cd.subtotal) as total_ventas,
+    SUM(cd.costo_total) as total_costos,
+    SUM(cd.ganancia) as total_ganancia
+FROM cotizacion_detalles cd
+LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+WHERE c.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+GROUP BY DATE_FORMAT(c.created_at, '%Y-%m')
+ORDER BY mes ASC";
+$ganancias_mensuales_result = $conn->query($ganancias_mensuales_sql);
+$ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="container-fluid">
@@ -147,7 +192,7 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
     <!-- Dashboard General -->
     <div class="row mb-4">
         <!-- Métricas Principales -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -162,7 +207,7 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -177,7 +222,7 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -192,7 +237,7 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-warning text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -202,6 +247,36 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">$<?php echo number_format($ganancias['total_ganancia'] ?? 0, 2); ?></h4>
+                            <p class="card-text">Ganancia Bruta</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-pie fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card <?php echo $ganancia_neta >= 0 ? 'bg-success' : 'bg-danger'; ?> text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">$<?php echo number_format($ganancia_neta, 2); ?></h4>
+                            <p class="card-text">Ganancia Neta</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-2x"></i>
                         </div>
                     </div>
                 </div>
@@ -234,7 +309,7 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
     </div>
 
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Gastos Mensuales (Últimos 6 meses)</h5>
@@ -244,13 +319,23 @@ $categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Cotizaciones Mensuales (Últimos 6 meses)</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="cotizacionesMensualesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ganancias del Mes</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="gananciasMensualesChart" width="400" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -366,6 +451,7 @@ const gastosCategoriaData = <?php echo json_encode($gastos_por_categoria); ?>;
 const cotizacionesEstadoData = <?php echo json_encode($cotizaciones_por_estado); ?>;
 const gastosMensualesData = <?php echo json_encode($gastos_mensuales); ?>;
 const cotizacionesMensualesData = <?php echo json_encode($cotizaciones_mensuales); ?>;
+const gananciasMensualesData = <?php echo json_encode($ganancias_mensuales); ?>;
 
 // Gráfico de gastos por categoría
 const gastosCategoriaCtx = document.getElementById('gastosCategoriaChart').getContext('2d');
@@ -404,10 +490,12 @@ new Chart(cotizacionesEstadoCtx, {
         datasets: [{
             data: Object.values(cotizacionesEstadoData),
             backgroundColor: [
-                '#FFC107',
-                '#17A2B8',
-                '#28A745',
-                '#DC3545'
+                '#FFC107',  // pendiente - amarillo
+                '#17A2B8',  // en_proceso - azul
+                '#28A745',  // respondida - verde
+                '#DC3545',  // cerrada - rojo
+                '#6C757D',  // otros - gris
+                '#E83E8C'   // adicional - rosa
             ]
         }]
     },
@@ -462,6 +550,44 @@ new Chart(cotizacionesMensualesCtx, {
         scales: {
             y: {
                 beginAtZero: true
+            }
+        }
+    }
+});
+
+// Gráfico de ganancias mensuales
+const gananciasMensualesCtx = document.getElementById('gananciasMensualesChart').getContext('2d');
+new Chart(gananciasMensualesCtx, {
+    type: 'bar',
+    data: {
+        labels: gananciasMensualesData.map(item => item.mes),
+        datasets: [{
+            label: 'Ganancia Bruta ($)',
+            data: gananciasMensualesData.map(item => item.total_ganancia),
+            backgroundColor: '#007BFF',
+            borderColor: '#0056B3',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Ganancia: $' + context.parsed.y.toLocaleString();
+                    }
+                }
             }
         }
     }
