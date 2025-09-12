@@ -36,7 +36,9 @@ if ($_POST) {
         // Calcular totales
         $subtotal = 0;
         $items = [];
+        $productos_personalizados = [];
         
+        // Procesar productos del catálogo
         if (isset($_POST['items']) && is_array($_POST['items'])) {
             foreach ($_POST['items'] as $item) {
                 if ($item['producto_id'] && $item['cantidad'] > 0) {
@@ -71,7 +73,36 @@ if ($_POST) {
             }
         }
         
-        if (empty($items)) {
+        // Procesar productos personalizados
+        if (isset($_POST['productos_personalizados']) && is_array($_POST['productos_personalizados'])) {
+            foreach ($_POST['productos_personalizados'] as $producto) {
+                if ($producto['nombre_producto'] && $producto['cantidad'] > 0 && $producto['precio_venta'] > 0 && $producto['costo_fabricacion'] > 0) {
+                    $cantidad = (int)$producto['cantidad'];
+                    $precio_venta = (float)$producto['precio_venta'];
+                    $costo_fabricacion = (float)$producto['costo_fabricacion'];
+                    $subtotal_producto = $precio_venta * $cantidad;
+                    $costo_total = $costo_fabricacion * $cantidad;
+                    $ganancia = $subtotal_producto - $costo_total;
+                    $margen_ganancia = $subtotal_producto > 0 ? ($ganancia / $subtotal_producto) * 100 : 0;
+                    
+                    $productos_personalizados[] = [
+                        'nombre_producto' => sanitizeInput($producto['nombre_producto']),
+                        'talla' => sanitizeInput($producto['talla']),
+                        'cantidad' => $cantidad,
+                        'precio_venta' => $precio_venta,
+                        'costo_fabricacion' => $costo_fabricacion,
+                        'subtotal' => $subtotal_producto,
+                        'costo_total' => $costo_total,
+                        'ganancia' => $ganancia,
+                        'margen_ganancia' => $margen_ganancia
+                    ];
+                    
+                    $subtotal += $subtotal_producto;
+                }
+            }
+        }
+        
+        if (empty($items) && empty($productos_personalizados)) {
             $error = 'Debe agregar al menos un producto a la cotización';
         } else {
             $total = $subtotal - $descuento;
@@ -93,13 +124,19 @@ if ($_POST) {
             if (createRecord('cotizaciones', $data)) {
                 $cotizacion_id = $conn->insert_id;
                 
-                // Crear items de la cotización
+                // Crear items de la cotización (productos del catálogo)
                 foreach ($items as $item) {
                     $item['cotizacion_id'] = $cotizacion_id;
                     createRecord('cotizacion_items', $item);
                 }
                 
-                // Crear detalles de cotización para análisis de ganancias
+                // Crear productos personalizados
+                foreach ($productos_personalizados as $producto) {
+                    $producto['cotizacion_id'] = $cotizacion_id;
+                    createRecord('cotizacion_productos_personalizados', $producto);
+                }
+                
+                // Crear detalles de cotización para análisis de ganancias (productos del catálogo)
                 foreach ($items as $item) {
                     $producto = getRecord('productos', $item['producto_id']);
                     if ($producto) {
@@ -125,6 +162,23 @@ if ($_POST) {
                         
                         createRecord('cotizacion_detalles', $detalle_data);
                     }
+                }
+                
+                // Crear detalles de cotización para análisis de ganancias (productos personalizados)
+                foreach ($productos_personalizados as $producto) {
+                    $detalle_data = [
+                        'cotizacion_id' => $cotizacion_id,
+                        'producto_id' => null, // No hay producto_id para productos personalizados
+                        'cantidad' => $producto['cantidad'],
+                        'precio_unitario' => $producto['precio_venta'],
+                        'costo_unitario' => $producto['costo_fabricacion'],
+                        'subtotal' => $producto['subtotal'],
+                        'costo_total' => $producto['costo_total'],
+                        'ganancia' => $producto['ganancia'],
+                        'margen_ganancia' => $producto['margen_ganancia']
+                    ];
+                    
+                    createRecord('cotizacion_detalles', $detalle_data);
                 }
                 
                 $success = 'Cotización creada exitosamente';
@@ -214,66 +268,20 @@ require_once 'includes/header.php';
                     
                     <!-- Productos -->
                     <div class="mb-4">
-                        <label class="form-label">Productos *</label>
-                        <div id="productosContainer">
-                            <div class="producto-item border rounded p-3 mb-3">
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <label class="form-label">Producto</label>
-                                        <select class="form-select producto-select" name="items[0][producto_id]" onchange="cargarVariantes(this, 0)">
-                                            <option value="">Seleccionar producto</option>
-                                            <?php foreach ($productos as $producto): ?>
-                                                <option value="<?php echo $producto['id']; ?>" data-precio="<?php echo $producto['precio_venta']; ?>">
-                                                    <?php echo htmlspecialchars($producto['nombre']); ?> - $<?php echo number_format($producto['precio_venta'], 2); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Talla</label>
-                                        <select class="form-select variante-select" name="items[0][variante_id]" onchange="actualizarPrecioConVariante(this, 0)">
-                                            <option value="">Sin talla</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Cantidad</label>
-                                        <input type="number" class="form-control cantidad-input" name="items[0][cantidad]" min="1" value="1" onchange="calcularPrecio(this, 0)">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Precio Unitario</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" 
-                                                   class="form-control precio-input" 
-                                                   name="items[0][precio_unitario]"
-                                                   step="0.01" 
-                                                   min="0" 
-                                                   value="0" 
-                                                   onchange="calcularPrecio(this, 0)"
-                                                   placeholder="0.00">
-                                        </div>
-                                        <small class="text-muted">Precio personalizable según diseño</small>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Subtotal</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control subtotal-display" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button type="button" class="btn btn-danger btn-sm mt-4" onclick="removeProducto(this)">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </div>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label mb-0">Productos *</label>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addProducto()">
+                                    <i class="fas fa-plus me-2"></i>Producto del Catálogo
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="addProductoPersonalizado()">
+                                    <i class="fas fa-edit me-2"></i>Producto Personalizado
+                                </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addProducto()">
-                            <i class="fas fa-plus me-2"></i>Agregar Producto
-                        </button>
+                        <div id="productosContainer">
+                            <!-- Los productos se agregarán dinámicamente aquí -->
+                        </div>
                     </div>
                     
                     <!-- Totales -->
@@ -350,8 +358,9 @@ require_once 'includes/header.php';
                 <ul class="list-unstyled mb-0">
                     <li><i class="fas fa-info-circle text-info me-2"></i>El número de cotización se genera automáticamente</li>
                     <li><i class="fas fa-calendar text-warning me-2"></i>La fecha de vencimiento es opcional</li>
-                    <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar múltiples productos</li>
-                    <li><i class="fas fa-dollar-sign text-primary me-2"></i>El precio es personalizable según el diseño</li>
+                    <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar productos del catálogo</li>
+                    <li><i class="fas fa-edit text-success me-2"></i>O crear productos personalizados</li>
+                    <li><i class="fas fa-dollar-sign text-primary me-2"></i>Precios y costos personalizables</li>
                     <li><i class="fas fa-percentage text-primary me-2"></i>El descuento se aplica al total</li>
                     <li><i class="fas fa-sticky-note text-secondary me-2"></i>Las notas aparecerán en el PDF generado</li>
                 </ul>
@@ -362,6 +371,7 @@ require_once 'includes/header.php';
 
 <script>
 let productoCount = 1;
+let productoPersonalizadoCount = 1;
 
 // Cargar variantes de un producto
 function cargarVariantes(select, index) {
@@ -448,7 +458,13 @@ function calcularPrecio(element, index) {
 function calcularTotales() {
     let subtotal = 0;
     
-    document.querySelectorAll('.subtotal-display').forEach(display => {
+    // Sumar subtotales de productos del catálogo
+    document.querySelectorAll('.producto-item .subtotal-display').forEach(display => {
+        subtotal += parseFloat(display.value || 0);
+    });
+    
+    // Sumar subtotales de productos personalizados
+    document.querySelectorAll('.producto-personalizado-item .subtotal-display').forEach(display => {
         subtotal += parseFloat(display.value || 0);
     });
     
@@ -490,7 +506,7 @@ function actualizarResumen() {
     }
 }
 
-// Agregar producto
+// Agregar producto del catálogo
 function addProducto() {
     const container = document.getElementById('productosContainer');
     const productoHtml = `
@@ -553,9 +569,116 @@ function addProducto() {
     productoCount++;
 }
 
+// Agregar producto personalizado
+function addProductoPersonalizado() {
+    const container = document.getElementById('productosContainer');
+    const productoHtml = `
+        <div class="producto-personalizado-item border rounded p-3 mb-3" style="border-color: #28a745 !important;">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Nombre del Producto *</label>
+                    <input type="text" class="form-control" name="productos_personalizados[${productoPersonalizadoCount}][nombre_producto]" 
+                           placeholder="Ej: Playera personalizada" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Talla</label>
+                    <input type="text" class="form-control" name="productos_personalizados[${productoPersonalizadoCount}][talla]" 
+                           placeholder="S, M, L, XL">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Cantidad *</label>
+                    <input type="number" class="form-control cantidad-input" name="productos_personalizados[${productoPersonalizadoCount}][cantidad]" 
+                           min="1" value="1" onchange="calcularProductoPersonalizado(this)" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Precio Venta *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control precio-venta-input" name="productos_personalizados[${productoPersonalizadoCount}][precio_venta]" 
+                               step="0.01" min="0" value="0" onchange="calcularProductoPersonalizado(this)" required>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Costo Fabricación *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control costo-input" name="productos_personalizados[${productoPersonalizadoCount}][costo_fabricacion]" 
+                               step="0.01" min="0" value="0" onchange="calcularProductoPersonalizado(this)" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-3">
+                    <label class="form-label">Subtotal</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control subtotal-display" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Costo Total</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control costo-total-display" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ganancia</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control ganancia-display" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Margen %</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control margen-display" readonly>
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-12 text-end">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeProductoPersonalizado(this)">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', productoHtml);
+    productoPersonalizadoCount++;
+}
+
 // Eliminar producto
 function removeProducto(button) {
     button.closest('.producto-item').remove();
+    calcularTotales();
+}
+
+// Eliminar producto personalizado
+function removeProductoPersonalizado(button) {
+    button.closest('.producto-personalizado-item').remove();
+    calcularTotales();
+}
+
+// Calcular producto personalizado
+function calcularProductoPersonalizado(element) {
+    const item = element.closest('.producto-personalizado-item');
+    const cantidad = parseFloat(item.querySelector('.cantidad-input').value || 0);
+    const precioVenta = parseFloat(item.querySelector('.precio-venta-input').value || 0);
+    const costo = parseFloat(item.querySelector('.costo-input').value || 0);
+    
+    const subtotal = precioVenta * cantidad;
+    const costoTotal = costo * cantidad;
+    const ganancia = subtotal - costoTotal;
+    const margen = subtotal > 0 ? (ganancia / subtotal) * 100 : 0;
+    
+    item.querySelector('.subtotal-display').value = subtotal.toFixed(2);
+    item.querySelector('.costo-total-display').value = costoTotal.toFixed(2);
+    item.querySelector('.ganancia-display').value = ganancia.toFixed(2);
+    item.querySelector('.margen-display').value = margen.toFixed(2);
+    
     calcularTotales();
 }
 
@@ -563,14 +686,28 @@ function removeProducto(button) {
 document.getElementById('cotizacionForm').addEventListener('submit', function(e) {
     const clienteId = document.getElementById('cliente_id').value;
     const productos = document.querySelectorAll('.producto-select');
+    const productosPersonalizados = document.querySelectorAll('.producto-personalizado-item');
     let tieneProductos = false;
     
+    // Verificar productos del catálogo
     productos.forEach(select => {
         if (select.value) {
             const cantidad = select.closest('.producto-item').querySelector('.cantidad-input').value;
             if (parseInt(cantidad) > 0) {
                 tieneProductos = true;
             }
+        }
+    });
+    
+    // Verificar productos personalizados
+    productosPersonalizados.forEach(item => {
+        const nombre = item.querySelector('input[name*="nombre_producto"]').value;
+        const cantidad = item.querySelector('.cantidad-input').value;
+        const precioVenta = item.querySelector('.precio-venta-input').value;
+        const costo = item.querySelector('.costo-input').value;
+        
+        if (nombre && parseInt(cantidad) > 0 && parseFloat(precioVenta) > 0 && parseFloat(costo) > 0) {
+            tieneProductos = true;
         }
     });
     
@@ -582,7 +719,7 @@ document.getElementById('cotizacionForm').addEventListener('submit', function(e)
     
     if (!tieneProductos) {
         e.preventDefault();
-        showAlert('Debe agregar al menos un producto con cantidad mayor a 0', 'danger');
+        showAlert('Debe agregar al menos un producto (del catálogo o personalizado) con cantidad mayor a 0', 'danger');
         return;
     }
     
