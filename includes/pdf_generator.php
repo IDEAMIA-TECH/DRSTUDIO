@@ -20,7 +20,7 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
             throw new Exception("Cotización no encontrada");
         }
         
-        // Obtener items de la cotización
+        // Obtener items de la cotización (productos del catálogo)
         $items = readRecords('cotizacion_items', ["cotizacion_id = $cotizacionId"], null, 'id ASC');
         
         foreach ($items as &$item) {
@@ -35,6 +35,9 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
         // Limpiar la referencia para evitar problemas en bucles posteriores
         unset($item);
         
+        // Obtener productos personalizados
+        $productos_personalizados = readRecords('cotizacion_productos_personalizados', ["cotizacion_id = $cotizacionId"], null, 'id ASC');
+        
         // Obtener cliente
         $cliente = getRecord('clientes', $cotizacion['cliente_id']);
         if (!$cliente) {
@@ -45,6 +48,11 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
         $subtotal = 0;
         foreach ($items as $item) {
             $subtotal += $item['subtotal'];
+        }
+        
+        // Sumar productos personalizados al subtotal
+        foreach ($productos_personalizados as $producto_personalizado) {
+            $subtotal += $producto_personalizado['subtotal'];
         }
         
         // Preparar datos unificados para el PDF
@@ -58,6 +66,7 @@ function generateCotizacionPDF($cotizacionId, $outputPath = null) {
                 'telefono' => $cliente['telefono'] ?? ''
             ],
             'items' => $items,
+            'productos_personalizados' => $productos_personalizados,
             'subtotal' => $subtotal,
             'descuento' => $cotizacion['descuento'] ?? 0,
             'total' => $subtotal - ($cotizacion['descuento'] ?? 0),
@@ -326,9 +335,11 @@ function createCotizacionHTML($data) {
         <table class="items-table">
         <thead>
             <tr>
+                <th style="width: 30px;">#</th>
+                <th style="width: 20px;">Tipo</th>
                 <th style="width: 100px;">Imagen</th>
-                <th style="width: 200px;">Producto</th>
-                <th style="width: 120px;">Variante</th>
+                <th style="width: 180px;">Producto</th>
+                <th style="width: 80px;">Talla</th>
                 <th style="width: 60px;">Cantidad</th>
                 <th style="width: 80px;">Precio Unit.</th>
                 <th style="width: 80px;">Subtotal</th>
@@ -336,6 +347,9 @@ function createCotizacionHTML($data) {
         </thead>
             <tbody>';
             
+    $contador = 1;
+    
+    // Mostrar productos del catálogo
     foreach ($data['items'] as $item) {
         $varianteText = '';
         if (isset($item['variante']) && $item['variante']) {
@@ -394,6 +408,8 @@ function createCotizacionHTML($data) {
         
         $html .= '
                 <tr>
+                    <td style="text-align: center;">' . $contador . '</td>
+                    <td style="text-align: center;"><span style="background-color: #007bff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">CAT</span></td>
                     <td style="text-align: center; vertical-align: middle;">' . $imagenHtml . '</td>
                     <td>
                         <strong>' . htmlspecialchars($item['producto']['nombre']) . '</strong><br>
@@ -404,6 +420,32 @@ function createCotizacionHTML($data) {
                     <td>$' . number_format($item['precio_unitario'], 2) . '</td>
                     <td>$' . number_format($item['subtotal'], 2) . '</td>
                 </tr>';
+        $contador++;
+    }
+    
+    // Mostrar productos personalizados
+    if (isset($data['productos_personalizados']) && !empty($data['productos_personalizados'])) {
+        foreach ($data['productos_personalizados'] as $producto) {
+            $html .= '
+                <tr>
+                    <td style="text-align: center;">' . $contador . '</td>
+                    <td style="text-align: center;"><span style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">PER</span></td>
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div class="no-image" style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; border-radius: 4px; font-size: 10px; color: #6c757d;">
+                            Personalizado
+                        </div>
+                    </td>
+                    <td>
+                        <strong>' . htmlspecialchars($producto['nombre_producto']) . '</strong><br>
+                        <small>Producto personalizado</small>
+                    </td>
+                    <td>' . htmlspecialchars($producto['talla'] ?: 'Sin talla') . '</td>
+                    <td>' . $producto['cantidad'] . '</td>
+                    <td>$' . number_format($producto['precio_venta'], 2) . '</td>
+                    <td>$' . number_format($producto['subtotal'], 2) . '</td>
+                </tr>';
+            $contador++;
+        }
     }
     
     $html .= '

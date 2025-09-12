@@ -27,8 +27,11 @@ if (!$cotizacion) {
 $pageTitle = 'Ver Cotización';
 require_once 'includes/header.php';
 
-// Obtener items de la cotización
+// Obtener items de la cotización (productos del catálogo)
 $items = readRecords('cotizacion_items', ["cotizacion_id = $id"], null, 'id ASC');
+
+// Obtener productos personalizados
+$productos_personalizados = readRecords('cotizacion_productos_personalizados', ["cotizacion_id = $id"], null, 'id ASC');
 
 // Obtener información de productos para los items y calcular totales
 $subtotal_calculado = 0;
@@ -46,6 +49,11 @@ foreach ($items as &$item) {
 }
 // Limpiar la referencia para evitar problemas en bucles posteriores
 unset($item);
+
+// Sumar productos personalizados al subtotal
+foreach ($productos_personalizados as $producto_personalizado) {
+    $subtotal_calculado += $producto_personalizado['subtotal'];
+}
 
 
 // Calcular total final
@@ -117,16 +125,21 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                     <table class="table table-bordered">
                         <thead>
                             <tr>
+                                <th>Tipo</th>
                                 <th>Producto</th>
-                                <th>Variante</th>
+                                <th>Talla</th>
                                 <th>Cantidad</th>
                                 <th>Precio Unitario</th>
                                 <th>Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Productos del catálogo -->
                             <?php foreach ($items as $item): ?>
                             <tr>
+                                <td>
+                                    <span class="badge bg-primary">Catálogo</span>
+                                </td>
                                 <td>
                                     <strong><?php echo htmlspecialchars($item['producto']['nombre']); ?></strong>
                                     <br>
@@ -152,6 +165,30 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
                                 <td class="text-center"><?php echo $item['cantidad']; ?></td>
                                 <td class="text-end">$<?php echo number_format($item['precio_unitario'], 2); ?></td>
                                 <td class="text-end"><strong>$<?php echo number_format($item['subtotal'], 2); ?></strong></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            
+                            <!-- Productos personalizados -->
+                            <?php foreach ($productos_personalizados as $producto): ?>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-success">Personalizado</span>
+                                </td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($producto['nombre_producto']); ?></strong>
+                                    <br>
+                                    <small class="text-muted">Producto personalizado</small>
+                                </td>
+                                <td>
+                                    <?php if ($producto['talla']): ?>
+                                        <span class="badge bg-info"><?php echo htmlspecialchars($producto['talla']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Sin talla</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center"><?php echo $producto['cantidad']; ?></td>
+                                <td class="text-end">$<?php echo number_format($producto['precio_venta'], 2); ?></td>
+                                <td class="text-end"><strong>$<?php echo number_format($producto['subtotal'], 2); ?></strong></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -274,8 +311,16 @@ $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
                     <li class="d-flex justify-content-between">
-                        <span>Productos:</span>
+                        <span>Productos del Catálogo:</span>
                         <strong><?php echo count($items); ?></strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>Productos Personalizados:</span>
+                        <strong><?php echo count($productos_personalizados); ?></strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>Total Productos:</span>
+                        <strong><?php echo count($items) + count($productos_personalizados); ?></strong>
                     </li>
                     <li class="d-flex justify-content-between">
                         <span>Subtotal:</span>
@@ -574,6 +619,7 @@ function exportarPDF() {
             telefono: '<?php echo addslashes($cotizacion['cliente_telefono'] ?? ''); ?>'
         },
         items: <?php echo json_encode($items); ?>,
+        productos_personalizados: <?php echo json_encode($productos_personalizados); ?>,
         subtotal: <?php echo $subtotal_calculado; ?>,
         descuento: <?php echo $cotizacion['descuento']; ?>,
         total: <?php echo $total_calculado; ?>,
