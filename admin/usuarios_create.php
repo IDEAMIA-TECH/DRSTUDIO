@@ -24,7 +24,7 @@ if ($_POST) {
         $error = 'El nombre de usuario es requerido';
     } elseif (empty($email)) {
         $error = 'El email es requerido';
-    } elseif (!isValidEmail($email)) {
+    } elseif (!validateEmail($email)) {
         $error = 'El email no es válido';
     } elseif (empty($password)) {
         $error = 'La contraseña es requerida';
