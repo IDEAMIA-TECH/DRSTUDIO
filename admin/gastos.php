@@ -353,6 +353,7 @@ function rechazarGasto(id) {
 
 function eliminarGasto(id) {
     if (confirm('¿Estás seguro de que quieres eliminar este gasto? Esta acción no se puede deshacer.')) {
+        console.log('Eliminando gasto ID:', id);
         fetch('../ajax/gastos.php', {
             method: 'POST',
             headers: {
@@ -360,13 +361,21 @@ function eliminarGasto(id) {
             },
             body: 'action=eliminar&id=' + id
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 location.reload();
             } else {
                 alert('Error: ' + data.message);
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión: ' + error);
         });
     }
 }

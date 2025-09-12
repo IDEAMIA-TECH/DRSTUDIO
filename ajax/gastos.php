@@ -134,7 +134,7 @@ function eliminarGasto($id) {
     }
     
     // Eliminar registro de la base de datos
-    if (deleteRecord('gastos', ['id' => $id])) {
+    if (deleteRecord('gastos', $id, false)) {
         echo json_encode(['success' => true, 'message' => 'Gasto eliminado exitosamente']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al eliminar el gasto']);
