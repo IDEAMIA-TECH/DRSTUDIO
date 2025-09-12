@@ -33,7 +33,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
             // Obtener información del cliente
             $cliente = getRecord('clientes', $cotizacion['cliente_id']);
             
-            // Obtener items de la cotización
+            // Obtener items de la cotización (productos del catálogo)
             $items = readRecords('cotizacion_items', ["cotizacion_id = $cotizacionId"], null, 'id ASC');
             foreach ($items as &$item) {
                 $producto = getRecord('productos', $item['producto_id']);
@@ -46,6 +46,9 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
             }
             // Limpiar la referencia para evitar problemas en bucles posteriores
             unset($item);
+            
+            // Obtener productos personalizados
+            $productos_personalizados = readRecords('cotizacion_productos_personalizados', ["cotizacion_id = $cotizacionId"], null, 'id ASC');
             
             // Procesar aceptación si se envió el formulario
             if ($_POST && isset($_POST['accept_quote'])) {
@@ -183,29 +186,36 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                                 <table class="table items-table">
                                     <thead>
                                         <tr>
+                                            <th>Tipo</th>
                                             <th>Producto</th>
-                                            <th>Variante</th>
+                                            <th>Talla</th>
                                             <th>Cantidad</th>
                                             <th>Precio Unit.</th>
                                             <th>Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <!-- Productos del catálogo -->
                                         <?php foreach ($items as $item): ?>
                                         <tr>
+                                            <td>
+                                                <span class="badge bg-primary">Catálogo</span>
+                                            </td>
                                             <td>
                                                 <strong><?php echo htmlspecialchars($item['producto']['nombre']); ?></strong><br>
                                                 <small class="text-muted">SKU: <?php echo htmlspecialchars($item['producto']['sku']); ?></small>
                                             </td>
                                             <td>
                                                 <?php if ($item['variante']): ?>
-                                                    <?php echo htmlspecialchars($item['variante']['talla'] ?? ''); ?>
-                                                    <?php if ($item['variante']['color']): ?>
-                                                        - <?php echo htmlspecialchars($item['variante']['color']); ?>
-                                                    <?php endif; ?>
-                                                    <?php if ($item['variante']['material']): ?>
-                                                        - <?php echo htmlspecialchars($item['variante']['material']); ?>
-                                                    <?php endif; ?>
+                                                    <?php 
+                                                    $variante_parts = array_filter([
+                                                        $item['variante']['talla'] ?? '',
+                                                        $item['variante']['color'] ?? '',
+                                                        $item['variante']['material'] ?? ''
+                                                    ]);
+                                                    $variante_display = implode(' - ', $variante_parts);
+                                                    echo htmlspecialchars($variante_display);
+                                                    ?>
                                                 <?php else: ?>
                                                     Sin variante
                                                 <?php endif; ?>
@@ -213,6 +223,29 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                                             <td><?php echo $item['cantidad']; ?></td>
                                             <td>$<?php echo number_format($item['precio_unitario'], 2); ?></td>
                                             <td>$<?php echo number_format($item['subtotal'], 2); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                        
+                                        <!-- Productos personalizados -->
+                                        <?php foreach ($productos_personalizados as $producto): ?>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-success">Personalizado</span>
+                                            </td>
+                                            <td>
+                                                <strong><?php echo htmlspecialchars($producto['nombre_producto']); ?></strong><br>
+                                                <small class="text-muted">Producto personalizado</small>
+                                            </td>
+                                            <td>
+                                                <?php if ($producto['talla']): ?>
+                                                    <span class="badge bg-info"><?php echo htmlspecialchars($producto['talla']); ?></span>
+                                                <?php else: ?>
+                                                    Sin talla
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?php echo $producto['cantidad']; ?></td>
+                                            <td>$<?php echo number_format($producto['precio_venta'], 2); ?></td>
+                                            <td>$<?php echo number_format($producto['subtotal'], 2); ?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>

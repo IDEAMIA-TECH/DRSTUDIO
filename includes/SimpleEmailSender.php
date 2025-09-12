@@ -56,14 +56,18 @@ class SimpleEmailSender {
             $cliente = $cotizacionData['cliente'];
             $cotizacion = $cotizacionData;
             
-            // Generar contenido HTML del correo
-            $htmlContent = $this->generateQuoteEmailHTML($cotizacionData);
+            // Generar token de aceptación
+            $acceptToken = $this->generateAcceptToken($cotizacionData['numero']);
+            $this->saveAcceptToken($cotizacionData['numero'], $acceptToken);
+            
+            // Generar contenido HTML del correo con botón de aceptación
+            $htmlContent = $this->generateQuoteEmailHTML($cotizacionData, $acceptToken);
             
             // Configurar asunto
             $subject = 'Cotización ' . $cotizacion['numero'] . ' - DT Studio';
             
-            // Enviar correo al cliente
-            $result = $this->sendEmail($cliente['email'], $subject, $htmlContent, true);
+            // Enviar correo con PDF adjunto
+            $result = $this->sendEmailWithAttachment($cliente['email'], $subject, $htmlContent, $pdfPath);
             
             if ($result) {
                 error_log("SimpleEmailSender - Correo de cotización enviado exitosamente a: " . $cliente['email']);
@@ -83,7 +87,91 @@ class SimpleEmailSender {
         }
     }
     
-    private function generateQuoteEmailHTML($data) {
+    private function sendEmailWithAttachment($to, $subject, $message, $pdfPath = null) {
+        try {
+            error_log("SimpleEmailSender - Enviando email con adjunto a: $to");
+            
+            // Verificar que el destinatario tenga email
+            if (empty($to)) {
+                error_log("SimpleEmailSender - Error: No se especificó destinatario");
+                return false;
+            }
+            
+            // Configurar headers para email con adjunto
+            $boundary = md5(uniqid(time()));
+            $headers = array();
+            $headers[] = "MIME-Version: 1.0";
+            $headers[] = "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+            $headers[] = "From: DT Studio <noreply@dtstudio.com.mx>";
+            $headers[] = "Reply-To: cotizaciones@dtstudio.com.mx";
+            $headers[] = "X-Mailer: PHP/" . phpversion();
+            
+            // Construir el cuerpo del mensaje
+            $body = "--$boundary\r\n";
+            $body .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $body .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+            $body .= $message . "\r\n";
+            
+            // Agregar PDF como adjunto si existe
+            if ($pdfPath && file_exists($pdfPath)) {
+                $filename = basename($pdfPath);
+                $fileContent = file_get_contents($pdfPath);
+                $fileContentEncoded = base64_encode($fileContent);
+                
+                $body .= "--$boundary\r\n";
+                $body .= "Content-Type: application/pdf; name=\"$filename\"\r\n";
+                $body .= "Content-Transfer-Encoding: base64\r\n";
+                $body .= "Content-Disposition: attachment; filename=\"$filename\"\r\n\r\n";
+                $body .= $fileContentEncoded . "\r\n";
+                
+                error_log("SimpleEmailSender - PDF adjunto: $filename (" . strlen($fileContent) . " bytes)");
+            }
+            
+            $body .= "--$boundary--\r\n";
+            
+            $headerString = implode("\r\n", $headers);
+            
+            // Enviar email
+            $result = mail($to, $subject, $body, $headerString);
+            
+            if ($result) {
+                error_log("SimpleEmailSender - Email con adjunto enviado exitosamente a: $to");
+                return true;
+            } else {
+                error_log("SimpleEmailSender - Error enviando email con adjunto a: $to");
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log("SimpleEmailSender - Error en sendEmailWithAttachment: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    private function generateAcceptToken($numeroCotizacion) {
+        // Generar token único para aceptar la cotización
+        $data = $numeroCotizacion . '_' . time() . '_' . rand(1000, 9999);
+        return base64_encode($data);
+    }
+    
+    private function saveAcceptToken($numeroCotizacion, $token) {
+        // Guardar token en la base de datos
+        global $conn;
+        $stmt = $conn->prepare("UPDATE cotizaciones SET token_aceptacion = ? WHERE numero_cotizacion = ?");
+        $stmt->bind_param("ss", $token, $numeroCotizacion);
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        if ($result) {
+            error_log("SimpleEmailSender - Token guardado exitosamente para cotización $numeroCotizacion");
+        } else {
+            error_log("SimpleEmailSender - Error guardando token para cotización $numeroCotizacion");
+        }
+        
+        return $result;
+    }
+    
+    private function generateQuoteEmailHTML($data, $acceptToken = null) {
         $html = '
         <!DOCTYPE html>
         <html lang="es">
@@ -239,8 +327,26 @@ class SimpleEmailSender {
                     <p>Total: $' . number_format($data['total'], 2) . '</p>
                 </div>
                 
-                <p>Esta cotización incluye todos los productos solicitados con sus especificaciones técnicas, precios y condiciones de entrega.</p>
+                <p>Esta cotización incluye todos los productos solicitados con sus especificaciones técnicas, precios y condiciones de entrega.</p>';
+        
+        // Agregar botón de aceptación si hay token
+        if ($acceptToken) {
+            $baseUrl = 'https://dtstudio.com.mx';
+            $acceptUrl = $baseUrl . '/aceptar-cotizacion.php?token=' . $acceptToken;
+            
+            $html .= '
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="' . $acceptUrl . '" style="display: inline-block; background-color: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                        ✅ ACEPTAR COTIZACIÓN
+                    </a>
+                </div>
                 
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    Al hacer clic en el botón de arriba, confirmará su aceptación de esta cotización y procederemos con los siguientes pasos para la producción de sus productos promocionales.
+                </p>';
+        }
+        
+        $html .= '
                 <p>Si tiene alguna pregunta o necesita modificar algún aspecto de la cotización, no dude en contactarnos.</p>
                 
                 <div class="footer">
