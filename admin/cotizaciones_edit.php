@@ -1,6 +1,7 @@
 <?php
 // Incluir archivos necesarios sin output
 require_once 'includes/paths.php';
+require_once '../includes/cotizacion_detalles_helper.php';
 
 $pageTitle = 'Editar Cotización';
 $error = '';
@@ -110,6 +111,35 @@ if ($_POST) {
             foreach ($items_data as $item_data) {
                 $item_data['cotizacion_id'] = $id;
                 createRecord('cotizacion_items', $item_data);
+            }
+            
+            // Actualizar detalles de cotización para análisis de ganancias
+            $conn->query("DELETE FROM cotizacion_detalles WHERE cotizacion_id = $id");
+            foreach ($items_data as $item_data) {
+                $producto = getRecord('productos', $item_data['producto_id']);
+                if ($producto) {
+                    $precio_unitario = $item_data['precio_unitario'];
+                    $costo_unitario = $producto['costo_fabricacion'];
+                    $cantidad = $item_data['cantidad'];
+                    $subtotal = $item_data['subtotal'];
+                    $costo_total = $costo_unitario * $cantidad;
+                    $ganancia = $subtotal - $costo_total;
+                    $margen_ganancia = $subtotal > 0 ? ($ganancia / $subtotal) * 100 : 0;
+                    
+                    $detalle_data = [
+                        'cotizacion_id' => $id,
+                        'producto_id' => $item_data['producto_id'],
+                        'cantidad' => $cantidad,
+                        'precio_unitario' => $precio_unitario,
+                        'costo_unitario' => $costo_unitario,
+                        'subtotal' => $subtotal,
+                        'costo_total' => $costo_total,
+                        'ganancia' => $ganancia,
+                        'margen_ganancia' => $margen_ganancia
+                    ];
+                    
+                    createRecord('cotizacion_detalles', $detalle_data);
+                }
             }
             
             $success = 'Cotización actualizada exitosamente';

@@ -1,6 +1,7 @@
 <?php
 // Incluir archivos necesarios sin output
 require_once 'includes/paths.php';
+require_once '../includes/cotizacion_detalles_helper.php';
 
 $pageTitle = 'Crear Nueva Cotización';
 $error = '';
@@ -96,6 +97,34 @@ if ($_POST) {
                 foreach ($items as $item) {
                     $item['cotizacion_id'] = $cotizacion_id;
                     createRecord('cotizacion_items', $item);
+                }
+                
+                // Crear detalles de cotización para análisis de ganancias
+                foreach ($items as $item) {
+                    $producto = getRecord('productos', $item['producto_id']);
+                    if ($producto) {
+                        $precio_unitario = $item['precio_unitario'];
+                        $costo_unitario = $producto['costo_fabricacion'];
+                        $cantidad = $item['cantidad'];
+                        $subtotal = $item['subtotal'];
+                        $costo_total = $costo_unitario * $cantidad;
+                        $ganancia = $subtotal - $costo_total;
+                        $margen_ganancia = $subtotal > 0 ? ($ganancia / $subtotal) * 100 : 0;
+                        
+                        $detalle_data = [
+                            'cotizacion_id' => $cotizacion_id,
+                            'producto_id' => $item['producto_id'],
+                            'cantidad' => $cantidad,
+                            'precio_unitario' => $precio_unitario,
+                            'costo_unitario' => $costo_unitario,
+                            'subtotal' => $subtotal,
+                            'costo_total' => $costo_total,
+                            'ganancia' => $ganancia,
+                            'margen_ganancia' => $margen_ganancia
+                        ];
+                        
+                        createRecord('cotizacion_detalles', $detalle_data);
+                    }
                 }
                 
                 $success = 'Cotización creada exitosamente';
