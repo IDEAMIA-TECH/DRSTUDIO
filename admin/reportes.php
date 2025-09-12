@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Reportes y Análisis';
+
 require_once 'includes/header.php';
 
 // Verificar permisos de administrador
@@ -142,7 +142,7 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0">Reportes y Análisis</h1>
+            <h1 class="h3 mb-0"><?php $pageTitle = 'Reportes y Análisis';?></h1>
             <p class="text-muted">Análisis financiero y métricas de la empresa</p>
         </div>
         <div class="d-flex gap-2">
