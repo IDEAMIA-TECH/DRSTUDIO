@@ -108,8 +108,8 @@ $categorias_sql = "SELECT id, nombre FROM categorias WHERE activo = 1 ORDER BY n
 $categorias_result = $conn->query($categorias_sql);
 $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
 
-// Obtener gastos operacionales del período
-$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado = 'aprobado' ORDER BY fecha_gasto DESC";
+// Obtener gastos operacionales del período (incluir pendientes y aprobados)
+$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado IN ('aprobado', 'pendiente') ORDER BY fecha_gasto DESC";
 $gastos_stmt = $conn->prepare($gastos_sql);
 $gastos_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $gastos_stmt->execute();
@@ -408,6 +408,7 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
     <div class="card mt-4">
         <div class="card-header">
             <h5 class="card-title mb-0">Gastos Operacionales del Período</h5>
+            <small class="text-muted">Incluye gastos aprobados y pendientes de aprobación</small>
         </div>
         <div class="card-body">
             <?php if (empty($gastos)): ?>
@@ -444,7 +445,23 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
                                 <td class="text-danger fw-bold">$<?php echo number_format($gasto['monto'], 2); ?></td>
                                 <td><?php echo htmlspecialchars($gasto['metodo_pago']); ?></td>
                                 <td>
-                                    <span class="badge bg-success"><?php echo ucfirst($gasto['estado']); ?></span>
+                                    <?php 
+                                    $estado_class = '';
+                                    switch($gasto['estado']) {
+                                        case 'aprobado':
+                                            $estado_class = 'bg-success';
+                                            break;
+                                        case 'pendiente':
+                                            $estado_class = 'bg-warning';
+                                            break;
+                                        case 'rechazado':
+                                            $estado_class = 'bg-danger';
+                                            break;
+                                        default:
+                                            $estado_class = 'bg-secondary';
+                                    }
+                                    ?>
+                                    <span class="badge <?php echo $estado_class; ?>"><?php echo ucfirst($gasto['estado']); ?></span>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

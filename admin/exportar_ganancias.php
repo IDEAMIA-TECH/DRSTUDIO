@@ -81,8 +81,8 @@ foreach ($detalles as $detalle) {
 
 $margen_ganancia_promedio = $total_ventas > 0 ? ($total_ganancia / $total_ventas) * 100 : 0;
 
-// Obtener gastos operacionales del período
-$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado = 'aprobado' ORDER BY fecha_gasto DESC";
+// Obtener gastos operacionales del período (incluir pendientes y aprobados)
+$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado IN ('aprobado', 'pendiente') ORDER BY fecha_gasto DESC";
 $gastos_stmt = $conn->prepare($gastos_sql);
 $gastos_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $gastos_stmt->execute();
