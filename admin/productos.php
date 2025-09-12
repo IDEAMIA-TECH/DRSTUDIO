@@ -225,6 +225,7 @@ function deleteProduct(id) {
         }, function(response) {
             if (response.success) {
                 showAlert(response.message);
+                // Recargar la página para actualizar la tabla
                 location.reload();
             } else {
                 showAlert(response.message, 'danger');

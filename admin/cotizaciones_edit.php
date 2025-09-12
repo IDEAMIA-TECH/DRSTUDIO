@@ -60,7 +60,8 @@ if ($_POST) {
                 if ($item['producto_id'] && $item['cantidad'] > 0) {
                     $producto = getRecord('productos', $item['producto_id']);
                     if ($producto) {
-                        $precio_unitario = $producto['precio_venta'];
+                        // Usar el precio personalizado ingresado por el usuario
+                        $precio_unitario = (float)$item['precio_unitario'];
                         $precio_extra = 0;
                         
                         // Si hay variante, obtener precio extra
@@ -222,8 +223,26 @@ require_once 'includes/header.php';
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label">Variante</label>
-                                            <select class="form-select variante-select" name="items[<?php echo $index; ?>][variante_id]">
+                                            <select class="form-select variante-select" name="items[<?php echo $index; ?>][variante_id]" onchange="actualizarPrecioConVariante(this, <?php echo $index; ?>)">
                                                 <option value="">Sin variante</option>
+                                                <?php 
+                                                // Cargar variantes del producto actual
+                                                if ($item['producto_id']) {
+                                                    $variantes_sql = "SELECT * FROM variantes_producto WHERE producto_id = ? ORDER BY id ASC";
+                                                    $variantes_stmt = $conn->prepare($variantes_sql);
+                                                    $variantes_stmt->bind_param('i', $item['producto_id']);
+                                                    $variantes_stmt->execute();
+                                                    $variantes_result = $variantes_stmt->get_result();
+                                                    $variantes = $variantes_result->fetch_all(MYSQLI_ASSOC);
+                                                    
+                                                    foreach ($variantes as $variante) {
+                                                        $selected = ($variante['id'] == $item['variante_id']) ? 'selected' : '';
+                                                        echo "<option value=\"{$variante['id']}\" data-precio_extra=\"{$variante['precio_extra']}\" $selected>";
+                                                        echo htmlspecialchars(($variante['talla'] ?: '') . ' ' . ($variante['color'] ?: '') . ' ' . ($variante['material'] ?: '')) . ' (+$' . number_format($variante['precio_extra'], 2) . ')';
+                                                        echo "</option>";
+                                                    }
+                                                }
+                                                ?>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
@@ -233,8 +252,18 @@ require_once 'includes/header.php';
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label">Precio Unit.</label>
-                                            <input type="text" class="form-control precio-input" readonly 
-                                                   value="$<?php echo number_format($item['precio_unitario'], 2); ?>">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" 
+                                                       class="form-control precio-input" 
+                                                       name="items[<?php echo $index; ?>][precio_unitario]"
+                                                       step="0.01" 
+                                                       min="0" 
+                                                       value="<?php echo $item['precio_unitario']; ?>" 
+                                                       onchange="calcularSubtotal(this.closest('.item-row'))"
+                                                       placeholder="0.00">
+                                            </div>
+                                            <small class="text-muted">Precio personalizable</small>
                                         </div>
                                         <div class="col-md-1">
                                             <label class="form-label">&nbsp;</label>
@@ -334,7 +363,18 @@ function agregarItem() {
             </div>
             <div class="col-md-2">
                 <label class="form-label">Precio Unit.</label>
-                <input type="text" class="form-control precio-input" readonly value="$0.00">
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" 
+                           class="form-control precio-input" 
+                           name="items[${itemIndex}][precio_unitario]"
+                           step="0.01" 
+                           min="0" 
+                           value="0" 
+                           onchange="calcularSubtotal(this.closest('.item-row'))"
+                           placeholder="0.00">
+                </div>
+                <small class="text-muted">Precio personalizable</small>
             </div>
             <div class="col-md-1">
                 <label class="form-label">&nbsp;</label>
@@ -379,7 +419,7 @@ function addItemEventListeners(itemRow) {
     // Event listener para cambio de producto
     productoSelect.addEventListener('change', function() {
         const precio = parseFloat(this.selectedOptions[0]?.dataset.precio || 0);
-        precioInput.value = '$' + precio.toFixed(2);
+        precioInput.value = precio.toFixed(2);
         cargarVariantes(this.value, varianteSelect);
         calcularSubtotal(itemRow);
     });
@@ -417,7 +457,7 @@ function cargarVariantes(productoId, varianteSelect) {
                 const option = document.createElement('option');
                 option.value = variante.id;
                 option.textContent = `${variante.talla} - ${variante.color} - ${variante.material} (+$${parseFloat(variante.precio_extra).toFixed(2)})`;
-                option.dataset.precioExtra = variante.precio_extra;
+                option.dataset.precio_extra = variante.precio_extra;
                 varianteSelect.appendChild(option);
             });
         }
@@ -425,6 +465,21 @@ function cargarVariantes(productoId, varianteSelect) {
     .catch(error => {
         console.error('Error cargando variantes:', error);
     });
+}
+
+// Actualizar precio cuando se selecciona una variante
+function actualizarPrecioConVariante(select, index) {
+    const itemRow = select.closest('.item-row');
+    const precioInput = itemRow.querySelector('.precio-input');
+    const productoSelect = itemRow.querySelector('.producto-select');
+    
+    const precioBase = parseFloat(productoSelect.selectedOptions[0]?.dataset.precio || 0);
+    const precioExtra = parseFloat(select.selectedOptions[0]?.dataset.precio_extra || 0);
+    
+    // Actualizar el precio base con el extra de la variante
+    precioInput.value = (precioBase + precioExtra).toFixed(2);
+    
+    calcularSubtotal(itemRow);
 }
 
 // Función para calcular subtotal de un item
@@ -435,14 +490,13 @@ function calcularSubtotal(itemRow) {
     const precioInput = itemRow.querySelector('.precio-input');
     const subtotalDisplay = itemRow.querySelector('.subtotal-display');
     
-    const precioBase = parseFloat(productoSelect.selectedOptions[0]?.dataset.precio || 0);
-    const precioExtra = parseFloat(varianteSelect.selectedOptions[0]?.dataset.precioExtra || 0);
+    const precioBase = parseFloat(precioInput.value || 0);
+    const precioExtra = parseFloat(varianteSelect.selectedOptions[0]?.dataset.precio_extra || 0);
     const cantidad = parseFloat(cantidadInput.value || 0);
     
     const precioTotal = precioBase + precioExtra;
     const subtotal = precioTotal * cantidad;
     
-    precioInput.value = '$' + precioTotal.toFixed(2);
     subtotalDisplay.textContent = subtotal.toFixed(2);
     
     calcularTotales();

@@ -18,27 +18,6 @@
     <div id="alertContainer"></div>
     
     <script>
-        // Mostrar mensajes de éxito/error
-        function showAlert(message, type = 'success') {
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            $('#alertContainer').html(alertHtml);
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                $('.alert').alert('close');
-            }, 5000);
-        }
-        
-        // Confirmar eliminación
-        function confirmDelete(message = '¿Estás seguro de eliminar este elemento?') {
-            return confirm(message);
-        }
-        
         // Inicializar DataTables
         $(document).ready(function() {
             $('.data-table').DataTable({
