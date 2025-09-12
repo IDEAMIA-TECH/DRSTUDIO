@@ -81,6 +81,33 @@ foreach ($detalles as $detalle) {
 
 $margen_ganancia_promedio = $total_ventas > 0 ? ($total_ganancia / $total_ventas) * 100 : 0;
 
+// Obtener gastos operacionales del período
+$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado = 'aprobado' ORDER BY fecha_gasto DESC";
+$gastos_stmt = $conn->prepare($gastos_sql);
+$gastos_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
+$gastos_stmt->execute();
+$gastos_result = $gastos_stmt->get_result();
+$gastos = $gastos_result->fetch_all(MYSQLI_ASSOC);
+
+// Calcular métricas de gastos
+$total_gastos_operacionales = 0;
+$gastos_por_categoria = [];
+
+foreach ($gastos as $gasto) {
+    $total_gastos_operacionales += $gasto['monto'];
+    
+    // Por categoría de gasto
+    $categoria_gasto = $gasto['categoria'] ?: 'Sin categoría';
+    if (!isset($gastos_por_categoria[$categoria_gasto])) {
+        $gastos_por_categoria[$categoria_gasto] = 0;
+    }
+    $gastos_por_categoria[$categoria_gasto] += $gasto['monto'];
+}
+
+// Calcular ganancia neta
+$ganancia_neta = $total_ganancia - $total_gastos_operacionales;
+$margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
+
 if ($tipo == 'pdf') {
     // Generar PDF
     require_once '../includes/pdf_generator.php';
@@ -104,14 +131,20 @@ if ($tipo == 'pdf') {
     $pdf->Cell(60, 8, 'Total Ventas:', 0, 0);
     $pdf->Cell(30, 8, '$' . number_format($total_ventas, 2), 0, 1);
     
-    $pdf->Cell(60, 8, 'Total Costos:', 0, 0);
+    $pdf->Cell(60, 8, 'Costos Productos:', 0, 0);
     $pdf->Cell(30, 8, '$' . number_format($total_costos, 2), 0, 1);
     
-    $pdf->Cell(60, 8, 'Ganancia Total:', 0, 0);
+    $pdf->Cell(60, 8, 'Gastos Operacionales:', 0, 0);
+    $pdf->Cell(30, 8, '$' . number_format($total_gastos_operacionales, 2), 0, 1);
+    
+    $pdf->Cell(60, 8, 'Ganancia Bruta:', 0, 0);
     $pdf->Cell(30, 8, '$' . number_format($total_ganancia, 2), 0, 1);
     
-    $pdf->Cell(60, 8, 'Margen Promedio:', 0, 0);
-    $pdf->Cell(30, 8, number_format($margen_ganancia_promedio, 1) . '%', 0, 1);
+    $pdf->Cell(60, 8, 'Ganancia Neta:', 0, 0);
+    $pdf->Cell(30, 8, '$' . number_format($ganancia_neta, 2), 0, 1);
+    
+    $pdf->Cell(60, 8, 'Margen Neto:', 0, 0);
+    $pdf->Cell(30, 8, number_format($margen_neto, 1) . '%', 0, 1);
     
     $pdf->Ln(10);
     
@@ -123,6 +156,18 @@ if ($tipo == 'pdf') {
     foreach ($ganancia_por_categoria as $categoria => $data) {
         $pdf->Cell(60, 8, $categoria . ':', 0, 0);
         $pdf->Cell(30, 8, '$' . number_format($data['ganancia'], 2), 0, 1);
+    }
+    
+    $pdf->Ln(10);
+    
+    // Gastos operacionales por categoría
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->Cell(0, 10, 'GASTOS OPERACIONALES POR CATEGORÍA', 0, 1);
+    $pdf->SetFont('Arial', '', 12);
+    
+    foreach ($gastos_por_categoria as $categoria => $monto) {
+        $pdf->Cell(60, 8, $categoria . ':', 0, 0);
+        $pdf->Cell(30, 8, '$' . number_format($monto, 2), 0, 1);
     }
     
     $pdf->Ln(10);
@@ -171,15 +216,24 @@ if ($tipo == 'pdf') {
     // Métricas principales
     fputcsv($output, ['MÉTRICAS PRINCIPALES']);
     fputcsv($output, ['Total Ventas', '$' . number_format($total_ventas, 2)]);
-    fputcsv($output, ['Total Costos', '$' . number_format($total_costos, 2)]);
-    fputcsv($output, ['Ganancia Total', '$' . number_format($total_ganancia, 2)]);
-    fputcsv($output, ['Margen Promedio', number_format($margen_ganancia_promedio, 1) . '%']);
+    fputcsv($output, ['Costos Productos', '$' . number_format($total_costos, 2)]);
+    fputcsv($output, ['Gastos Operacionales', '$' . number_format($total_gastos_operacionales, 2)]);
+    fputcsv($output, ['Ganancia Bruta', '$' . number_format($total_ganancia, 2)]);
+    fputcsv($output, ['Ganancia Neta', '$' . number_format($ganancia_neta, 2)]);
+    fputcsv($output, ['Margen Neto', number_format($margen_neto, 1) . '%']);
     fputcsv($output, []);
     
     // Ganancias por categoría
     fputcsv($output, ['GANANCIAS POR CATEGORÍA']);
     foreach ($ganancia_por_categoria as $categoria => $data) {
         fputcsv($output, [$categoria, '$' . number_format($data['ganancia'], 2)]);
+    }
+    fputcsv($output, []);
+    
+    // Gastos operacionales por categoría
+    fputcsv($output, ['GASTOS OPERACIONALES POR CATEGORÍA']);
+    foreach ($gastos_por_categoria as $categoria => $monto) {
+        fputcsv($output, [$categoria, '$' . number_format($monto, 2)]);
     }
     fputcsv($output, []);
     

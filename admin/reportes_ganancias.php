@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Reporte de Ganancias';
+
 require_once 'includes/header.php';
 
 // Verificar permisos de administrador
@@ -107,13 +107,40 @@ $productos = $productos_result->fetch_all(MYSQLI_ASSOC);
 $categorias_sql = "SELECT id, nombre FROM categorias WHERE activo = 1 ORDER BY nombre";
 $categorias_result = $conn->query($categorias_sql);
 $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
+
+// Obtener gastos operacionales del período
+$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? AND estado = 'aprobado' ORDER BY fecha_gasto DESC";
+$gastos_stmt = $conn->prepare($gastos_sql);
+$gastos_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
+$gastos_stmt->execute();
+$gastos_result = $gastos_stmt->get_result();
+$gastos = $gastos_result->fetch_all(MYSQLI_ASSOC);
+
+// Calcular métricas de gastos
+$total_gastos_operacionales = 0;
+$gastos_por_categoria = [];
+
+foreach ($gastos as $gasto) {
+    $total_gastos_operacionales += $gasto['monto'];
+    
+    // Por categoría de gasto
+    $categoria_gasto = $gasto['categoria'] ?: 'Sin categoría';
+    if (!isset($gastos_por_categoria[$categoria_gasto])) {
+        $gastos_por_categoria[$categoria_gasto] = 0;
+    }
+    $gastos_por_categoria[$categoria_gasto] += $gasto['monto'];
+}
+
+// Calcular ganancia neta
+$ganancia_neta = $total_ganancia - $total_gastos_operacionales;
+$margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
 ?>
 
 <div class="container-fluid">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0">Reporte de Ganancias</h1>
+            <h1 class="h3 mb-0"><?php $pageTitle = 'Reporte de Ganancias';?></h1>
             <p class="text-muted">Análisis de rentabilidad por producto y categoría</p>
         </div>
         <div class="d-flex gap-2">
@@ -179,7 +206,7 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
 
     <!-- Métricas Principales -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -194,13 +221,13 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card bg-danger text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
                             <h4 class="card-title">$<?php echo number_format($total_costos, 2); ?></h4>
-                            <p class="card-text">Total Costos</p>
+                            <p class="card-text">Costos Productos</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-calculator fa-2x"></i>
@@ -209,13 +236,28 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">$<?php echo number_format($total_gastos_operacionales, 2); ?></h4>
+                            <p class="card-text">Gastos Operacionales</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-receipt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
                             <h4 class="card-title">$<?php echo number_format($total_ganancia, 2); ?></h4>
-                            <p class="card-text">Ganancia Total</p>
+                            <p class="card-text">Ganancia Bruta</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-chart-line fa-2x"></i>
@@ -224,13 +266,28 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <div class="card <?php echo $ganancia_neta >= 0 ? 'bg-success' : 'bg-danger'; ?> text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">$<?php echo number_format($ganancia_neta, 2); ?></h4>
+                            <p class="card-text">Ganancia Neta</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-pie fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="card-title"><?php echo number_format($margen_ganancia_promedio, 1); ?>%</h4>
-                            <p class="card-text">Margen Promedio</p>
+                            <h4 class="card-title"><?php echo number_format($margen_neto, 1); ?>%</h4>
+                            <p class="card-text">Margen Neto</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-percentage fa-2x"></i>
@@ -243,7 +300,7 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
 
     <!-- Gráficos -->
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Ganancias por Categoría</h5>
@@ -253,13 +310,37 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Gastos Operacionales</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="gastosCategoriaChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Top 10 Productos Más Rentables</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="productosRentablesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Flujo de Caja -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Análisis de Flujo de Caja</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="flujoCajaChart" width="800" height="300"></canvas>
                 </div>
             </div>
         </div>
@@ -322,6 +403,64 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Tabla de Gastos Operacionales -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Gastos Operacionales del Período</h5>
+        </div>
+        <div class="card-body">
+            <?php if (empty($gastos)): ?>
+                <div class="text-center py-3">
+                    <i class="fas fa-receipt fa-2x text-muted mb-2"></i>
+                    <h6 class="text-muted">No hay gastos operacionales en este período</h6>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Categoría</th>
+                                <th>Monto</th>
+                                <th>Método de Pago</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($gastos as $gasto): ?>
+                            <tr>
+                                <td><?php echo date('d/m/Y', strtotime($gasto['fecha_gasto'])); ?></td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($gasto['concepto']); ?></strong>
+                                    <?php if ($gasto['descripcion']): ?>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars(substr($gasto['descripcion'], 0, 50)) . (strlen($gasto['descripcion']) > 50 ? '...' : ''); ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($gasto['categoria']); ?></span>
+                                </td>
+                                <td class="text-danger fw-bold">$<?php echo number_format($gasto['monto'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($gasto['metodo_pago']); ?></td>
+                                <td>
+                                    <span class="badge bg-success"><?php echo ucfirst($gasto['estado']); ?></span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-warning">
+                                <th colspan="3">Total Gastos Operacionales</th>
+                                <th class="text-danger">$<?php echo number_format($total_gastos_operacionales, 2); ?></th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 
 <!-- Chart.js -->
@@ -330,6 +469,7 @@ $categorias = $categorias_result->fetch_all(MYSQLI_ASSOC);
 <script>
 // Datos para los gráficos
 const gananciasCategoriaData = <?php echo json_encode($ganancia_por_categoria); ?>;
+const gastosCategoriaData = <?php echo json_encode($gastos_por_categoria); ?>;
 const productosRentablesData = <?php echo json_encode(array_slice($ganancia_por_producto, 0, 10, true)); ?>;
 
 // Gráfico de ganancias por categoría
@@ -371,6 +511,70 @@ new Chart(productosRentablesCtx, {
         scales: {
             x: {
                 beginAtZero: true
+            }
+        }
+    }
+});
+
+// Gráfico de gastos por categoría
+const gastosCategoriaCtx = document.getElementById('gastosCategoriaChart').getContext('2d');
+new Chart(gastosCategoriaCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(gastosCategoriaData),
+        datasets: [{
+            label: 'Gastos ($)',
+            data: Object.values(gastosCategoriaData),
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Gráfico de flujo de caja
+const flujoCajaCtx = document.getElementById('flujoCajaChart').getContext('2d');
+new Chart(flujoCajaCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Ventas', 'Costos Productos', 'Gastos Operacionales', 'Ganancia Bruta', 'Ganancia Neta'],
+        datasets: [{
+            label: 'Ingresos',
+            data: [<?php echo $total_ventas; ?>, 0, 0, 0, 0],
+            backgroundColor: '#28A745'
+        }, {
+            label: 'Costos',
+            data: [0, <?php echo $total_costos; ?>, <?php echo $total_gastos_operacionales; ?>, 0, 0],
+            backgroundColor: '#DC3545'
+        }, {
+            label: 'Ganancias',
+            data: [0, 0, 0, <?php echo $total_ganancia; ?>, <?php echo $ganancia_neta; ?>],
+            backgroundColor: ['#007BFF', <?php echo $ganancia_neta >= 0 ? "'#28A745'" : "'#DC3545'"; ?>]
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top'
             }
         }
     }
