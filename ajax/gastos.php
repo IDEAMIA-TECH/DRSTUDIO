@@ -4,19 +4,28 @@ require_once '../includes/config.php';
 require_once '../includes/functions.php';
 
 // Verificar autenticación
-if (!isLoggedIn()) {
+if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }
 
 // Verificar permisos de administrador
-if (!hasPermission('admin')) {
+$user_id = $_SESSION['user_id'];
+$user_sql = "SELECT rol FROM usuarios WHERE id = ?";
+$user_stmt = $conn->prepare($user_sql);
+$user_stmt->bind_param('i', $user_id);
+$user_stmt->execute();
+$user_result = $user_stmt->get_result();
+$user = $user_result->fetch_assoc();
+
+if (!$user || $user['rol'] !== 'admin') {
     echo json_encode(['success' => false, 'message' => 'Permisos insuficientes']);
     exit;
 }
 
 $action = $_POST['action'] ?? '';
 $id = intval($_POST['id'] ?? 0);
+
 
 switch ($action) {
     case 'aprobar':

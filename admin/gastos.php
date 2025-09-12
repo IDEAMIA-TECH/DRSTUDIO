@@ -313,7 +313,7 @@ $estados = ['pendiente', 'aprobado', 'rechazado'];
 <script>
 function aprobarGasto(id) {
     if (confirm('¿Estás seguro de que quieres aprobar este gasto?')) {
-        fetch('ajax/gastos.php', {
+        fetch('../ajax/gastos.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -333,7 +333,7 @@ function aprobarGasto(id) {
 
 function rechazarGasto(id) {
     if (confirm('¿Estás seguro de que quieres rechazar este gasto?')) {
-        fetch('ajax/gastos.php', {
+        fetch('../ajax/gastos.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -353,7 +353,7 @@ function rechazarGasto(id) {
 
 function eliminarGasto(id) {
     if (confirm('¿Estás seguro de que quieres eliminar este gasto? Esta acción no se puede deshacer.')) {
-        fetch('ajax/gastos.php', {
+        fetch('../ajax/gastos.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
