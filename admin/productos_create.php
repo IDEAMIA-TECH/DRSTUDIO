@@ -264,19 +264,15 @@ if ($_POST) {
                         <div id="variantesContainer">
                             <div class="variante-item border rounded p-3 mb-3">
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label class="form-label">Talla</label>
                                         <input type="text" class="form-control" name="variantes[0][talla]" placeholder="S, M, L, XL">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Color</label>
-                                        <input type="text" class="form-control" name="variantes[0][color]" placeholder="Blanco, Negro, etc.">
-                                    </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label class="form-label">Material</label>
                                         <input type="text" class="form-control" name="variantes[0][material]" placeholder="Algodón, Poliéster, etc.">
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <label class="form-label">Stock</label>
                                         <input type="number" class="form-control" name="variantes[0][stock]" min="0" value="0">
                                     </div>
@@ -484,19 +480,15 @@ function addVariante() {
     const varianteHtml = `
         <div class="variante-item border rounded p-3 mb-3">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Talla</label>
                     <input type="text" class="form-control" name="variantes[${varianteCount}][talla]" placeholder="S, M, L, XL">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Color</label>
-                    <input type="text" class="form-control" name="variantes[${varianteCount}][color]" placeholder="Blanco, Negro, etc.">
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Material</label>
                     <input type="text" class="form-control" name="variantes[${varianteCount}][material]" placeholder="Algodón, Poliéster, etc.">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label">Stock</label>
                     <input type="number" class="form-control" name="variantes[${varianteCount}][stock]" min="0" value="0">
                 </div>
