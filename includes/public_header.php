@@ -71,7 +71,7 @@ $categorias = readRecords('categorias', ['activo' => 1], null, 'nombre ASC');
                     <a href="cotizacion.php" class="btn btn-primary">
                         <i class="fas fa-calculator me-2"></i>Solicitar Cotización
                     </a>
-                    <a href="admin/" class="btn btn-outline-secondary">
+                    <a href="admin/login.php" class="btn btn-outline-secondary">
                         <i class="fas fa-cog me-2"></i>Admin
                     </a>
                 </div>
