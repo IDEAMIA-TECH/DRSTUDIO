@@ -201,9 +201,9 @@ require_once 'includes/header.php';
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Variante</label>
+                                        <label class="form-label">Talla</label>
                                         <select class="form-select variante-select" name="items[0][variante_id]" onchange="actualizarPrecioConVariante(this, 0)">
-                                            <option value="">Sin variante</option>
+                                            <option value="">Sin talla</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -345,7 +345,7 @@ function cargarVariantes(select, index) {
     precioInput.value = parseFloat(precioBase).toFixed(2);
     
     // Limpiar variantes
-    varianteSelect.innerHTML = '<option value="">Sin variante</option>';
+    varianteSelect.innerHTML = '<option value="">Sin talla</option>';
     
     if (productoId) {
         // Cargar variantes via AJAX
@@ -364,7 +364,7 @@ function cargarVariantes(select, index) {
                     const option = document.createElement('option');
                     option.value = variante.id;
                     option.dataset.precio_extra = variante.precio_extra;
-                    option.textContent = `${variante.talla || ''} ${variante.color || ''} ${variante.material || ''}`.trim() || 'Variante sin nombre';
+                    option.textContent = variante.talla || 'Talla sin especificar';
                     varianteSelect.appendChild(option);
                 });
             } else {
@@ -479,9 +479,9 @@ function addProducto() {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Variante</label>
+                    <label class="form-label">Talla</label>
                     <select class="form-select variante-select" name="items[${productoCount}][variante_id]" onchange="actualizarPrecioConVariante(this, ${productoCount})">
-                        <option value="">Sin variante</option>
+                        <option value="">Sin talla</option>
                     </select>
                 </div>
                 <div class="col-md-2">
