@@ -344,3 +344,87 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
 }
+
+/* Estilos para el Cotizador DTF */
+.cotizador-section {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.cotizador-section h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.cotizador-resultado {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.cotizador-preset-btn {
+    transition: all 0.3s ease;
+}
+
+.cotizador-preset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.cotizador-calculadora {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cotizador-calculadora h5 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.cotizador-calculadora small {
+    color: rgba(255,255,255,0.8);
+}
+
+/* Animaciones para resultados */
+.cotizador-resultado {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para tablas de resultados */
+.cotizador-tabla .table {
+    margin-bottom: 0;
+}
+
+.cotizador-tabla .table td {
+    border-top: 1px solid #dee2e6;
+    padding: 0.5rem;
+}
+
+.cotizador-tabla .table-light td {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Estilos para alertas de resultados */
+.cotizador-alerta {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

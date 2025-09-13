@@ -72,6 +72,11 @@ $currentUser = getCurrentUser();
                             <i class="fas fa-chart-bar me-1"></i>Reportes
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cotizador_dtf.php">
+                            <i class="fas fa-calculator me-1"></i>Cotizador DTF
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="contenidoDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-images me-1"></i>Contenido
@@ -156,6 +161,11 @@ $currentUser = getCurrentUser();
                         <li class="nav-item">
                             <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'testimonios.php' ? 'active' : ''; ?>" href="testimonios.php">
                                 <i class="fas fa-quote-left me-2"></i>Testimonios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'cotizador_dtf.php' ? 'active' : ''; ?>" href="cotizador_dtf.php">
+                                <i class="fas fa-calculator me-2"></i>Cotizador DTF
                             </a>
                         </li>
                         <?php if (hasPermission('admin')): ?>
