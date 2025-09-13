@@ -14,7 +14,9 @@ define('UPLOAD_PATH', 'uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 
 // Configuración de sesión
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Conexión a la base de datos
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);

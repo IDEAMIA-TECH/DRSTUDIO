@@ -1,4 +1,9 @@
 <?php
+// Evitar notices de sesión
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Detectar la ruta correcta del proyecto
 $projectRoot = dirname(__DIR__);
 $configPath = $projectRoot . '/includes/config.php';

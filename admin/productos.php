@@ -234,20 +234,7 @@ function deleteProduct(id) {
     }
 }
 
-// Inicializar DataTable
-$(document).ready(function() {
-    $('#productosTable').DataTable({
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
-        },
-        responsive: true,
-        pageLength: 25,
-        order: [[0, 'desc']],
-        columnDefs: [
-            { orderable: false, targets: [0, 8] } // Deshabilitar ordenamiento en imagen y acciones
-        ]
-    });
-});
+// DataTable se inicializa automáticamente desde footer.php
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
