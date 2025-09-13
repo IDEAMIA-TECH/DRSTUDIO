@@ -20,8 +20,30 @@ $cotizacionesPendientes = $conn->query("SELECT COUNT(*) as total FROM cotizacion
 // Productos con stock bajo (menos de 10)
 $stockBajo = $conn->query("SELECT COUNT(*) as total FROM productos WHERE activo = 1 AND id IN (SELECT DISTINCT producto_id FROM variantes_producto WHERE stock < 10)")->fetch_assoc()['total'];
 
-// Cotizaciones recientes
-$cotizacionesRecientes = readRecords('cotizaciones', [], 5, 'created_at DESC');
+// Total de deudas pendientes
+$totalDeudas = $conn->query("
+    SELECT COALESCE(SUM(saldo_pendiente), 0) as total_deudas
+    FROM (
+        SELECT c.total - COALESCE(SUM(p.monto), 0) as saldo_pendiente
+        FROM cotizaciones c
+        LEFT JOIN pagos_cotizacion p ON c.id = p.cotizacion_id
+        WHERE c.estado IN ('aceptada', 'en_espera_deposito', 'pagada', 'entregada')
+        GROUP BY c.id
+        HAVING saldo_pendiente > 0
+    ) as deudas
+")->fetch_assoc()['total_deudas'] ?? 0;
+
+// Cotizaciones recientes con información de pagos
+$cotizacionesRecientes = $conn->query("
+    SELECT c.*, 
+           COALESCE(SUM(p.monto), 0) as total_pagado,
+           (c.total - COALESCE(SUM(p.monto), 0)) as saldo_pendiente
+    FROM cotizaciones c
+    LEFT JOIN pagos_cotizacion p ON c.id = p.cotizacion_id
+    GROUP BY c.id
+    ORDER BY c.created_at DESC
+    LIMIT 5
+")->fetch_all(MYSQLI_ASSOC);
 
 // Productos más vendidos (simulado por ahora)
 $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'], 5);
@@ -95,6 +117,42 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
 </div>
 
 <div class="row">
+    <!-- Nueva tarjeta de deudas pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Deudas Pendientes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">$<?php echo number_format($totalDeudas, 2); ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta de stock bajo -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Stock Bajo</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stockBajo; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <!-- Cotizaciones recientes -->
     <div class="col-lg-8 mb-4">
         <div class="card shadow">
@@ -110,6 +168,8 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
                                 <th>Número</th>
                                 <th>Cliente</th>
                                 <th>Total</th>
+                                <th>Pagado</th>
+                                <th>Deuda</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
                                 <th>Acciones</th>
@@ -125,7 +185,25 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
                                     echo $cliente ? $cliente['nombre'] : 'N/A';
                                     ?>
                                 </td>
-                                <td>$<?php echo number_format($cotizacion['total'], 2); ?></td>
+                                <td>
+                                    <strong>$<?php echo number_format($cotizacion['total'], 2); ?></strong>
+                                </td>
+                                <td>
+                                    <span class="text-success">
+                                        $<?php echo number_format($cotizacion['total_pagado'], 2); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php 
+                                    $saldoPendiente = (float)$cotizacion['saldo_pendiente'];
+                                    $deudaClass = $saldoPendiente > 0 ? 'text-danger' : 'text-success';
+                                    $deudaIcon = $saldoPendiente > 0 ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
+                                    ?>
+                                    <span class="<?php echo $deudaClass; ?>">
+                                        <i class="<?php echo $deudaIcon; ?> me-1"></i>
+                                        $<?php echo number_format($saldoPendiente, 2); ?>
+                                    </span>
+                                </td>
                                 <td>
                                     <span class="badge bg-<?php echo $cotizacion['estado'] == 'pendiente' ? 'warning' : ($cotizacion['estado'] == 'aceptada' ? 'success' : 'secondary'); ?>">
                                         <?php echo ucfirst($cotizacion['estado']); ?>
@@ -133,9 +211,14 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
                                 </td>
                                 <td><?php echo formatDate($cotizacion['created_at']); ?></td>
                                 <td>
-                                    <a href="cotizaciones_view.php?id=<?php echo $cotizacion['id']; ?>" class="btn btn-sm btn-info">
+                                    <a href="cotizaciones_view.php?id=<?php echo $cotizacion['id']; ?>" class="btn btn-sm btn-info" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    <?php if ($saldoPendiente > 0): ?>
+                                    <a href="cotizaciones_view.php?id=<?php echo $cotizacion['id']; ?>#pagos" class="btn btn-sm btn-warning" title="Gestionar pagos">
+                                        <i class="fas fa-credit-card"></i>
+                                    </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -173,9 +256,16 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
                 <h6 class="m-0 font-weight-bold text-warning">Alertas</h6>
             </div>
             <div class="card-body">
+                <?php if ($totalDeudas > 0): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Deudas pendientes:</strong> $<?php echo number_format($totalDeudas, 2); ?>
+                </div>
+                <?php endif; ?>
+                
                 <?php if ($stockBajo > 0): ?>
                 <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <i class="fas fa-box me-2"></i>
                     <?php echo $stockBajo; ?> productos con stock bajo
                 </div>
                 <?php endif; ?>
@@ -187,7 +277,7 @@ $productosDestacados = readRecords('productos', ['destacado = 1', 'activo = 1'],
                 </div>
                 <?php endif; ?>
                 
-                <?php if ($stockBajo == 0 && $cotizacionesPendientes == 0): ?>
+                <?php if ($totalDeudas == 0 && $stockBajo == 0 && $cotizacionesPendientes == 0): ?>
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
                     Todo en orden
