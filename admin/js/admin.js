@@ -19,29 +19,112 @@ function ajaxRequest(url, data, callback) {
 
 // Mostrar mensajes
 function showAlert(message, type = 'success') {
-    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    // Crear contenedor de alertas si no existe
+    let alertContainer = document.getElementById('alert-container');
+    if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        alertContainer.id = 'alert-container';
+        alertContainer.style.position = 'fixed';
+        alertContainer.style.top = '70px';
+        alertContainer.style.right = '20px';
+        alertContainer.style.zIndex = '1060';
+        alertContainer.style.maxWidth = '500px';
+        document.body.appendChild(alertContainer);
+    }
+    
+    // Crear alerta
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.style.marginBottom = '10px';
+    
+    const alertId = 'alert-' + Date.now();
+    alertDiv.id = alertId;
+    
+    // Iconos para cada tipo
+    const icons = {
+        'success': 'check-circle',
+        'danger': 'exclamation-triangle',
+        'warning': 'exclamation-circle',
+        'info': 'info-circle'
+    };
+    
+    alertDiv.innerHTML = `
+        <i class="fas fa-${icons[type] || 'info-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     
-    const container = document.getElementById('alertContainer') || document.body;
-    container.insertAdjacentHTML('afterbegin', alertHtml);
+    // Agregar a contenedor
+    alertContainer.appendChild(alertDiv);
     
-    // Auto-hide after 5 seconds
+    // Auto-remover después de 5 segundos
     setTimeout(() => {
-        const alert = container.querySelector('.alert');
+        const alert = document.getElementById(alertId);
         if (alert) {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            alert.classList.remove('show');
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 150);
         }
     }, 5000);
 }
 
 // Confirmar eliminación
 function confirmDelete(message = '¿Estás seguro de eliminar este elemento?') {
-    return confirm(message);
+    return new Promise((resolve) => {
+        // Crear modal de confirmación
+        const modalHtml = `
+            <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmModalLabel">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                Confirmar Eliminación
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>${message}</p>
+                            <div class="alert alert-warning" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Esta acción no se puede deshacer.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </button>
+                            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                                <i class="fas fa-trash me-2"></i>Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Agregar modal al body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        
+        // Event listeners
+        document.getElementById('confirmDeleteBtn').onclick = () => {
+            modal.hide();
+            resolve(true);
+        };
+        
+        document.getElementById('confirmModal').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('confirmModal').remove();
+            resolve(false);
+        });
+        
+        // Mostrar modal
+        modal.show();
+    });
 }
 
 // Validar formulario

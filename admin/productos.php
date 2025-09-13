@@ -217,16 +217,20 @@ $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
 
 <script>
 // Función para eliminar producto
-function deleteProduct(id) {
-    if (confirmDelete('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
+async function deleteProduct(id) {
+    const confirmed = await confirmDelete('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.');
+    
+    if (confirmed) {
         ajaxRequest('../ajax/productos.php', {
             action: 'delete',
             id: id
         }, function(response) {
             if (response.success) {
-                showAlert(response.message);
+                showAlert(response.message, 'success');
                 // Recargar la página para actualizar la tabla
-                location.reload();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
                 showAlert(response.message, 'danger');
             }
