@@ -405,9 +405,99 @@ function copiarCotizacion() {
     });
 }
 
-// Exportar cotización (placeholder)
+// Exportar cotización como PDF
 function exportarCotizacion() {
-    showAlert('Función de exportación en desarrollo', 'info');
+    // Obtener datos del formulario
+    const anchoDiseno = parseFloat(document.getElementById('ancho_diseno').value) || 0;
+    const altoDiseno = parseFloat(document.getElementById('alto_diseno').value) || 0;
+    const costoMetroLineal = parseFloat(document.getElementById('costo_metro_lineal').value) || 0;
+    const anchoFilm = parseFloat(document.getElementById('ancho_film').value) || 0;
+    const costoPlayera = parseFloat(document.getElementById('costo_playera').value) || 0;
+    const manoObra = parseFloat(document.getElementById('mano_obra').value) || 0;
+    const margenGanancia = parseFloat(document.getElementById('margen_ganancia').value) || 0;
+    const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+    const tipoPlayera = document.getElementById('tipo_playera').selectedOptions[0].text;
+
+    // Validar que hay datos para exportar
+    if (anchoDiseno <= 0 || altoDiseno <= 0) {
+        showAlert('Por favor ingresa dimensiones válidas para el diseño', 'warning');
+        return;
+    }
+
+    // Calcular datos
+    const areaDiseno = anchoDiseno * altoDiseno;
+    const areaFilmMetro = anchoFilm * 100;
+    const costoPorCm2 = costoMetroLineal / areaFilmMetro;
+    const costoDTF = areaDiseno * costoPorCm2;
+    const subtotal = costoPlayera + costoDTF + manoObra;
+    const margenDecimal = margenGanancia / 100;
+    const precioUnitario = subtotal * (1 + margenDecimal);
+    const precioTotal = precioUnitario * cantidad;
+    const gananciaPorUnidad = precioUnitario - subtotal;
+
+    // Crear datos para el PDF
+    const cotizacionData = {
+        fecha: new Date().toLocaleDateString('es-MX'),
+        hora: new Date().toLocaleTimeString('es-MX'),
+        diseno: {
+            ancho: anchoDiseno,
+            alto: altoDiseno,
+            area: areaDiseno
+        },
+        dtf: {
+            costo_metro_lineal: costoMetroLineal,
+            ancho_film: anchoFilm,
+            costo_por_cm2: costoPorCm2,
+            costo_dtf: costoDTF
+        },
+        playera: {
+            tipo: tipoPlayera,
+            costo: costoPlayera
+        },
+        costos: {
+            mano_obra: manoObra,
+            subtotal: subtotal,
+            margen_ganancia: margenGanancia,
+            ganancia_por_unidad: gananciaPorUnidad
+        },
+        precios: {
+            unitario: precioUnitario,
+            cantidad: cantidad,
+            total: precioTotal
+        }
+    };
+
+    // Enviar datos al servidor para generar PDF
+    fetch('../ajax/generate_cotizador_pdf.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cotizacionData)
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('Error al generar el PDF');
+    })
+    .then(blob => {
+        // Crear enlace de descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cotizacion_dtf_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showAlert('PDF generado y descargado exitosamente', 'success');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error al generar el PDF: ' + error.message, 'danger');
+    });
 }
 
 // Cálculo automático al cambiar valores
