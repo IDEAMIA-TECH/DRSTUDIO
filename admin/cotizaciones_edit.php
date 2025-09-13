@@ -557,11 +557,14 @@ document.querySelectorAll('.item-row').forEach(itemRow => {
     addItemEventListeners(itemRow);
 });
 
-// Cargar variantes para items existentes
+// Cargar variantes para items existentes solo si no tienen variantes cargadas
 document.querySelectorAll('.producto-select').forEach(select => {
     if (select.value) {
         const varianteSelect = select.closest('.item-row').querySelector('.variante-select');
-        cargarVariantes(select.value, varianteSelect);
+        // Solo cargar variantes si no hay opciones (solo tiene "Sin variante")
+        if (varianteSelect.children.length <= 1) {
+            cargarVariantes(select.value, varianteSelect);
+        }
     }
 });
 </script>
