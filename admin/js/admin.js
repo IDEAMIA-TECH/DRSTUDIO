@@ -138,7 +138,7 @@ function initDataTable(tableId, options = {}) {
 
 // CRUD Functions para Productos
 function createProduct(formData) {
-    ajaxRequest('ajax/productos.php', {
+    ajaxRequest('../ajax/productos.php', {
         action: 'create',
         ...formData
     }, function(response) {
@@ -157,7 +157,7 @@ function createProduct(formData) {
 }
 
 function updateProduct(id, formData) {
-    ajaxRequest('ajax/productos.php', {
+    ajaxRequest('../ajax/productos.php', {
         action: 'update',
         id: id,
         ...formData
@@ -178,7 +178,7 @@ function updateProduct(id, formData) {
 
 function deleteProduct(id) {
     if (confirmDelete('¿Estás seguro de eliminar este producto?')) {
-        ajaxRequest('ajax/productos.php', {
+        ajaxRequest('../ajax/productos.php', {
             action: 'delete',
             id: id
         }, function(response) {

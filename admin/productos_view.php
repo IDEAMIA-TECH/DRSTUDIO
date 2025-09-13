@@ -298,7 +298,7 @@ $porcentajeMargen = $producto['costo_fabricacion'] > 0 ? ($margenGanancia / $pro
 // Función para eliminar producto
 function deleteProduct(id) {
     if (confirmDelete('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer y eliminará todas las variantes asociadas.')) {
-        ajaxRequest('ajax/productos.php', {
+        ajaxRequest('../ajax/productos.php', {
             action: 'delete',
             id: id
         }, function(response) {

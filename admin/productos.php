@@ -219,7 +219,7 @@ $categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
 // Función para eliminar producto
 function deleteProduct(id) {
     if (confirmDelete('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
-        ajaxRequest('ajax/productos.php', {
+        ajaxRequest('../ajax/productos.php', {
             action: 'delete',
             id: id
         }, function(response) {
