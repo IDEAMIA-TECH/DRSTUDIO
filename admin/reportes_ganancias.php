@@ -15,7 +15,7 @@ $producto_id = $_GET['producto_id'] ?? '';
 $categoria_id = $_GET['categoria_id'] ?? '';
 
 // Construir condiciones de búsqueda
-$conditions = ["c.created_at BETWEEN ? AND ?"];
+$conditions = ["DATE(c.created_at) BETWEEN ? AND ?"];
 $params = [$fecha_desde, $fecha_hasta];
 
 if ($producto_id) {
@@ -81,7 +81,7 @@ SELECT
 FROM cotizacion_productos_personalizados cpp
 LEFT JOIN cotizaciones c ON cpp.cotizacion_id = c.id
 LEFT JOIN clientes cl ON c.cliente_id = cl.id
-WHERE c.created_at BETWEEN ? AND ?
+    WHERE DATE(c.created_at) BETWEEN ? AND ?
 ORDER BY fecha_cotizacion DESC";
 
 $stmt = $conn->prepare($sql);

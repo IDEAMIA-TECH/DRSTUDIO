@@ -106,7 +106,7 @@ $ganancias_sql = "SELECT
 FROM cotizaciones c
 LEFT JOIN cotizacion_detalles cd ON c.id = cd.cotizacion_id
 LEFT JOIN cotizacion_productos_personalizados cpp ON c.id = cpp.cotizacion_id
-WHERE c.created_at BETWEEN ? AND ?";
+WHERE DATE(c.created_at) BETWEEN ? AND ?";
 $ganancias_stmt = $conn->prepare($ganancias_sql);
 $ganancias_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $ganancias_stmt->execute();
@@ -133,7 +133,7 @@ $ganancias_mensuales_sql = "SELECT
 FROM cotizaciones c
 LEFT JOIN cotizacion_detalles cd ON c.id = cd.cotizacion_id
 LEFT JOIN cotizacion_productos_personalizados cpp ON c.id = cpp.cotizacion_id
-WHERE c.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+WHERE DATE(c.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 GROUP BY DATE_FORMAT(c.created_at, '%Y-%m')
 ORDER BY mes ASC";
 $ganancias_mensuales_result = $conn->query($ganancias_mensuales_sql);
