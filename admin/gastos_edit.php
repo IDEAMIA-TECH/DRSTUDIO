@@ -8,6 +8,11 @@ if (!hasPermission('admin')) {
     exit;
 }
 
+// Asegurar que $currentUser esté definido
+if (!isset($currentUser)) {
+    $currentUser = getCurrentUser();
+}
+
 $id = intval($_GET['id'] ?? 0);
 
 if ($id <= 0) {
@@ -16,7 +21,7 @@ if ($id <= 0) {
 }
 
 // Obtener datos del gasto
-$gasto = getRecord('gastos', ['id' => $id]);
+$gasto = getRecord('gastos', $id);
 
 if (!$gasto) {
     header('Location: gastos.php');
@@ -104,10 +109,10 @@ if ($_POST) {
                 $gasto_data['fecha_aprobacion'] = date('Y-m-d H:i:s');
             }
             
-            if (updateRecord('gastos', $gasto_data, ['id' => $id])) {
+            if (updateRecord('gastos', $gasto_data, $id)) {
                 $success = 'Gasto actualizado exitosamente';
                 // Recargar datos del gasto
-                $gasto = getRecord('gastos', ['id' => $id]);
+                $gasto = getRecord('gastos', $id);
             } else {
                 $error = 'Error al actualizar el gasto';
             }
