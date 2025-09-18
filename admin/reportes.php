@@ -14,7 +14,7 @@ $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-d'); // Día actual
 $tipo_reporte = $_GET['tipo_reporte'] ?? 'dashboard';
 
 // Obtener datos de gastos del período
-$gastos_sql = "SELECT * FROM gastos WHERE fecha_gasto BETWEEN ? AND ? ORDER BY fecha_gasto DESC";
+$gastos_sql = "SELECT * FROM gastos WHERE DATE(fecha_gasto) BETWEEN ? AND ? ORDER BY fecha_gasto DESC";
 $gastos_stmt = $conn->prepare($gastos_sql);
 $gastos_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $gastos_stmt->execute();
@@ -22,7 +22,7 @@ $gastos_result = $gastos_stmt->get_result();
 $gastos = $gastos_result->fetch_all(MYSQLI_ASSOC);
 
 // Obtener datos de cotizaciones del período
-$cotizaciones_sql = "SELECT * FROM cotizaciones WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
+$cotizaciones_sql = "SELECT * FROM cotizaciones WHERE DATE(created_at) BETWEEN ? AND ? ORDER BY created_at DESC";
 $cotizaciones_stmt = $conn->prepare($cotizaciones_sql);
 $cotizaciones_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
 $cotizaciones_stmt->execute();
