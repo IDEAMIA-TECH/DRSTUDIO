@@ -37,7 +37,7 @@ if ($_POST) {
     $activo = isset($_POST['activo']) ? 1 : 0;
     
     // Validar datos
-    if (empty($sku) || empty($nombre) || $precio_venta <= 0 || $costo_fabricacion <= 0) {
+    if (empty($sku) || empty($nombre) || $precio_venta <= 0 || $costo_fabricacion < 0) {
         $error = 'Todos los campos requeridos deben ser completados correctamente';
     } else {
         // Verificar si ya existe otro producto con el mismo SKU usando consulta preparada
@@ -196,12 +196,13 @@ if ($_POST) {
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="costo_fabricacion" class="form-label">Costo de Fabricación *</label>
+                                <label for="costo_fabricacion" class="form-label">Costo de Fabricación</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" class="form-control" id="costo_fabricacion" name="costo_fabricacion" 
-                                           value="<?php echo $producto['costo_fabricacion']; ?>" step="0.01" min="0" required>
+                                           value="<?php echo $producto['costo_fabricacion']; ?>" step="0.01" min="0">
                                 </div>
+                                <div class="form-text">Puede ser $0.00 si no aplica</div>
                             </div>
                         </div>
                         <div class="col-md-4">
