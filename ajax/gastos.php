@@ -51,7 +51,7 @@ function aprobarGasto($id) {
     }
     
     // Verificar que el gasto existe y está pendiente
-    $gasto = getRecord('gastos', ['id' => $id]);
+    $gasto = getRecord('gastos', $id);
     if (!$gasto) {
         echo json_encode(['success' => false, 'message' => 'Gasto no encontrado']);
         return;
@@ -69,7 +69,7 @@ function aprobarGasto($id) {
         'fecha_aprobacion' => date('Y-m-d H:i:s')
     ];
     
-    if (updateRecord('gastos', $update_data, ['id' => $id])) {
+    if (updateRecord('gastos', $update_data, $id)) {
         echo json_encode(['success' => true, 'message' => 'Gasto aprobado exitosamente']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al aprobar el gasto']);
@@ -85,7 +85,7 @@ function rechazarGasto($id) {
     }
     
     // Verificar que el gasto existe y está pendiente
-    $gasto = getRecord('gastos', ['id' => $id]);
+    $gasto = getRecord('gastos', $id);
     if (!$gasto) {
         echo json_encode(['success' => false, 'message' => 'Gasto no encontrado']);
         return;
@@ -103,7 +103,7 @@ function rechazarGasto($id) {
         'fecha_aprobacion' => date('Y-m-d H:i:s')
     ];
     
-    if (updateRecord('gastos', $update_data, ['id' => $id])) {
+    if (updateRecord('gastos', $update_data, $id)) {
         echo json_encode(['success' => true, 'message' => 'Gasto rechazado exitosamente']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al rechazar el gasto']);
@@ -119,7 +119,7 @@ function eliminarGasto($id) {
     }
     
     // Verificar que el gasto existe
-    $gasto = getRecord('gastos', ['id' => $id]);
+    $gasto = getRecord('gastos', $id);
     if (!$gasto) {
         echo json_encode(['success' => false, 'message' => 'Gasto no encontrado']);
         return;
