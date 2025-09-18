@@ -57,7 +57,7 @@ if ($_POST) {
     }
     
     // Validar datos
-    if (empty($nombre) || $precio_venta <= 0 || $costo_fabricacion <= 0) {
+    if (empty($nombre) || $precio_venta <= 0 || $costo_fabricacion < 0) {
         $error = 'Todos los campos requeridos deben ser completados correctamente';
     } else {
         // Verificar si ya existe un producto con el mismo SKU
@@ -219,7 +219,7 @@ if ($_POST) {
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="costo_fabricacion" class="form-label">Costo de Fabricación *</label>
+                                <label for="costo_fabricacion" class="form-label">Costo de Fabricación</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" 
@@ -228,9 +228,9 @@ if ($_POST) {
                                            name="costo_fabricacion" 
                                            step="0.01" 
                                            min="0" 
-                                           value="<?php echo $_POST['costo_fabricacion'] ?? ''; ?>" 
-                                           required>
+                                           value="<?php echo $_POST['costo_fabricacion'] ?? '0.00'; ?>">
                                 </div>
+                                <div class="form-text">Puede ser $0.00 si no aplica</div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -366,6 +366,7 @@ if ($_POST) {
                     <li><i class="fas fa-magic text-primary me-2"></i>El SKU se genera automáticamente</li>
                     <li><i class="fas fa-tags text-info me-2"></i>Formato: PREFIJO-YYYY-NNNN</li>
                     <li><i class="fas fa-image text-warning me-2"></i>La imagen es opcional</li>
+                    <li><i class="fas fa-dollar-sign text-success me-2"></i>El costo puede ser $0.00</li>
                     <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar múltiples variantes</li>
                     <li><i class="fas fa-toggle-on text-primary me-2"></i>Puedes activar/desactivar después</li>
                 </ul>
@@ -526,7 +527,7 @@ document.getElementById('productoForm').addEventListener('submit', function(e) {
     const precioVenta = parseFloat(document.getElementById('precio_venta').value);
     const costoFabricacion = parseFloat(document.getElementById('costo_fabricacion').value);
     
-    if (!sku || !nombre || precioVenta <= 0 || costoFabricacion <= 0) {
+    if (!sku || !nombre || precioVenta <= 0 || costoFabricacion < 0) {
         e.preventDefault();
         showAlert('Todos los campos requeridos deben ser completados correctamente', 'danger');
         return;
