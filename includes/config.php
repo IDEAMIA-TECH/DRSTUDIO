@@ -1,6 +1,6 @@
 <?php
 // Configuración de la base de datos
-define('DB_HOST', '216.18.195.84');
+define('DB_HOST', '173.231.22.109');
 define('DB_NAME', 'dtstudio_main');
 define('DB_USER', 'dtstudio_main');
 define('DB_PASS', 'm&9!9ejG!5D6A$p&');

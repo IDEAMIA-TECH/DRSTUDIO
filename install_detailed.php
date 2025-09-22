@@ -7,7 +7,7 @@
  */
 
 // Configuración de la base de datos
-$host = '216.18.195.84';
+$host = '173.231.22.109';
 $username = 'dtstudio_main';
 $password = 'm&9!9ejG!5D6A$p&';
 $database = 'dtstudio_main';

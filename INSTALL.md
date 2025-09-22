@@ -36,7 +36,7 @@ CREATE DATABASE dtstudio_main CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 2. **Importar el schema:**
 ```bash
-mysql -h 216.18.195.84 -u dtstudio_main -p dtstudio_main < database/schema.sql
+mysql -h 173.231.22.109 -u dtstudio_main -p dtstudio_main < database/schema.sql
 ```
 
 3. **Crear directorios:**
@@ -55,7 +55,7 @@ chmod 755 images/
 ### 1. Verificar Configuración de Base de Datos
 
 El archivo `includes/config.php` ya está configurado con:
-- **Host:** 216.18.195.84
+- **Host:** 173.231.22.109
 - **Usuario:** dtstudio_main
 - **Base de datos:** dtstudio_main
 
@@ -128,7 +128,7 @@ Después de la instalación, puedes acceder con:
 ### 1. Verificar Base de Datos
 ```sql
 -- Conectar a MySQL
-mysql -h 216.18.195.84 -u dtstudio_main -p dtstudio_main
+mysql -h 173.231.22.109 -u dtstudio_main -p dtstudio_main
 
 -- Verificar tablas
 SHOW TABLES;

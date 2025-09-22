@@ -60,7 +60,7 @@ El sistema DT Studio ha sido instalado y configurado correctamente. Todas las ta
 
 La base de datos ya está configurada con:
 ```php
-define('DB_HOST', '216.18.195.84');
+define('DB_HOST', '173.231.22.109');
 define('DB_NAME', 'dtstudio_main');
 define('DB_USER', 'dtstudio_main');
 define('DB_PASS', 'm&9!9ejG!5D6A$p&');

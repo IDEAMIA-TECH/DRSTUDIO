@@ -7,7 +7,7 @@ echo "🚀 Instalando DR Studio..."
 echo "================================"
 
 # Configuración de la base de datos
-DB_HOST="216.18.195.84"
+DB_HOST="173.231.22.109"
 DB_USER="dtstudio_main"
 DB_PASS="m&9!9ejG!5D6A$p&"
 DB_NAME="dtstudio_main"
