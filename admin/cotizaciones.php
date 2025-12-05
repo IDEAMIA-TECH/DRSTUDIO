@@ -186,21 +186,31 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                     <tbody>
                         <?php foreach ($cotizaciones as $cotizacion): 
                             // Calcular estado de pago primero para determinar si resaltar la fila
+                            $total_cotizacion = floatval($cotizacion['total'] ?? 0);
                             $total_pagado = floatval($cotizacion['total_pagado'] ?? 0);
-                            $saldo_pendiente = floatval($cotizacion['saldo_pendiente'] ?? $cotizacion['total']);
-                            $total_cotizacion = floatval($cotizacion['total']);
+                            
+                            // Recalcular saldo pendiente para asegurar precisión
+                            $saldo_pendiente = $total_cotizacion - $total_pagado;
                             
                             // Determinar estado del pago
-                            if ($total_pagado >= $total_cotizacion) {
-                                $estado_pago = 'Pagado';
-                                $estado_pago_class = 'success';
-                                $estado_pago_icon = 'fa-check-circle';
-                                $es_parcial = false;
-                            } elseif ($total_pagado > 0) {
-                                $estado_pago = 'Parcial';
-                                $estado_pago_class = 'warning';
-                                $estado_pago_icon = 'fa-clock';
-                                $es_parcial = true;
+                            $es_parcial = false;
+                            if ($total_cotizacion > 0) {
+                                if ($total_pagado >= $total_cotizacion) {
+                                    $estado_pago = 'Pagado';
+                                    $estado_pago_class = 'success';
+                                    $estado_pago_icon = 'fa-check-circle';
+                                    $es_parcial = false;
+                                } elseif ($total_pagado > 0) {
+                                    $estado_pago = 'Parcial';
+                                    $estado_pago_class = 'warning';
+                                    $estado_pago_icon = 'fa-clock';
+                                    $es_parcial = true;
+                                } else {
+                                    $estado_pago = 'Pendiente';
+                                    $estado_pago_class = 'danger';
+                                    $estado_pago_icon = 'fa-exclamation-circle';
+                                    $es_parcial = false;
+                                }
                             } else {
                                 $estado_pago = 'Pendiente';
                                 $estado_pago_class = 'danger';
@@ -343,23 +353,5 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
         <?php endif; ?>
     </div>
 </div>
-
-
-<script>
-// Inicializar DataTable
-$(document).ready(function() {
-    $('#cotizacionesTable').DataTable({
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
-        },
-        responsive: true,
-        pageLength: 25,
-        order: [[0, 'desc']],
-        columnDefs: [
-            { orderable: false, targets: [8] } // Deshabilitar ordenamiento en acciones
-        ]
-    });
-});
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

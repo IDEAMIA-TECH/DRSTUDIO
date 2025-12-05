@@ -39,6 +39,13 @@
                         ];
                     }
                     
+                    // Configuración específica para tabla de cotizaciones
+                    if (tableId === 'cotizacionesTable') {
+                        config.columnDefs = [
+                            { orderable: false, targets: [8] } // Deshabilitar ordenamiento en acciones
+                        ];
+                    }
+                    
                     $(this).DataTable(config);
                 }
             });
