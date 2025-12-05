@@ -28,13 +28,27 @@ if ($fecha_hasta) {
     $conditions[] = "DATE(c.created_at) <= '$fecha_hasta'";
 }
 
-// Obtener cotizaciones con información de cliente
+// Obtener cotizaciones con información de cliente, pagos y saldo pendiente
+// Excluir cotizaciones en estado "Entregado" o "entregada" (case-insensitive)
 $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
-$sql = "SELECT c.*, cl.nombre as cliente_nombre, cl.empresa as cliente_empresa, u.username as creado_por
+if (!empty($whereClause)) {
+    $whereClause .= " AND LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+} else {
+    $whereClause = "WHERE LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+}
+
+$sql = "SELECT c.*, 
+               cl.nombre as cliente_nombre, 
+               cl.empresa as cliente_empresa, 
+               u.username as creado_por,
+               COALESCE(SUM(p.monto), 0) as total_pagado,
+               (c.total - COALESCE(SUM(p.monto), 0)) as saldo_pendiente
         FROM cotizaciones c 
         LEFT JOIN clientes cl ON c.cliente_id = cl.id 
         LEFT JOIN usuarios u ON c.usuario_id = u.id
+        LEFT JOIN pagos_cotizacion p ON c.id = p.cotizacion_id
         $whereClause 
+        GROUP BY c.id
         ORDER BY c.created_at DESC";
 
 $result = $conn->query($sql);
@@ -136,6 +150,7 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                             <th>Cliente</th>
                             <th>Total</th>
                             <th>Estado</th>
+                            <th>Pago / Saldo</th>
                             <th>Vencimiento</th>
                             <th>Creado por</th>
                             <th>Fecha</th>
@@ -189,6 +204,48 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                                     echo $estadoTexto[$cotizacion['estado']] ?? ucfirst($cotizacion['estado']);
                                     ?>
                                 </span>
+                            </td>
+                            <td>
+                                <?php
+                                $total_pagado = floatval($cotizacion['total_pagado'] ?? 0);
+                                $saldo_pendiente = floatval($cotizacion['saldo_pendiente'] ?? $cotizacion['total']);
+                                $total_cotizacion = floatval($cotizacion['total']);
+                                
+                                // Determinar estado del pago
+                                if ($total_pagado >= $total_cotizacion) {
+                                    $estado_pago = 'Pagado';
+                                    $estado_pago_class = 'success';
+                                    $estado_pago_icon = 'fa-check-circle';
+                                } elseif ($total_pagado > 0) {
+                                    $estado_pago = 'Parcial';
+                                    $estado_pago_class = 'warning';
+                                    $estado_pago_icon = 'fa-clock';
+                                } else {
+                                    $estado_pago = 'Pendiente';
+                                    $estado_pago_class = 'danger';
+                                    $estado_pago_icon = 'fa-exclamation-circle';
+                                }
+                                ?>
+                                <div>
+                                    <span class="badge bg-<?php echo $estado_pago_class; ?> mb-1">
+                                        <i class="fas <?php echo $estado_pago_icon; ?> me-1"></i>
+                                        <?php echo $estado_pago; ?>
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">
+                                        Pagado: <strong class="text-success">$<?php echo number_format($total_pagado, 2); ?></strong>
+                                    </small>
+                                    <br>
+                                    <?php if ($saldo_pendiente > 0): ?>
+                                        <small class="text-danger">
+                                            Pendiente: <strong>$<?php echo number_format($saldo_pendiente, 2); ?></strong>
+                                        </small>
+                                    <?php else: ?>
+                                        <small class="text-success">
+                                            <strong>Sin saldo pendiente</strong>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td>
                                 <?php if ($cotizacion['fecha_vencimiento']): ?>
@@ -258,7 +315,7 @@ $(document).ready(function() {
         pageLength: 25,
         order: [[0, 'desc']],
         columnDefs: [
-            { orderable: false, targets: [7] } // Deshabilitar ordenamiento en acciones
+            { orderable: false, targets: [8] } // Deshabilitar ordenamiento en acciones
         ]
     });
 });
