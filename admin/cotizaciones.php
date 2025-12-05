@@ -184,10 +184,39 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($cotizaciones as $cotizacion): ?>
-                        <tr>
+                        <?php foreach ($cotizaciones as $cotizacion): 
+                            // Calcular estado de pago primero para determinar si resaltar la fila
+                            $total_pagado = floatval($cotizacion['total_pagado'] ?? 0);
+                            $saldo_pendiente = floatval($cotizacion['saldo_pendiente'] ?? $cotizacion['total']);
+                            $total_cotizacion = floatval($cotizacion['total']);
+                            
+                            // Determinar estado del pago
+                            if ($total_pagado >= $total_cotizacion) {
+                                $estado_pago = 'Pagado';
+                                $estado_pago_class = 'success';
+                                $estado_pago_icon = 'fa-check-circle';
+                                $es_parcial = false;
+                            } elseif ($total_pagado > 0) {
+                                $estado_pago = 'Parcial';
+                                $estado_pago_class = 'warning';
+                                $estado_pago_icon = 'fa-clock';
+                                $es_parcial = true;
+                            } else {
+                                $estado_pago = 'Pendiente';
+                                $estado_pago_class = 'danger';
+                                $estado_pago_icon = 'fa-exclamation-circle';
+                                $es_parcial = false;
+                            }
+                            
+                            // Resaltar fila si es parcial y no está en vista de entregadas
+                            $row_class = ($es_parcial && !$ver_entregadas) ? 'table-warning' : '';
+                        ?>
+                        <tr class="<?php echo $row_class; ?>" <?php if ($es_parcial && !$ver_entregadas): ?>style="border-left: 4px solid #ffc107;"<?php endif; ?>>
                             <td>
                                 <code><?php echo htmlspecialchars($cotizacion['numero_cotizacion']); ?></code>
+                                <?php if ($es_parcial && !$ver_entregadas): ?>
+                                    <br><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Pago Parcial</small>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <div>
@@ -230,28 +259,14 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                                     echo $estadoTexto[$cotizacion['estado']] ?? ucfirst($cotizacion['estado']);
                                     ?>
                                 </span>
+                                <?php if ($es_parcial && !$ver_entregadas): ?>
+                                    <br>
+                                    <span class="badge bg-warning mt-1">
+                                        <i class="fas fa-money-bill-wave me-1"></i>Pago Parcial
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td>
-                                <?php
-                                $total_pagado = floatval($cotizacion['total_pagado'] ?? 0);
-                                $saldo_pendiente = floatval($cotizacion['saldo_pendiente'] ?? $cotizacion['total']);
-                                $total_cotizacion = floatval($cotizacion['total']);
-                                
-                                // Determinar estado del pago
-                                if ($total_pagado >= $total_cotizacion) {
-                                    $estado_pago = 'Pagado';
-                                    $estado_pago_class = 'success';
-                                    $estado_pago_icon = 'fa-check-circle';
-                                } elseif ($total_pagado > 0) {
-                                    $estado_pago = 'Parcial';
-                                    $estado_pago_class = 'warning';
-                                    $estado_pago_icon = 'fa-clock';
-                                } else {
-                                    $estado_pago = 'Pendiente';
-                                    $estado_pago_class = 'danger';
-                                    $estado_pago_icon = 'fa-exclamation-circle';
-                                }
-                                ?>
                                 <div>
                                     <span class="badge bg-<?php echo $estado_pago_class; ?> mb-1">
                                         <i class="fas <?php echo $estado_pago_icon; ?> me-1"></i>
