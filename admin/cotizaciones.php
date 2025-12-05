@@ -37,7 +37,7 @@ if ($fecha_hasta) {
 }
 
 // Obtener cotizaciones con información de cliente, pagos y saldo pendiente
-// Si ver_entregadas es true, solo mostrar entregadas; si no, excluir entregadas
+// Si ver_entregadas es true, solo mostrar entregadas; si no, mostrar activas + entregadas con saldo pendiente
 $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
 if ($ver_entregadas) {
     // Solo mostrar entregadas
@@ -45,13 +45,6 @@ if ($ver_entregadas) {
         $whereClause .= " AND (LOWER(c.estado) = 'entregada' OR LOWER(c.estado) = 'entregado')";
     } else {
         $whereClause = "WHERE (LOWER(c.estado) = 'entregada' OR LOWER(c.estado) = 'entregado')";
-    }
-} else {
-    // Excluir entregadas (comportamiento por defecto)
-    if (!empty($whereClause)) {
-        $whereClause .= " AND LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
-    } else {
-        $whereClause = "WHERE LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
     }
 }
 
@@ -70,7 +63,33 @@ $sql = "SELECT c.*,
         ORDER BY c.created_at DESC";
 
 $result = $conn->query($sql);
-$cotizaciones = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+$cotizaciones_raw = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+// Filtrar cotizaciones según el modo de vista
+$cotizaciones = [];
+foreach ($cotizaciones_raw as $cotizacion) {
+    $estado_lower = strtolower($cotizacion['estado'] ?? '');
+    $total_pagado = floatval($cotizacion['total_pagado'] ?? 0);
+    $total_cotizacion = floatval($cotizacion['total'] ?? 0);
+    $saldo_pendiente = $total_cotizacion - $total_pagado;
+    
+    if ($ver_entregadas) {
+        // Vista de entregadas: mostrar todas las entregadas
+        if ($estado_lower == 'entregada' || $estado_lower == 'entregado') {
+            $cotizaciones[] = $cotizacion;
+        }
+    } else {
+        // Vista de activas: mostrar todas excepto entregadas completamente pagadas
+        if ($estado_lower != 'entregada' && $estado_lower != 'entregado') {
+            // Cotizaciones activas (no entregadas)
+            $cotizaciones[] = $cotizacion;
+        } elseif (($estado_lower == 'entregada' || $estado_lower == 'entregado') && $saldo_pendiente > 0) {
+            // Entregadas con saldo pendiente (pago parcial)
+            $cotizaciones[] = $cotizacion;
+        }
+        // No incluir entregadas completamente pagadas (saldo_pendiente <= 0)
+    }
+}
 
 // Obtener clientes para el filtro
 $clientes = readRecords('clientes', [], null, 'nombre ASC');
