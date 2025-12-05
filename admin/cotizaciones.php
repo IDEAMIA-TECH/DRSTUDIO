@@ -1,6 +1,14 @@
 <?php
-$pageTitle = 'Gestión de Cotizaciones';
-$pageActions = '<a href="cotizaciones_create.php" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nueva Cotización</a>';
+// Verificar si se quiere ver solo las entregadas
+$ver_entregadas = isset($_GET['ver_entregadas']) && $_GET['ver_entregadas'] == '1';
+
+if ($ver_entregadas) {
+    $pageTitle = 'Órdenes Entregadas';
+    $pageActions = '<a href="cotizaciones.php" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Ver Cotizaciones Activas</a>';
+} else {
+    $pageTitle = 'Gestión de Cotizaciones';
+    $pageActions = '<a href="cotizaciones_create.php" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nueva Cotización</a> <a href="cotizaciones.php?ver_entregadas=1" class="btn btn-info"><i class="fas fa-truck me-2"></i>Ver Órdenes Entregadas</a>';
+}
 require_once 'includes/header.php';
 
 // Obtener filtros
@@ -29,12 +37,22 @@ if ($fecha_hasta) {
 }
 
 // Obtener cotizaciones con información de cliente, pagos y saldo pendiente
-// Excluir cotizaciones en estado "Entregado" o "entregada" (case-insensitive)
+// Si ver_entregadas es true, solo mostrar entregadas; si no, excluir entregadas
 $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
-if (!empty($whereClause)) {
-    $whereClause .= " AND LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+if ($ver_entregadas) {
+    // Solo mostrar entregadas
+    if (!empty($whereClause)) {
+        $whereClause .= " AND (LOWER(c.estado) = 'entregada' OR LOWER(c.estado) = 'entregado')";
+    } else {
+        $whereClause = "WHERE (LOWER(c.estado) = 'entregada' OR LOWER(c.estado) = 'entregado')";
+    }
 } else {
-    $whereClause = "WHERE LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+    // Excluir entregadas (comportamiento por defecto)
+    if (!empty($whereClause)) {
+        $whereClause .= " AND LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+    } else {
+        $whereClause = "WHERE LOWER(c.estado) != 'entregada' AND LOWER(c.estado) != 'entregado'";
+    }
 }
 
 $sql = "SELECT c.*, 
@@ -82,14 +100,21 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                         <label for="estado" class="form-label">Estado</label>
                         <select class="form-select" id="estado" name="estado">
                             <option value="">Todos los estados</option>
-                            <option value="pendiente" <?php echo $estado === 'pendiente' ? 'selected' : ''; ?>>Pendiente</option>
-                            <option value="enviada" <?php echo $estado === 'enviada' ? 'selected' : ''; ?>>Enviada</option>
-                            <option value="aceptada" <?php echo $estado === 'aceptada' ? 'selected' : ''; ?>>Aceptada</option>
-                            <option value="en_espera_deposito" <?php echo $estado === 'en_espera_deposito' ? 'selected' : ''; ?>>En Espera de Depósito</option>
-                            <option value="rechazada" <?php echo $estado === 'rechazada' ? 'selected' : ''; ?>>Rechazada</option>
-                            <option value="cancelada" <?php echo $estado === 'cancelada' ? 'selected' : ''; ?>>Cancelada</option>
+                            <?php if (!$ver_entregadas): ?>
+                                <option value="pendiente" <?php echo $estado === 'pendiente' ? 'selected' : ''; ?>>Pendiente</option>
+                                <option value="enviada" <?php echo $estado === 'enviada' ? 'selected' : ''; ?>>Enviada</option>
+                                <option value="aceptada" <?php echo $estado === 'aceptada' ? 'selected' : ''; ?>>Aceptada</option>
+                                <option value="en_espera_deposito" <?php echo $estado === 'en_espera_deposito' ? 'selected' : ''; ?>>En Espera de Depósito</option>
+                                <option value="rechazada" <?php echo $estado === 'rechazada' ? 'selected' : ''; ?>>Rechazada</option>
+                                <option value="cancelada" <?php echo $estado === 'cancelada' ? 'selected' : ''; ?>>Cancelada</option>
+                            <?php else: ?>
+                                <option value="entregada" <?php echo $estado === 'entregada' ? 'selected' : ''; ?>>Entregada</option>
+                            <?php endif; ?>
                         </select>
                     </div>
+                    <?php if ($ver_entregadas): ?>
+                        <input type="hidden" name="ver_entregadas" value="1">
+                    <?php endif; ?>
                     <div class="col-md-2">
                         <label for="fecha_desde" class="form-label">Desde</label>
                         <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="<?php echo $fecha_desde; ?>">
@@ -113,7 +138,7 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i>
                             </button>
-                            <a href="cotizaciones.php" class="btn btn-secondary">
+                            <a href="cotizaciones.php<?php echo $ver_entregadas ? '?ver_entregadas=1' : ''; ?>" class="btn btn-secondary">
                                 <i class="fas fa-times"></i>
                             </a>
                         </div>
@@ -127,8 +152,9 @@ $clientes = readRecords('clientes', [], null, 'nombre ASC');
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">
-            <i class="fas fa-file-invoice me-2"></i>Listado de Cotizaciones
-            <span class="badge bg-primary ms-2"><?php echo count($cotizaciones); ?></span>
+            <i class="fas fa-<?php echo $ver_entregadas ? 'truck' : 'file-invoice'; ?> me-2"></i>
+            <?php echo $ver_entregadas ? 'Órdenes Entregadas' : 'Listado de Cotizaciones'; ?>
+            <span class="badge bg-<?php echo $ver_entregadas ? 'success' : 'primary'; ?> ms-2"><?php echo count($cotizaciones); ?></span>
         </h5>
     </div>
     <div class="card-body">
