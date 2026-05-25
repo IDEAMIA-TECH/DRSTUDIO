@@ -1,5 +1,4 @@
-            </main>
-        </div>
+        </main>
     </div>
 
     <!-- jQuery (debe cargarse antes que Bootstrap) -->
@@ -12,7 +11,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom JS -->
-    <script src="js/admin.js"></script>
+    <script src="js/admin.js?v=2"></script>
     <?php if (!empty($pageScripts)): ?>
     <?php echo $pageScripts; ?>
     <?php endif; ?>

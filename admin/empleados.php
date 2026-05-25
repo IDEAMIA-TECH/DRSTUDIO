@@ -1,7 +1,8 @@
 <?php
 $pageTitle = 'Empleados';
-require_once 'includes/header.php';
-require_once 'includes/sueldos_helper.php';
+require_once __DIR__ . '/includes/paths.php';
+require_once __DIR__ . '/includes/sueldos_helper.php';
+requireLogin();
 
 if (!hasPermission('admin')) {
     header('Location: dashboard.php');
@@ -16,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $puesto = sanitizeInput($_POST['puesto'] ?? '');
         if ($nombre) {
             createRecord('empleados', ['nombre' => $nombre, 'puesto' => $puesto, 'activo' => 1]);
+            header('Location: empleados.php?creado=1');
+            exit;
         }
     } elseif ($_POST['action'] === 'toggle' && !empty($_POST['id'])) {
         $id = (int) $_POST['id'];
@@ -23,19 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($emp) {
             updateRecord('empleados', ['activo' => $emp['activo'] ? 0 : 1], $id);
         }
+        header('Location: empleados.php');
+        exit;
     }
-    header('Location: empleados.php');
-    exit;
 }
 
 $empleados = readRecords('empleados', [], null, 'nombre ASC');
+
+require_once __DIR__ . '/includes/header.php';
 ?>
+
+<?php if (!empty($_GET['creado'])): ?>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Empleado guardado correctamente.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+</div>
+<?php endif; ?>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0">Empleados</h1>
-            <p class="text-muted">Catálogo para registro de sueldos</p>
+            <p class="text-muted mb-0">Catálogo para registro de sueldos</p>
         </div>
         <a href="sueldos.php" class="btn btn-outline-primary"><i class="fas fa-money-check-alt me-2"></i>Sueldos</a>
     </div>
@@ -68,6 +79,11 @@ $empleados = readRecords('empleados', [], null, 'nombre ASC');
                             <tr><th>Nombre</th><th>Puesto</th><th>Estado</th><th></th></tr>
                         </thead>
                         <tbody>
+                            <?php if (empty($empleados)): ?>
+                            <tr>
+                                <td colspan="4" class="text-muted text-center py-4">No hay empleados registrados.</td>
+                            </tr>
+                            <?php else: ?>
                             <?php foreach ($empleados as $e): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($e['nombre']); ?></td>
@@ -88,6 +104,7 @@ $empleados = readRecords('empleados', [], null, 'nombre ASC');
                                 </td>
                             </tr>
                             <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
