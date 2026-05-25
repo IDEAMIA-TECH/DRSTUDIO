@@ -13,6 +13,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom JS -->
     <script src="js/admin.js"></script>
+    <?php if (!empty($pageScripts)): ?>
+    <?php echo $pageScripts; ?>
+    <?php endif; ?>
     
     <!-- Alert Messages -->
     <div id="alertContainer"></div>
