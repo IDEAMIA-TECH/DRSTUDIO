@@ -1,41 +1,5 @@
 <?php
-// Evitar notices de sesión
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Detectar la ruta correcta del proyecto
-$projectRoot = dirname(__DIR__);
-$configPath = $projectRoot . '/includes/config.php';
-$authPath = $projectRoot . '/includes/auth.php';
-$functionsPath = $projectRoot . '/includes/functions.php';
-
-// Verificar si los archivos existen, si no, probar rutas alternativas
-if (!file_exists($configPath)) {
-    // Probar ruta absoluta del servidor
-    $configPath = '/home/dtstudio/public_html/includes/config.php';
-    $authPath = '/home/dtstudio/public_html/includes/auth.php';
-    $functionsPath = '/home/dtstudio/public_html/includes/functions.php';
-}
-
-// Incluir archivos
-if (file_exists($configPath)) {
-    require_once $configPath;
-} else {
-    die('Error: No se pudo encontrar config.php');
-}
-
-if (file_exists($authPath)) {
-    require_once $authPath;
-} else {
-    die('Error: No se pudo encontrar auth.php');
-}
-
-if (file_exists($functionsPath)) {
-    require_once $functionsPath;
-} else {
-    die('Error: No se pudo encontrar functions.php');
-}
+require_once __DIR__ . '/../includes/ajax_bootstrap.php';
 
 header('Content-Type: application/json');
 

@@ -1,25 +1,45 @@
 <?php
-// Configuración de email
-// Este archivo se genera automáticamente desde admin/configuracion.php
+/**
+ * Cargador de configuración de correo — credenciales en email_config.local.php (no versionado).
+ */
 
-// Configuración SMTP
-define('SMTP_HOST', 'mail.dtstudio.com.mx');
-define('SMTP_PORT', '465');
-define('SMTP_USERNAME', 'cotizaciones@dtstudio.com.mx');
-define('SMTP_PASSWORD', 'DtStudio2024!');
-define('SMTP_SECURE', 'ssl');
+$localEmailConfig = __DIR__ . '/email_config.local.php';
 
-// Configuración del remitente
-define('FROM_EMAIL', 'cotizaciones@dtstudio.com.mx');
-define('FROM_NAME', 'DT Studio');
+if (is_readable($localEmailConfig)) {
+    require_once $localEmailConfig;
+    return;
+}
 
-// Email del administrador
-define('ADMIN_EMAIL', 'cotizaciones@dtstudio.com.mx');
-
-// URL base del sitio
-define('BASE_URL', 'https://dtstudio.com.mx');
-
-// Información de la empresa
-define('COMPANY_PHONE', '+52 (446) 212-9198');
-define('COMPANY_WEBSITE', 'https://dtstudio.com.mx');
-?>
+if (!defined('SMTP_HOST')) {
+    define('SMTP_HOST', '');
+}
+if (!defined('SMTP_PORT')) {
+    define('SMTP_PORT', '465');
+}
+if (!defined('SMTP_USERNAME')) {
+    define('SMTP_USERNAME', '');
+}
+if (!defined('SMTP_PASSWORD')) {
+    define('SMTP_PASSWORD', '');
+}
+if (!defined('SMTP_SECURE')) {
+    define('SMTP_SECURE', 'ssl');
+}
+if (!defined('FROM_EMAIL')) {
+    define('FROM_EMAIL', '');
+}
+if (!defined('FROM_NAME')) {
+    define('FROM_NAME', 'DT Studio');
+}
+if (!defined('ADMIN_EMAIL')) {
+    define('ADMIN_EMAIL', '');
+}
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '');
+}
+if (!defined('COMPANY_PHONE')) {
+    define('COMPANY_PHONE', '');
+}
+if (!defined('COMPANY_WEBSITE')) {
+    define('COMPANY_WEBSITE', '');
+}

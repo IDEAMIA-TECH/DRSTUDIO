@@ -1,33 +1,39 @@
 <?php
-// Configuración de la base de datos
-define('DB_HOST', '173.231.22.109');
-define('DB_NAME', 'dtstudio_main');
-define('DB_USER', 'dtstudio_main');
-define('DB_PASS', 'm&9!9ejG!5D6A$p&');
+/**
+ * Cargador de configuración — las credenciales van en config.local.php (no versionado).
+ */
 
-// Configuración del sitio
-define('SITE_URL', 'http://localhost/DRSTUDIO');
-define('ADMIN_URL', SITE_URL . '/admin');
+$localConfig = __DIR__ . '/config.local.php';
 
-// Configuración de archivos
-define('UPLOAD_PATH', 'uploads/');
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+if (!is_readable($localConfig)) {
+    $message = 'Falta includes/config.local.php. Copie includes/config.example.php y configure sus credenciales.';
+    if (php_sapi_name() === 'cli') {
+        fwrite(STDERR, $message . PHP_EOL);
+        exit(1);
+    }
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=UTF-8');
+    exit($message);
+}
 
-// Configuración de sesión
+require_once $localConfig;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Conexión a la base de datos
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-if ($conn->connect_error) {
-    die("Error de conexión: " . $conn->connect_error);
+if (!isset($conn)) {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($conn->connect_error) {
+        error_log('Error de conexión a base de datos: ' . $conn->connect_error);
+        if (php_sapi_name() === 'cli') {
+            fwrite(STDERR, "Error de conexión a la base de datos.\n");
+            exit(1);
+        }
+        http_response_code(503);
+        exit('Error de conexión. Revise includes/config.local.php');
+    }
+    $conn->set_charset('utf8mb4');
 }
 
-// Configurar charset UTF-8 completo
-$conn->set_charset("utf8mb4");
-
-// Incluir funciones comunes
-require_once 'functions.php';
-?>
+require_once __DIR__ . '/functions.php';

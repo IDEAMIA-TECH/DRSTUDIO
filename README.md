@@ -58,18 +58,15 @@ El sistema DT Studio ha sido instalado y configurado correctamente. Todas las ta
 
 ### Configuración de la Base de Datos
 
-La base de datos ya está configurada con:
-```php
-define('DB_HOST', '173.231.22.109');
-define('DB_NAME', 'dtstudio_main');
-define('DB_USER', 'dtstudio_main');
-define('DB_PASS', 'm&9!9ejG!5D6A$p&');
+**No suba credenciales a Git.** En el servidor:
+
+```bash
+cp includes/config.example.php includes/config.local.php
+cp includes/email_config.example.php includes/email_config.local.php
+# Editar ambos con host, usuario, contraseña y URL reales
 ```
 
-3. Configurar la URL del sitio en `includes/config.php`:
-```php
-define('SITE_URL', 'http://tu-dominio.com/DRSTUDIO');
-```
+Ver [SECURITY.md](SECURITY.md) para buenas prácticas y rotación de contraseñas.
 
 4. Crear las carpetas necesarias:
 ```bash

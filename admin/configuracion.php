@@ -6,7 +6,7 @@ $error = '';
 $success = '';
 
 // Archivo de configuración
-$configFile = '../includes/email_config.php';
+$configFile = '../includes/email_config.local.php';
 
 // Cargar configuración actual
 $currentConfig = [

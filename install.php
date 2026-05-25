@@ -6,16 +6,18 @@
  * y configura el sistema para su primer uso.
  */
 
-// Configuración de la base de datos
-$host = '173.231.22.109';
-$username = 'dtstudio_main';
-$password = 'm&9!9ejG!5D6A$p&';
-$database = 'dtstudio_main';
+require_once __DIR__ . '/includes/install_db_config.php';
 
 echo "<h1>🚀 Instalación de DR Studio</h1>";
 echo "<p>Configurando la base de datos y el sistema...</p>";
 
 try {
+    $db = installDbCredentials();
+    $host = $db['host'];
+    $username = $db['user'];
+    $password = $db['pass'];
+    $database = $db['name'];
+
     // Conectar a MySQL (sin especificar base de datos)
     $conn = new mysqli($host, $username, $password);
     

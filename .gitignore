@@ -1,0 +1,38 @@
+# Credenciales y configuración local (NUNCA subir al repositorio)
+includes/config.local.php
+includes/email_config.local.php
+.env
+.env.*
+!.env.example
+
+# Dependencias (regenerar con: composer install)
+/vendor/
+
+# Subidas y archivos generados por el servidor
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/productos/.gitkeep
+!/uploads/galeria/.gitkeep
+/admin/uploads/
+
+# Logs y caché
+*.log
+logs/
+cache/
+tmp/
+
+# Sistema operativo e IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Instalación / estado local
+INSTALLED
+
+# Backups y archivos sensibles temporales
+*.sql.bak
+*.bak
+*_backup.php

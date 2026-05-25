@@ -6,17 +6,18 @@
  * consultando las tablas y datos de la base de datos.
  */
 
-// Configuración de la base de datos
-$host = '173.231.22.109';
-$username = 'dtstudio_main';
-$password = 'm&9!9ejG!5D6A$p&';
-$database = 'dtstudio_main';
+require_once __DIR__ . '/includes/install_db_config.php';
 
 echo "🔍 Verificando Instalación de DR Studio...\n";
 echo "==========================================\n";
 
 try {
-    // Conectar a la base de datos
+    $db = installDbCredentials();
+    $host = $db['host'];
+    $username = $db['user'];
+    $password = $db['pass'];
+    $database = $db['name'];
+
     $conn = new mysqli($host, $username, $password, $database);
     
     if ($conn->connect_error) {

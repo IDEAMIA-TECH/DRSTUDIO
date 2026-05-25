@@ -10,13 +10,13 @@ function getProjectRoot() {
         dirname(dirname(__DIR__)), // Desde admin/includes/
         dirname(__DIR__), // Desde admin/
         __DIR__, // Desde includes/
-        '/home/dtstudio/public_html', // Ruta absoluta del servidor
-        $_SERVER['DOCUMENT_ROOT'] . '/DRSTUDIO', // Desde document root
+        isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/DRSTUDIO' : null,
+        isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : null,
         $_SERVER['DOCUMENT_ROOT'] // Document root directo
     ];
     
     foreach ($possibleRoots as $root) {
-        if (file_exists($root . '/includes/config.php')) {
+        if ($root && file_exists($root . '/includes/config.php')) {
             return $root;
         }
     }
