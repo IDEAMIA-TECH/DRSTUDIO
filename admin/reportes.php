@@ -260,22 +260,31 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                 </div>
 
                 <div class="col-lg-8">
+                    <div class="alert alert-light border mb-3 py-2">
+                        <strong>Rangos de fechas de esta conciliación:</strong>
+                        <ul class="mb-0 small">
+                            <li><strong>Saldo inicial:</strong> valor manual que usted registró (referencia al <?php echo date('d/m/Y', strtotime($conciliacion['saldo_inicial_fecha'])); ?>).</li>
+                            <li><strong>Ventas y egresos del cuadre:</strong> del <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_desde'])); ?> al <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?> (usa la fecha <em>Hasta</em> del filtro superior).</li>
+                            <li><strong>Ventas:</strong> fecha de venta = <code>cotizaciones.created_at</code>. <strong>Egresos:</strong> <code>gastos.fecha_gasto</code> (aprobados y pendientes).</li>
+                            <li><strong>Saldo en banco:</strong> valor manual<?php if ($conciliacion['saldo_banco_fecha']): ?> al <?php echo date('d/m/Y', strtotime($conciliacion['saldo_banco_fecha'])); ?><?php else: ?> (sin fecha de corte registrada)<?php endif; ?> — debe coincidir con el mismo día que la columna «Hasta» para que cuadre.</li>
+                        </ul>
+                    </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="card bg-success text-white h-100">
                                 <div class="card-body">
-                                    <small>Ingresos acumulados</small>
+                                    <small>Ventas (<?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_desde'])); ?> – <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?>)</small>
                                     <h4 class="mb-0">$<?php echo number_format($conciliacion['total_ingresos_acumulado'], 2); ?></h4>
-                                    <small>Ventas por fecha de cotización</small>
+                                    <small>created_at de cotización</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-danger text-white h-100">
                                 <div class="card-body">
-                                    <small>Egresos acumulados</small>
+                                    <small>Egresos (<?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_desde'])); ?> – <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?>)</small>
                                     <h4 class="mb-0">$<?php echo number_format($conciliacion['total_egresos_acumulado'], 2); ?></h4>
-                                    <small>Gastos aprobados y pendientes</small>
+                                    <small>fecha_gasto · aprobados y pendientes</small>
                                 </div>
                             </div>
                         </div>
@@ -294,23 +303,23 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
-                                    <td>Saldo inicial (01/01/2026)</td>
+                                    <td>Saldo inicial <small class="text-muted">(manual · <?php echo date('d/m/Y', strtotime($conciliacion['saldo_inicial_fecha'])); ?>)</small></td>
                                     <td class="text-end fw-bold">$<?php echo number_format($conciliacion['saldo_inicial'], 2); ?></td>
                                 </tr>
                                 <tr class="table-success">
-                                    <td>+ Ventas (fecha de venta / created_at)</td>
+                                    <td>+ Ventas <small class="text-muted">(<?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_desde'])); ?> – <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?> · created_at)</small></td>
                                     <td class="text-end">$<?php echo number_format($conciliacion['total_ingresos_acumulado'], 2); ?></td>
                                 </tr>
                                 <tr class="table-danger">
-                                    <td>− Egresos (gastos)</td>
+                                    <td>− Egresos <small class="text-muted">(<?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_desde'])); ?> – <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?> · fecha_gasto)</small></td>
                                     <td class="text-end">$<?php echo number_format($conciliacion['total_egresos_acumulado'], 2); ?></td>
                                 </tr>
                                 <tr class="table-primary">
-                                    <td><strong>= Saldo según libros (calculado)</strong></td>
+                                    <td><strong>= Saldo según libros</strong> <small class="text-muted">(al <?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?>)</small></td>
                                     <td class="text-end fw-bold">$<?php echo number_format($conciliacion['saldo_calculado'], 2); ?></td>
                                 </tr>
                                 <tr class="table-warning">
-                                    <td><strong>Saldo en banco (manual)</strong></td>
+                                    <td><strong>Saldo en banco (manual)</strong><?php if ($conciliacion['saldo_banco_fecha']): ?> <small class="text-muted">(corte <?php echo date('d/m/Y', strtotime($conciliacion['saldo_banco_fecha'])); ?>)</small><?php endif; ?></td>
                                     <td class="text-end fw-bold">$<?php echo number_format($conciliacion['saldo_banco'], 2); ?></td>
                                 </tr>
                                 <tr class="<?php echo $conciliacion['cuadra'] ? 'table-success' : 'table-danger'; ?>">
@@ -332,7 +341,8 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                     <div class="alert alert-warning mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         Hay una diferencia de <strong>$<?php echo number_format(abs($conciliacion['diferencia']), 2); ?></strong>.
-                        Revise ventas no registradas, gastos pendientes o el saldo inicial del 01/01/2026.
+                        El saldo calculado es al <strong><?php echo date('d/m/Y', strtotime($conciliacion['fecha_acumulado_hasta'])); ?></strong>.
+                        Registre el saldo del banco con la misma fecha en «Fecha del saldo en banco», o amplíe el filtro «Hasta» hasta hoy si quiere cuadrar contra el saldo actual.
                     </div>
                     <?php else: ?>
                     <div class="alert alert-success mb-0">

@@ -173,15 +173,28 @@ function getConciliacionBancaria($conn, $fechaDesde, $fechaHasta) {
 
     $totalesPeriodo = getTotalesFinancieros($conn, $fechaDesde, $fechaHasta);
 
+    $fechaAcumuladoDesde = FECHA_INICIO_FINANZAS;
+    $fechaAcumuladoHasta = aplicarFechaMinimaFinanzas($fechaHasta);
+    $fechaCorteBanco = $config['saldo_banco_fecha'] ?? null;
+    if (empty($fechaCorteBanco) || $fechaCorteBanco === '0000-00-00') {
+        $fechaCorteBanco = null;
+    }
+
     return [
         'config' => $config,
         'saldo_inicial' => $saldoInicial,
+        'saldo_inicial_fecha' => $config['saldo_inicial_fecha'] ?? FECHA_INICIO_FINANZAS,
         'total_ingresos_acumulado' => $totales['total_ingresos'],
         'total_egresos_acumulado' => $totales['total_egresos'],
         'saldo_calculado' => $saldoCalculado,
         'saldo_banco' => $saldoBanco,
+        'saldo_banco_fecha' => $fechaCorteBanco,
         'diferencia' => $diferencia,
         'cuadra' => $cuadra,
         'totales_periodo' => $totalesPeriodo,
+        'fecha_acumulado_desde' => $fechaAcumuladoDesde,
+        'fecha_acumulado_hasta' => $fechaAcumuladoHasta,
+        'fecha_periodo_desde' => $totalesPeriodo['fecha_desde'],
+        'fecha_periodo_hasta' => $totalesPeriodo['fecha_hasta'],
     ];
 }
