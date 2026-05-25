@@ -276,4 +276,6 @@ function generatePagination($currentPage, $totalPages, $baseUrl) {
     $pagination .= '</ul></nav>';
     return $pagination;
 }
+
+require_once __DIR__ . '/productos_publicos.php';
 ?>

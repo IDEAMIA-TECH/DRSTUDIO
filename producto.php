@@ -14,7 +14,7 @@ if (!$id) {
 
 // Obtener datos del producto
 $producto = getRecord('productos', $id);
-if (!$producto || !$producto['activo']) {
+if (!$producto || !productoEsPublico($producto)) {
     header('Location: productos.php');
     exit;
 }
@@ -25,8 +25,7 @@ $categoria = getRecord('categorias', $producto['categoria_id']);
 // Obtener variantes del producto
 $variantes = readRecords('variantes_producto', ["producto_id = $id", "activo = 1"], null, 'id ASC');
 
-// Obtener categorías para el menú
-$categorias = readRecords('categorias', ['activo = 1'], null, 'nombre ASC');
+$categorias = getCategoriasPublicas();
 
 $pageTitle = htmlspecialchars($producto['nombre']) . ' - DT Studio';
 $pageDescription = htmlspecialchars(substr($producto['descripcion'], 0, 160));

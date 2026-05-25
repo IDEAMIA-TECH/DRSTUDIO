@@ -35,6 +35,7 @@ if ($_POST) {
     $tiempo_entrega = (int)$_POST['tiempo_entrega'];
     $destacado = isset($_POST['destacado']) ? 1 : 0;
     $activo = isset($_POST['activo']) ? 1 : 0;
+    $mostrar_web = isset($_POST['mostrar_web']) ? 1 : 0;
     
     // Validar datos
     if (empty($sku) || empty($nombre) || $precio_venta <= 0 || $costo_fabricacion < 0) {
@@ -81,7 +82,10 @@ if ($_POST) {
                         'destacado' => $destacado,
                         'activo' => $activo
                     ];
-                    
+                    if (productosTieneColumnaWeb($conn)) {
+                        $data['mostrar_web'] = $mostrar_web;
+                    }
+
                     $updateResult = updateRecord('productos', $data, $id);
                     
                     if ($updateResult) {
@@ -244,6 +248,21 @@ if ($_POST) {
                                 <label class="form-check-label" for="activo">
                                     Activo
                                 </label>
+                            </div>
+                        </div>
+                        <?php
+                        $mostrarWebChecked = productosTieneColumnaWeb($conn)
+                            ? !empty($producto['mostrar_web'])
+                            : productoEsPublico($producto);
+                        ?>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="mostrar_web" name="mostrar_web"
+                                       <?php echo $mostrarWebChecked ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="mostrar_web">
+                                    Mostrar en sitio web (catálogo público)
+                                </label>
+                                <div class="form-text">Desmarcar si es solo para cotizaciones internas</div>
                             </div>
                         </div>
                     </div>

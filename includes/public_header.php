@@ -7,8 +7,8 @@ if (!isset($pageDescription)) {
     $pageDescription = 'Productos promocionales de alta calidad. Cotizaciones personalizadas y entrega rápida.';
 }
 
-// Obtener categorías para el menú
-$categorias = readRecords('categorias', ['activo' => 1], null, 'nombre ASC');
+// Categorías con al menos un producto visible en el sitio público
+$categorias = getCategoriasPublicas();
 ?>
 <!DOCTYPE html>
 <html lang="es">

@@ -50,6 +50,7 @@ if ($_POST) {
     $tiempo_entrega = (int)$_POST['tiempo_entrega'];
     $destacado = isset($_POST['destacado']) ? 1 : 0;
     $activo = isset($_POST['activo']) ? 1 : 0;
+    $mostrar_web = isset($_POST['mostrar_web']) ? 1 : 0;
     
     // Generar SKU automáticamente si está vacío
     if (empty($sku)) {
@@ -88,7 +89,10 @@ if ($_POST) {
                     'destacado' => $destacado,
                     'activo' => $activo
                 ];
-                
+                if (productosTieneColumnaWeb($conn)) {
+                    $data['mostrar_web'] = $mostrar_web;
+                }
+
                 if (createRecord('productos', $data)) {
                     $producto_id = $conn->insert_id;
                     
@@ -323,6 +327,19 @@ if ($_POST) {
                                 <label class="form-check-label" for="activo">
                                     Producto activo
                                 </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="mostrar_web"
+                                       name="mostrar_web"
+                                       <?php echo (isset($_POST['mostrar_web']) || !isset($_POST['nombre'])) ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="mostrar_web">
+                                    Mostrar en sitio web (catálogo público)
+                                </label>
+                                <div class="form-text">Desmarcar si es solo para cotizaciones internas</div>
                             </div>
                         </div>
                     </div>

@@ -13,8 +13,8 @@ $categoria_id = $_GET['categoria'] ?? '';
 $busqueda = $_GET['busqueda'] ?? '';
 $orden = $_GET['orden'] ?? 'nombre';
 
-// Construir condiciones de búsqueda
-$conditions = ['activo = 1'];
+// Solo productos del catálogo público (no ítems internos del sistema)
+$conditions = condicionesProductosPublicos();
 if ($categoria_id) {
     $conditions[] = "categoria_id = $categoria_id";
 }

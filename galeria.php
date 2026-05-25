@@ -12,8 +12,7 @@ $pageDescription = 'Galería de productos promocionales. Ve ejemplos de nuestro 
 $categoria_id = $_GET['categoria'] ?? '';
 $busqueda = $_GET['busqueda'] ?? '';
 
-// Construir condiciones de búsqueda
-$conditions = ['activo = 1'];
+$conditions = condicionesProductosPublicos();
 if ($categoria_id) {
     $conditions[] = "categoria_id = $categoria_id";
 }

@@ -8,9 +8,6 @@ require_once 'includes/functions.php';
 $pageTitle = 'Inicio - DT Studio';
 $pageDescription = 'Productos promocionales de alta calidad. Cotizaciones personalizadas y entrega rápida.';
 
-// Obtener productos destacados
-$productos_destacados = readRecords('productos', ['activo = 1', 'destacado = 1'], 6, 'created_at DESC');
-
 // Obtener banners activos
 $banners = readRecords('banners', ['activo = 1'], null, 'orden ASC');
 
@@ -92,69 +89,6 @@ require_once 'includes/public_header.php';
         </div>
     </section>
 
-
-    <!-- Productos Destacados -->
-    <section class="productos-section py-5 position-relative">
-        <div class="container">
-            <div class="row mb-5">
-                <div class="col-12 text-center">
-                    <div class="section-header">
-                        <h2 class="section-title display-4 fw-bold mb-3" style="font-family: var(--font-display);">
-                            Nuestros <span class="text-gradient">Favoritos</span>
-                        </h2>
-                        <p class="lead text-muted fs-5">Descubre nuestra selección de productos más populares y de mayor calidad</p>
-                        <div class="section-divider mx-auto"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <?php if (!empty($productos_destacados)): ?>
-            <div class="row">
-                <?php foreach ($productos_destacados as $producto): ?>
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm product-card">
-                        <div class="product-image">
-                            <?php if ($producto['imagen_principal']): ?>
-                                <img src="uploads/productos/<?php echo htmlspecialchars($producto['imagen_principal']); ?>" 
-                                     class="card-img-top" 
-                                     alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
-                            <?php else: ?>
-                                <div class="no-image">
-                                    <i class="fas fa-image fa-3x text-muted"></i>
-                                </div>
-                            <?php endif; ?>
-                            <div class="product-overlay">
-                                <a href="producto.php?id=<?php echo $producto['id']; ?>" class="btn btn-primary">
-                                    <i class="fas fa-eye me-2"></i>Ver Detalles
-                                </a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($producto['nombre']); ?></h5>
-                            <p class="card-text text-muted"><?php echo htmlspecialchars(substr($producto['descripcion'], 0, 100)); ?>...</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 text-primary mb-0">$<?php echo number_format($producto['precio_venta'], 2); ?></span>
-                                <small class="text-muted">SKU: <?php echo htmlspecialchars($producto['sku']); ?></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            
-            <div class="text-center mt-4">
-                <a href="productos.php" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-th me-2"></i>Ver Todos los Productos
-                </a>
-            </div>
-            <?php else: ?>
-            <div class="text-center py-5">
-                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No hay productos destacados disponibles</h5>
-            </div>
-            <?php endif; ?>
-        </div>
-    </section>
 
     <!-- Cómo Funciona -->
     <section class="como-funciona-section py-5 bg-white">
