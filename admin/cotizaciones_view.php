@@ -58,6 +58,26 @@ foreach ($productos_personalizados as $producto_personalizado) {
 
 // Calcular total final
 $total_calculado = $subtotal_calculado - $cotizacion['descuento'];
+
+// Datos para exportar PDF (codificación segura para JavaScript)
+$cotizacionPdfData = [
+    'numero' => $cotizacion['numero_cotizacion'],
+    'fecha' => formatDate($cotizacion['created_at']),
+    'cliente' => [
+        'nombre' => $cotizacion['cliente_nombre'],
+        'empresa' => $cotizacion['cliente_empresa'] ?? '',
+        'email' => $cotizacion['cliente_email'] ?? '',
+        'telefono' => $cotizacion['cliente_telefono'] ?? '',
+    ],
+    'items' => $items,
+    'productos_personalizados' => $productos_personalizados,
+    'subtotal' => $subtotal_calculado,
+    'descuento' => (float) $cotizacion['descuento'],
+    'total' => $total_calculado,
+    'observaciones' => $cotizacion['observaciones'] ?? '',
+    'estado' => $cotizacion['estado'],
+];
+$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 
 <div class="row">
@@ -609,23 +629,7 @@ function exportarPDF() {
     btn.disabled = true;
     
     // Crear datos para el PDF
-    const cotizacionData = {
-        numero: '<?php echo $cotizacion['numero_cotizacion']; ?>',
-        fecha: '<?php echo formatDate($cotizacion['created_at']); ?>',
-        cliente: {
-            nombre: '<?php echo addslashes($cotizacion['cliente_nombre']); ?>',
-            empresa: '<?php echo addslashes($cotizacion['cliente_empresa'] ?? ''); ?>',
-            email: '<?php echo addslashes($cotizacion['cliente_email'] ?? ''); ?>',
-            telefono: '<?php echo addslashes($cotizacion['cliente_telefono'] ?? ''); ?>'
-        },
-        items: <?php echo json_encode($items); ?>,
-        productos_personalizados: <?php echo json_encode($productos_personalizados); ?>,
-        subtotal: <?php echo $subtotal_calculado; ?>,
-        descuento: <?php echo $cotizacion['descuento']; ?>,
-        total: <?php echo $total_calculado; ?>,
-        observaciones: '<?php echo addslashes($cotizacion['observaciones'] ?? ''); ?>',
-        estado: '<?php echo $cotizacion['estado']; ?>'
-    };
+    const cotizacionData = <?php echo json_encode($cotizacionPdfData, $jsonFlags); ?>;
     
     console.log('Datos de cotización:', cotizacionData);
     
