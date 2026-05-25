@@ -9,6 +9,23 @@ $success = '';
 
 // Obtener cliente preseleccionado si viene por GET
 $cliente_preseleccionado = $_GET['cliente'] ?? '';
+$esAdmin = hasPermission('admin');
+
+/**
+ * Normaliza fecha/hora de venta para created_at (solo administrador).
+ */
+function normalizarFechaVentaCotizacion($fechaInput) {
+    $fechaInput = trim($fechaInput);
+    if ($fechaInput === '') {
+        return date('Y-m-d H:i:s');
+    }
+    $fechaInput = str_replace('T', ' ', $fechaInput);
+    $timestamp = strtotime($fechaInput);
+    if ($timestamp === false) {
+        return null;
+    }
+    return date('Y-m-d H:i:s', $timestamp);
+}
 
 // Obtener clientes y productos para los selects
 $clientes = readRecords('clientes', [], null, 'nombre ASC');
@@ -25,12 +42,28 @@ if ($_POST) {
     if (!$cliente_id) {
         $error = 'Debe seleccionar un cliente';
     } else {
-        // Generar número de cotización
-        $numero_cotizacion = 'COT-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $fecha_venta = date('Y-m-d H:i:s');
+        if ($esAdmin && !empty($_POST['fecha_venta'])) {
+            $fechaNormalizada = normalizarFechaVentaCotizacion($_POST['fecha_venta']);
+            if ($fechaNormalizada === null) {
+                $error = 'La fecha de venta no es válida';
+            } else {
+                $fecha_venta = $fechaNormalizada;
+            }
+        }
+
+        if (!$error && strtotime($fecha_venta) > time()) {
+            $error = 'La fecha de venta no puede ser futura';
+        }
+
+        if (!$error) {
+        // Generar número de cotización (año según fecha de venta)
+        $anio_cotizacion = date('Y', strtotime($fecha_venta));
+        $numero_cotizacion = 'COT-' . $anio_cotizacion . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         
         // Verificar que el número no exista
         while (readRecords('cotizaciones', ["numero_cotizacion = '$numero_cotizacion'"])) {
-            $numero_cotizacion = 'COT-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $numero_cotizacion = 'COT-' . $anio_cotizacion . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         }
         
         // Calcular totales
@@ -123,6 +156,11 @@ if ($_POST) {
             
             if (createRecord('cotizaciones', $data)) {
                 $cotizacion_id = $conn->insert_id;
+
+                // Establecer fecha de venta (created_at) — solo admin puede personalizarla
+                $stmtFecha = $conn->prepare("UPDATE cotizaciones SET created_at = ?, updated_at = ? WHERE id = ?");
+                $stmtFecha->bind_param('ssi', $fecha_venta, $fecha_venta, $cotizacion_id);
+                $stmtFecha->execute();
                 
                 // Crear items de la cotización (productos del catálogo)
                 foreach ($items as $item) {
@@ -189,6 +227,7 @@ if ($_POST) {
                 $error = 'Error al crear la cotización';
             }
         }
+        }
     }
 }
 
@@ -242,6 +281,28 @@ require_once 'includes/header.php';
                             </div>
                         </div>
                     </div>
+
+                    <?php if ($esAdmin): ?>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fecha_venta" class="form-label">
+                                    Fecha de venta (creación de cotización)
+                                    <span class="badge bg-warning text-dark ms-1">Admin</span>
+                                </label>
+                                <input type="datetime-local"
+                                       class="form-control"
+                                       id="fecha_venta"
+                                       name="fecha_venta"
+                                       max="<?php echo date('Y-m-d\TH:i'); ?>"
+                                       value="<?php echo htmlspecialchars($_POST['fecha_venta'] ?? date('Y-m-d\TH:i')); ?>">
+                                <div class="form-text">
+                                    Define <code>created_at</code> en la cotización. Se usa en reportes y conciliación bancaria.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -358,6 +419,9 @@ require_once 'includes/header.php';
                 <ul class="list-unstyled mb-0">
                     <li><i class="fas fa-info-circle text-info me-2"></i>El número de cotización se genera automáticamente</li>
                     <li><i class="fas fa-calendar text-warning me-2"></i>La fecha de vencimiento es opcional</li>
+                    <?php if ($esAdmin): ?>
+                    <li><i class="fas fa-calendar-check text-warning me-2"></i>Admin: puede fijar la fecha de venta (created_at)</li>
+                    <?php endif; ?>
                     <li><i class="fas fa-tags text-success me-2"></i>Puedes agregar productos del catálogo</li>
                     <li><i class="fas fa-edit text-success me-2"></i>O crear productos personalizados</li>
                     <li><i class="fas fa-dollar-sign text-primary me-2"></i>Precios y costos personalizables</li>
