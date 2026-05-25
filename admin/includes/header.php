@@ -67,6 +67,13 @@ $currentUser = getCurrentUser();
                             <i class="fas fa-receipt me-1"></i>Gastos
                         </a>
                     </li>
+                    <?php if (hasPermission('admin')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="sueldos.php">
+                            <i class="fas fa-money-check-alt me-1"></i>Sueldos
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="reportes.php">
                             <i class="fas fa-chart-bar me-1"></i>Reportes

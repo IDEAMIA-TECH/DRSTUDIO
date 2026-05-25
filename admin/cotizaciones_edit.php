@@ -2,10 +2,12 @@
 // Incluir archivos necesarios sin output
 require_once 'includes/paths.php';
 require_once '../includes/cotizacion_detalles_helper.php';
+require_once 'includes/cotizacion_fecha_venta.php';
 
 $pageTitle = 'Editar Cotización';
 $error = '';
 $success = '';
+$esAdmin = hasPermission('admin');
 
 // Obtener ID de la cotización
 $id = $_GET['id'] ?? 0;
@@ -52,6 +54,18 @@ if ($_POST) {
     if (!$cliente_id) {
         $error = 'Debe seleccionar un cliente';
     } else {
+        $fecha_venta = $cotizacion['created_at'];
+        if ($esAdmin && !empty($_POST['fecha_venta'])) {
+            $fechaNormalizada = normalizarFechaVentaCotizacion($_POST['fecha_venta']);
+            if ($fechaNormalizada === null) {
+                $error = 'La fecha de venta no es válida';
+            } else {
+                $fecha_venta = $fechaNormalizada;
+                $error = validarFechaVentaCotizacion($fecha_venta);
+            }
+        }
+
+        if (!$error) {
         // Calcular totales
         $subtotal = 0;
         $items_data = [];
@@ -104,6 +118,10 @@ if ($_POST) {
         ];
         
         if (updateRecord('cotizaciones', $cotizacion_data, $id)) {
+            if ($esAdmin && !empty($_POST['fecha_venta'])) {
+                actualizarFechaVentaCotizacion($conn, $id, $fecha_venta);
+            }
+
             // Eliminar items existentes
             $conn->query("DELETE FROM cotizacion_items WHERE cotizacion_id = $id");
             
@@ -162,6 +180,7 @@ if ($_POST) {
         } else {
             $error = 'Error al actualizar la cotización';
         }
+        }
     }
 }
 
@@ -209,6 +228,26 @@ require_once 'includes/header.php';
                                    value="<?php echo $cotizacion['fecha_vencimiento']; ?>">
                         </div>
                     </div>
+
+                    <?php if ($esAdmin): ?>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fecha_venta" class="form-label">
+                                Fecha de venta (creación de cotización)
+                                <span class="badge bg-warning text-dark ms-1">Admin</span>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   id="fecha_venta"
+                                   name="fecha_venta"
+                                   max="<?php echo date('Y-m-d\TH:i'); ?>"
+                                   value="<?php echo htmlspecialchars($_POST['fecha_venta'] ?? fechaVentaParaInputDatetime($cotizacion['created_at'])); ?>">
+                            <div class="form-text">
+                                Corresponde a <code>created_at</code>. Afecta reportes y conciliación bancaria.
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     
                     <div class="row">
                         <div class="col-md-6">

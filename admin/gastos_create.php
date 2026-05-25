@@ -82,7 +82,7 @@ if ($_POST) {
     }
 }
 
-$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'];
+$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'sueldos', 'otros'];
 $metodos_pago = ['efectivo', 'tarjeta', 'transferencia', 'cheque'];
 ?>
 

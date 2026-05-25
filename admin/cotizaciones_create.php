@@ -2,6 +2,7 @@
 // Incluir archivos necesarios sin output
 require_once 'includes/paths.php';
 require_once '../includes/cotizacion_detalles_helper.php';
+require_once 'includes/cotizacion_fecha_venta.php';
 
 $pageTitle = 'Crear Nueva Cotización';
 $error = '';
@@ -10,22 +11,6 @@ $success = '';
 // Obtener cliente preseleccionado si viene por GET
 $cliente_preseleccionado = $_GET['cliente'] ?? '';
 $esAdmin = hasPermission('admin');
-
-/**
- * Normaliza fecha/hora de venta para created_at (solo administrador).
- */
-function normalizarFechaVentaCotizacion($fechaInput) {
-    $fechaInput = trim($fechaInput);
-    if ($fechaInput === '') {
-        return date('Y-m-d H:i:s');
-    }
-    $fechaInput = str_replace('T', ' ', $fechaInput);
-    $timestamp = strtotime($fechaInput);
-    if ($timestamp === false) {
-        return null;
-    }
-    return date('Y-m-d H:i:s', $timestamp);
-}
 
 // Obtener clientes y productos para los selects
 $clientes = readRecords('clientes', [], null, 'nombre ASC');
@@ -52,8 +37,8 @@ if ($_POST) {
             }
         }
 
-        if (!$error && strtotime($fecha_venta) > time()) {
-            $error = 'La fecha de venta no puede ser futura';
+        if (!$error) {
+            $error = validarFechaVentaCotizacion($fecha_venta);
         }
 
         if (!$error) {
@@ -157,10 +142,7 @@ if ($_POST) {
             if (createRecord('cotizaciones', $data)) {
                 $cotizacion_id = $conn->insert_id;
 
-                // Establecer fecha de venta (created_at) — solo admin puede personalizarla
-                $stmtFecha = $conn->prepare("UPDATE cotizaciones SET created_at = ?, updated_at = ? WHERE id = ?");
-                $stmtFecha->bind_param('ssi', $fecha_venta, $fecha_venta, $cotizacion_id);
-                $stmtFecha->execute();
+                actualizarFechaVentaCotizacion($conn, $cotizacion_id, $fecha_venta);
                 
                 // Crear items de la cotización (productos del catálogo)
                 foreach ($items as $item) {

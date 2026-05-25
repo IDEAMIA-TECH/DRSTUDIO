@@ -7,7 +7,7 @@ if ($ver_entregadas) {
     $pageActions = '<a href="cotizaciones.php" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Ver Cotizaciones Activas</a>';
 } else {
     $pageTitle = 'Gestión de Cotizaciones';
-    $pageActions = '<a href="cotizaciones_create.php" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nueva Cotización</a> <a href="cotizaciones.php?ver_entregadas=1" class="btn btn-info"><i class="fas fa-truck me-2"></i>Ver Órdenes Entregadas</a>';
+    $pageActions = '<a href="exportar_cotizaciones.php" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Exportar CSV</a> <a href="cotizaciones_create.php" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nueva Cotización</a> <a href="cotizaciones.php?ver_entregadas=1" class="btn btn-info"><i class="fas fa-truck me-2"></i>Ver Órdenes Entregadas</a>';
 }
 require_once 'includes/header.php';
 

@@ -107,7 +107,7 @@ $cotizaciones_mensuales_sql = "SELECT
 $cotizaciones_mensuales_result = $conn->query($cotizaciones_mensuales_sql);
 $cotizaciones_mensuales = $cotizaciones_mensuales_result->fetch_all(MYSQLI_ASSOC);
 
-$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'];
+$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'sueldos', 'otros'];
 
 // Obtener datos de ganancias del período (incluyendo productos personalizados)
 $ganancias_sql = "SELECT 
@@ -158,12 +158,18 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
             <h1 class="h3 mb-0">Reportes y Análisis</h1>
             <p class="text-muted">Análisis financiero desde enero 2026</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <button class="btn btn-success" onclick="exportarPDF()">
                 <i class="fas fa-file-pdf me-2"></i>Exportar PDF
             </button>
             <button class="btn btn-primary" onclick="exportarExcel()">
                 <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </button>
+            <button class="btn btn-outline-success" onclick="exportarCotizacionesCsv()">
+                <i class="fas fa-download me-2"></i>Cotizaciones CSV
+            </button>
+            <button class="btn btn-outline-danger" onclick="exportarGastosCsv()">
+                <i class="fas fa-download me-2"></i>Gastos CSV
             </button>
         </div>
     </div>
@@ -207,6 +213,26 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                     </a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="card mb-4 border-success">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="fas fa-file-export me-2"></i>Exportaciones para libros contables</h6>
+        </div>
+        <div class="card-body">
+            <p class="small text-muted mb-3">
+                Descargue CSV con el período del filtro superior. Use la <strong>fecha de venta</strong> al crear cotizaciones (admin) y la <strong>fecha de pago</strong> en sueldos para asignar movimientos al mes correcto.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="exportar_cotizaciones.php?fecha_desde=<?php echo urlencode($fecha_desde); ?>&fecha_hasta=<?php echo urlencode($fecha_hasta); ?>" class="btn btn-success">
+                    <i class="fas fa-file-invoice me-2"></i>Exportar cotizaciones (detalle completo)
+                </a>
+                <a href="exportar_gastos.php?fecha_desde=<?php echo urlencode($fecha_desde); ?>&fecha_hasta=<?php echo urlencode($fecha_hasta); ?>" class="btn btn-danger">
+                    <i class="fas fa-receipt me-2"></i>Exportar gastos (incluye sueldos)
+                </a>
+                <a href="sueldos.php" class="btn btn-outline-primary"><i class="fas fa-money-check-alt me-2"></i>Módulo de sueldos</a>
+            </div>
         </div>
     </div>
 
@@ -885,6 +911,18 @@ function exportarExcel() {
     
     const url = `exportar_reporte.php?tipo=excel&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&reporte=${tipoReporte}`;
     window.open(url, '_blank');
+}
+
+function exportarCotizacionesCsv() {
+    const fechaDesde = document.getElementById('fecha_desde').value;
+    const fechaHasta = document.getElementById('fecha_hasta').value;
+    window.location.href = `exportar_cotizaciones.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
+}
+
+function exportarGastosCsv() {
+    const fechaDesde = document.getElementById('fecha_desde').value;
+    const fechaHasta = document.getElementById('fecha_hasta').value;
+    window.location.href = `exportar_gastos.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
 }
 
 document.getElementById('formSaldosBanco').addEventListener('submit', function (e) {

@@ -77,7 +77,7 @@ foreach ($gastos as $gasto) {
 }
 
 // Categorías disponibles
-$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'otros'];
+$categorias = ['oficina', 'marketing', 'equipos', 'servicios', 'viajes', 'sueldos', 'otros'];
 $estados = ['pendiente', 'aprobado', 'rechazado'];
 ?>
 
@@ -88,9 +88,15 @@ $estados = ['pendiente', 'aprobado', 'rechazado'];
             <h1 class="h3 mb-0">Gestión de Gastos</h1>
             <p class="text-muted">Administra los gastos operacionales de la empresa</p>
         </div>
-        <a href="gastos_create.php" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nuevo Gasto
-        </a>
+        <div class="d-flex gap-2">
+            <a href="exportar_gastos.php?fecha_desde=<?php echo urlencode($filtro_fecha_desde ?: '2026-01-01'); ?>&fecha_hasta=<?php echo urlencode($filtro_fecha_hasta ?: date('Y-m-d')); ?>" class="btn btn-success">
+                <i class="fas fa-file-excel me-2"></i>Exportar CSV
+            </a>
+            <a href="sueldos.php" class="btn btn-outline-primary"><i class="fas fa-money-check-alt me-2"></i>Sueldos</a>
+            <a href="gastos_create.php" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Gasto
+            </a>
+        </div>
     </div>
 
     <!-- Estadísticas -->
