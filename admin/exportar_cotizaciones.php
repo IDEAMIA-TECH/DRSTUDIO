@@ -1,27 +1,40 @@
 <?php
 require_once 'includes/paths.php';
+requireLogin();
 
 if (!hasPermission('admin')) {
     header('Location: dashboard.php');
     exit;
 }
 
-$fecha_desde = $_GET['fecha_desde'] ?? '2026-01-01';
-$fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
+// Sin parámetros de fecha = todas las cotizaciones del sistema
+$fecha_desde = isset($_GET['fecha_desde']) && $_GET['fecha_desde'] !== '' ? $_GET['fecha_desde'] : null;
+$fecha_hasta = isset($_GET['fecha_hasta']) && $_GET['fecha_hasta'] !== '' ? $_GET['fecha_hasta'] : null;
 $estado = $_GET['estado'] ?? '';
+$exportar_todas = ($fecha_desde === null && $fecha_hasta === null);
 
 function buildCotizacionExportWhere($estado, &$params, &$types) {
-    $fecha_desde = $GLOBALS['fecha_desde_export'];
-    $fecha_hasta = $GLOBALS['fecha_hasta_export'];
-    $conditions = ['DATE(c.created_at) BETWEEN ? AND ?'];
-    $params = [$fecha_desde, $fecha_hasta];
-    $types = 'ss';
+    $conditions = [];
+    $params = [];
+    $types = '';
+
+    if (!empty($GLOBALS['fecha_desde_export'])) {
+        $conditions[] = 'DATE(c.created_at) >= ?';
+        $params[] = $GLOBALS['fecha_desde_export'];
+        $types .= 's';
+    }
+    if (!empty($GLOBALS['fecha_hasta_export'])) {
+        $conditions[] = 'DATE(c.created_at) <= ?';
+        $params[] = $GLOBALS['fecha_hasta_export'];
+        $types .= 's';
+    }
     if ($estado) {
         $conditions[] = 'c.estado = ?';
         $params[] = $estado;
         $types .= 's';
     }
-    return 'WHERE ' . implode(' AND ', $conditions);
+
+    return $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 }
 
 $GLOBALS['fecha_desde_export'] = $fecha_desde;
@@ -67,7 +80,9 @@ $filas = [];
 
 foreach ([$sqlCatalogo, $sqlPersonalizado] as $sql) {
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    if ($types !== '') {
+        $stmt->bind_param($types, ...$params);
+    }
     $stmt->execute();
     $filas = array_merge($filas, $stmt->get_result()->fetch_all(MYSQLI_ASSOC));
 }
@@ -76,14 +91,22 @@ usort($filas, function ($a, $b) {
     return strtotime($b['fecha_venta']) - strtotime($a['fecha_venta']);
 });
 
+$filename = $exportar_todas
+    ? 'cotizaciones_todas_' . date('Y-m-d') . '.csv'
+    : 'cotizaciones_' . $fecha_desde . '_' . $fecha_hasta . '.csv';
+
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="cotizaciones_' . $fecha_desde . '_' . $fecha_hasta . '.csv"');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
 
 $out = fopen('php://output', 'w');
 fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
 fputcsv($out, ['REPORTE DE COTIZACIONES - DT STUDIO']);
-fputcsv($out, ['Período (fecha de venta / created_at):', $fecha_desde, 'a', $fecha_hasta]);
+if ($exportar_todas) {
+    fputcsv($out, ['Alcance:', 'Todas las cotizaciones del sistema (sin filtro de fechas)']);
+} else {
+    fputcsv($out, ['Período (fecha de venta / created_at):', $fecha_desde ?? '—', 'a', $fecha_hasta ?? '—']);
+}
 fputcsv($out, ['Generado:', date('d/m/Y H:i')]);
 fputcsv($out, []);
 
