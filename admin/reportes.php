@@ -266,7 +266,7 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                                 <div class="card-body">
                                     <small>Ingresos acumulados</small>
                                     <h4 class="mb-0">$<?php echo number_format($conciliacion['total_ingresos_acumulado'], 2); ?></h4>
-                                    <small>Pagos de cotizaciones</small>
+                                    <small>Ventas por fecha de cotización</small>
                                 </div>
                             </div>
                         </div>
@@ -298,7 +298,7 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                                     <td class="text-end fw-bold">$<?php echo number_format($conciliacion['saldo_inicial'], 2); ?></td>
                                 </tr>
                                 <tr class="table-success">
-                                    <td>+ Ingresos (pagos recibidos)</td>
+                                    <td>+ Ventas (fecha de venta / created_at)</td>
                                     <td class="text-end">$<?php echo number_format($conciliacion['total_ingresos_acumulado'], 2); ?></td>
                                 </tr>
                                 <tr class="table-danger">
@@ -332,7 +332,7 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                     <div class="alert alert-warning mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         Hay una diferencia de <strong>$<?php echo number_format(abs($conciliacion['diferencia']), 2); ?></strong>.
-                        Revise pagos no registrados, gastos pendientes o el saldo inicial del 01/01/2026.
+                        Revise ventas no registradas, gastos pendientes o el saldo inicial del 01/01/2026.
                     </div>
                     <?php else: ?>
                     <div class="alert alert-success mb-0">
@@ -353,7 +353,7 @@ $ganancias_mensuales = $ganancias_mensuales_result->fetch_all(MYSQLI_ASSOC);
                             <thead>
                                 <tr>
                                     <th>Mes</th>
-                                    <th class="text-end">Ingresos</th>
+                                    <th class="text-end">Ventas</th>
                                     <th class="text-end">Egresos</th>
                                     <th class="text-end">Neto</th>
                                     <th class="text-end">Flujo acumulado</th>

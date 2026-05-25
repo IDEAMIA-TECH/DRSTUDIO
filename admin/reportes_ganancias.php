@@ -1,6 +1,7 @@
 <?php
-
+$pageTitle = 'Reporte de Ganancias';
 require_once 'includes/header.php';
+require_once 'includes/fecha_venta.php';
 
 // Verificar permisos de administrador
 if (!hasPermission('admin')) {
@@ -45,7 +46,7 @@ $sql = "SELECT
     cl.nombre as cliente_nombre,
     cl.email as cliente_email,
     c.estado as cotizacion_estado,
-    c.created_at as fecha_cotizacion,
+    c.created_at as fecha_venta,
     p.nombre as producto_nombre,
     p.sku,
     cat.nombre as categoria_nombre,
@@ -73,7 +74,7 @@ SELECT
     cl.nombre as cliente_nombre,
     cl.email as cliente_email,
     c.estado as cotizacion_estado,
-    c.created_at as fecha_cotizacion,
+    c.created_at as fecha_venta,
     cpp.nombre_producto as producto_nombre,
     'PERSONALIZADO' as sku,
     'Personalizado' as categoria_nombre,
@@ -82,7 +83,7 @@ FROM cotizacion_productos_personalizados cpp
 LEFT JOIN cotizaciones c ON cpp.cotizacion_id = c.id
 LEFT JOIN clientes cl ON c.cliente_id = cl.id
     WHERE DATE(c.created_at) BETWEEN ? AND ?
-ORDER BY fecha_cotizacion DESC";
+ORDER BY fecha_venta DESC";
 
 $stmt = $conn->prepare($sql);
 // Agregar parámetros para la segunda parte de la consulta UNION
@@ -178,8 +179,8 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0"><?php $pageTitle = 'Reporte de Ganancias';?></h1>
-            <p class="text-muted">Análisis de rentabilidad por producto y categoría</p>
+            <h1 class="h3 mb-0">Reporte de Ganancias</h1>
+            <p class="text-muted">Análisis por producto — fecha de venta: creación de la cotización</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-success" onclick="exportarGananciasPDF()">
@@ -402,6 +403,7 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
                         <thead>
                             <tr>
                                 <th>Cotización</th>
+                                <th>Fecha venta</th>
                                 <th>Cliente</th>
                                 <th>Tipo</th>
                                 <th>Producto</th>
@@ -418,6 +420,7 @@ $margen_neto = $total_ventas > 0 ? ($ganancia_neta / $total_ventas) * 100 : 0;
                             <?php foreach ($detalles as $detalle): ?>
                             <tr>
                                 <td>#<?php echo $detalle['cotizacion_id']; ?></td>
+                                <td><?php echo date('d/m/Y', strtotime($detalle['fecha_venta'])); ?></td>
                                 <td><?php echo htmlspecialchars($detalle['cliente_nombre']); ?></td>
                                 <td>
                                     <?php if ($detalle['tipo_producto'] == 'personalizado'): ?>

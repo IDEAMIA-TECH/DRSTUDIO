@@ -22,7 +22,7 @@ if ($reporte == 'dashboard') {
     $gastos_result = $gastos_stmt->get_result();
     $gastos = $gastos_result->fetch_all(MYSQLI_ASSOC);
 
-    $cotizaciones_sql = "SELECT * FROM solicitudes_cotizacion WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
+    $cotizaciones_sql = "SELECT * FROM cotizaciones WHERE DATE(created_at) BETWEEN ? AND ? ORDER BY created_at DESC";
     $cotizaciones_stmt = $conn->prepare($cotizaciones_sql);
     $cotizaciones_stmt->bind_param('ss', $fecha_desde, $fecha_hasta);
     $cotizaciones_stmt->execute();

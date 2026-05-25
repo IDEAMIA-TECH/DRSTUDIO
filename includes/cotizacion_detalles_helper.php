@@ -126,8 +126,9 @@ function obtenerGananciasPorPeriodo($fecha_desde, $fecha_hasta) {
         SUM(cd.costo_total) as total_costos,
         SUM(cd.ganancia) as total_ganancia
     FROM cotizacion_detalles cd
-    LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
-    WHERE c.created_at BETWEEN ? AND ?
+    INNER JOIN cotizaciones c ON cd.cotizacion_id = c.id
+    WHERE DATE(c.created_at) BETWEEN ? AND ?
+    AND c.estado NOT IN ('cancelada', 'rechazada')
     GROUP BY DATE(c.created_at)
     ORDER BY fecha ASC";
     

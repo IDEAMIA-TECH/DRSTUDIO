@@ -1,7 +1,10 @@
 <?php
 /**
  * Funciones de conciliación bancaria (desde enero 2026)
+ * Ingresos por fecha de venta (cotizaciones.created_at)
  */
+
+require_once __DIR__ . '/fecha_venta.php';
 
 const FECHA_INICIO_FINANZAS = '2026-01-01';
 
@@ -55,13 +58,7 @@ function getTotalesFinancieros($conn, $fechaDesde, $fechaHasta) {
     $fechaDesde = aplicarFechaMinimaFinanzas($fechaDesde);
     $fechaHasta = aplicarFechaMinimaFinanzas($fechaHasta);
 
-    $ingresosSql = "SELECT COALESCE(SUM(monto), 0) AS total
-        FROM pagos_cotizacion
-        WHERE DATE(fecha_pago) BETWEEN ? AND ?";
-    $ingresosStmt = $conn->prepare($ingresosSql);
-    $ingresosStmt->bind_param('ss', $fechaDesde, $fechaHasta);
-    $ingresosStmt->execute();
-    $totalIngresos = (float) ($ingresosStmt->get_result()->fetch_assoc()['total'] ?? 0);
+    $totalIngresos = getTotalVentasPorFechaVenta($conn, $fechaDesde, $fechaHasta);
 
     $egresosSql = "SELECT COALESCE(SUM(monto), 0) AS total
         FROM gastos
@@ -85,16 +82,9 @@ function getResumenMensualFinanzas($conn) {
     $resumen = [];
     $fechaInicio = FECHA_INICIO_FINANZAS;
 
-    $ingresosSql = "SELECT DATE_FORMAT(fecha_pago, '%Y-%m') AS mes, COALESCE(SUM(monto), 0) AS total
-        FROM pagos_cotizacion
-        WHERE DATE(fecha_pago) >= ?
-        GROUP BY DATE_FORMAT(fecha_pago, '%Y-%m')
-        ORDER BY mes ASC";
-    $stmt = $conn->prepare($ingresosSql);
-    $stmt->bind_param('s', $fechaInicio);
-    $stmt->execute();
-    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
-        $resumen[$row['mes']]['ingresos'] = (float) $row['total'];
+    $ventasMensuales = getVentasMensualesPorFechaVenta($conn, $fechaInicio);
+    foreach ($ventasMensuales as $mes => $total) {
+        $resumen[$mes]['ingresos'] = $total;
     }
 
     $egresosSql = "SELECT DATE_FORMAT(fecha_gasto, '%Y-%m') AS mes, COALESCE(SUM(monto), 0) AS total
@@ -136,12 +126,12 @@ function getMovimientosFinancieros($conn, $fechaDesde, $fechaHasta, $limite = 30
     $fechaHasta = aplicarFechaMinimaFinanzas($fechaHasta);
 
     $sql = "(
-        SELECT 'ingreso' AS tipo, p.monto, p.fecha_pago AS fecha, p.metodo_pago,
-            CONCAT('Pago cotización #', c.numero_cotizacion) AS concepto,
-            COALESCE(p.referencia, '') AS referencia
-        FROM pagos_cotizacion p
-        INNER JOIN cotizaciones c ON c.id = p.cotizacion_id
-        WHERE DATE(p.fecha_pago) BETWEEN ? AND ?
+        SELECT 'ingreso' AS tipo, c.total AS monto, c.created_at AS fecha, '' AS metodo_pago,
+            CONCAT('Venta ', c.numero_cotizacion) AS concepto,
+            c.estado AS referencia
+        FROM cotizaciones c
+        WHERE DATE(c.created_at) BETWEEN ? AND ?
+        AND c.estado NOT IN ('cancelada', 'rechazada')
     ) UNION ALL (
         SELECT 'egreso' AS tipo, g.monto, g.fecha_gasto AS fecha, g.metodo_pago,
             g.concepto, g.estado AS referencia

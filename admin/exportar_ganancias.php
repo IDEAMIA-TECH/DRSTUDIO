@@ -13,43 +13,84 @@ $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
 $producto_id = $_GET['producto_id'] ?? '';
 $categoria_id = $_GET['categoria_id'] ?? '';
 
-// Construir condiciones de búsqueda
-$conditions = ["c.created_at BETWEEN ? AND ?"];
+// Filtro por fecha de venta (cotizaciones.created_at)
+$conditions = ["DATE(c.created_at) BETWEEN ? AND ?"];
 $params = [$fecha_desde, $fecha_hasta];
+$types = 'ss';
 
 if ($producto_id) {
     $conditions[] = "cd.producto_id = ?";
     $params[] = $producto_id;
+    $types .= 'i';
 }
 
 if ($categoria_id) {
     $conditions[] = "p.categoria_id = ?";
     $params[] = $categoria_id;
+    $types .= 'i';
 }
 
 $whereClause = 'WHERE ' . implode(' AND ', $conditions);
 
-// Consulta principal para obtener detalles de ganancias
 $sql = "SELECT 
-    cd.*,
-    c.cliente_nombre,
-    c.cliente_email,
+    cd.id,
+    cd.cotizacion_id,
+    cd.producto_id,
+    cd.cantidad,
+    cd.precio_unitario,
+    cd.costo_unitario,
+    cd.subtotal,
+    cd.costo_total,
+    cd.ganancia,
+    cd.margen_ganancia,
+    cl.nombre as cliente_nombre,
+    cl.email as cliente_email,
     c.estado as cotizacion_estado,
-    c.created_at as fecha_cotizacion,
+    c.created_at as fecha_venta,
     p.nombre as producto_nombre,
     p.sku,
-    cat.nombre as categoria_nombre
+    cat.nombre as categoria_nombre,
+    'catalogo' as tipo_producto
 FROM cotizacion_detalles cd
-LEFT JOIN solicitudes_cotizacion c ON cd.cotizacion_id = c.id
+INNER JOIN cotizaciones c ON cd.cotizacion_id = c.id
+LEFT JOIN clientes cl ON c.cliente_id = cl.id
 LEFT JOIN productos p ON cd.producto_id = p.id
 LEFT JOIN categorias cat ON p.categoria_id = cat.id
 $whereClause
-ORDER BY c.created_at DESC";
+
+UNION ALL
+
+SELECT 
+    cpp.id,
+    cpp.cotizacion_id,
+    NULL as producto_id,
+    cpp.cantidad,
+    cpp.precio_venta as precio_unitario,
+    cpp.costo_fabricacion as costo_unitario,
+    cpp.subtotal,
+    cpp.costo_total,
+    cpp.ganancia,
+    cpp.margen_ganancia,
+    cl.nombre as cliente_nombre,
+    cl.email as cliente_email,
+    c.estado as cotizacion_estado,
+    c.created_at as fecha_venta,
+    cpp.nombre_producto as producto_nombre,
+    'PERSONALIZADO' as sku,
+    'Personalizado' as categoria_nombre,
+    'personalizado' as tipo_producto
+FROM cotizacion_productos_personalizados cpp
+INNER JOIN cotizaciones c ON cpp.cotizacion_id = c.id
+LEFT JOIN clientes cl ON c.cliente_id = cl.id
+WHERE DATE(c.created_at) BETWEEN ? AND ?
+ORDER BY fecha_venta DESC";
+
+$params[] = $fecha_desde;
+$params[] = $fecha_hasta;
+$types .= 'ss';
 
 $stmt = $conn->prepare($sql);
-if (!empty($params)) {
-    $stmt->bind_param(str_repeat('s', count($params)), ...$params);
-}
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 $detalles = $result->fetch_all(MYSQLI_ASSOC);
@@ -240,11 +281,12 @@ if ($tipo == 'pdf') {
     // Detalle de cotizaciones
     if (!empty($detalles)) {
         fputcsv($output, ['DETALLE DE COTIZACIONES']);
-        fputcsv($output, ['Cotización', 'Cliente', 'Producto', 'SKU', 'Cantidad', 'Precio Unit.', 'Costo Unit.', 'Subtotal', 'Costo Total', 'Ganancia', 'Margen %']);
+        fputcsv($output, ['Cotización', 'Fecha venta', 'Cliente', 'Producto', 'SKU', 'Cantidad', 'Precio Unit.', 'Costo Unit.', 'Subtotal', 'Costo Total', 'Ganancia', 'Margen %']);
         
         foreach ($detalles as $detalle) {
             fputcsv($output, [
                 '#' . $detalle['cotizacion_id'],
+                date('d/m/Y', strtotime($detalle['fecha_venta'])),
                 $detalle['cliente_nombre'],
                 $detalle['producto_nombre'],
                 $detalle['sku'],
