@@ -89,8 +89,8 @@ $estados = ['pendiente', 'aprobado', 'rechazado'];
             <p class="text-muted">Administra los gastos operacionales de la empresa</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="exportar_gastos.php?fecha_desde=<?php echo urlencode($filtro_fecha_desde ?: '2026-01-01'); ?>&fecha_hasta=<?php echo urlencode($filtro_fecha_hasta ?: date('Y-m-d')); ?>" class="btn btn-success">
-                <i class="fas fa-file-excel me-2"></i>Exportar CSV
+            <a href="exportar_gastos.php" class="btn btn-success" title="Exporta todos los gastos del sistema, sin importar los filtros del listado">
+                <i class="fas fa-file-excel me-2"></i>Exportar todos
             </a>
             <a href="sueldos.php" class="btn btn-outline-primary"><i class="fas fa-money-check-alt me-2"></i>Sueldos</a>
             <a href="gastos_create.php" class="btn btn-primary">

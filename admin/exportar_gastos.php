@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/paths.php';
 require_once 'includes/sueldos_helper.php';
+requireLogin();
 
 if (!hasPermission('admin')) {
     header('Location: dashboard.php');
@@ -9,15 +10,27 @@ if (!hasPermission('admin')) {
 
 ensureSueldosTables($conn);
 
-$fecha_desde = $_GET['fecha_desde'] ?? '2026-01-01';
-$fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
+// Sin fechas en la URL = todos los gastos del sistema
+$fecha_desde = isset($_GET['fecha_desde']) && $_GET['fecha_desde'] !== '' ? $_GET['fecha_desde'] : null;
+$fecha_hasta = isset($_GET['fecha_hasta']) && $_GET['fecha_hasta'] !== '' ? $_GET['fecha_hasta'] : null;
 $estado = $_GET['estado'] ?? '';
 $categoria = $_GET['categoria'] ?? '';
+$exportar_todos = ($fecha_desde === null && $fecha_hasta === null);
 
-$conditions = ['g.fecha_gasto BETWEEN ? AND ?'];
-$params = [$fecha_desde, $fecha_hasta];
-$types = 'ss';
+$conditions = [];
+$params = [];
+$types = '';
 
+if ($fecha_desde !== null) {
+    $conditions[] = 'g.fecha_gasto >= ?';
+    $params[] = $fecha_desde;
+    $types .= 's';
+}
+if ($fecha_hasta !== null) {
+    $conditions[] = 'g.fecha_gasto <= ?';
+    $params[] = $fecha_hasta;
+    $types .= 's';
+}
 if ($estado) {
     $conditions[] = 'g.estado = ?';
     $params[] = $estado;
@@ -29,7 +42,7 @@ if ($categoria) {
     $types .= 's';
 }
 
-$where = 'WHERE ' . implode(' AND ', $conditions);
+$where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
 $sql = "SELECT g.*,
         u.username AS usuario_nombre,
@@ -46,18 +59,28 @@ $sql = "SELECT g.*,
     ORDER BY g.fecha_gasto ASC, g.id ASC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param($types, ...$params);
+if ($types !== '') {
+    $stmt->bind_param($types, ...$params);
+}
 $stmt->execute();
 $gastos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+$filename = $exportar_todos
+    ? 'gastos_todos_' . date('Y-m-d') . '.csv'
+    : 'gastos_' . $fecha_desde . '_' . $fecha_hasta . '.csv';
+
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="gastos_' . $fecha_desde . '_' . $fecha_hasta . '.csv"');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
 
 $out = fopen('php://output', 'w');
 fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
 fputcsv($out, ['REPORTE DE GASTOS - DT STUDIO']);
-fputcsv($out, ['Período (fecha_gasto):', $fecha_desde, 'a', $fecha_hasta]);
+if ($exportar_todos) {
+    fputcsv($out, ['Alcance:', 'Todos los gastos del sistema (sin filtro de fechas)']);
+} else {
+    fputcsv($out, ['Período (fecha_gasto):', $fecha_desde ?? '—', 'a', $fecha_hasta ?? '—']);
+}
 fputcsv($out, ['Generado:', date('d/m/Y H:i')]);
 fputcsv($out, []);
 
